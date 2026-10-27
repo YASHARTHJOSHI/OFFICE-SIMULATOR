@@ -26,7 +26,9 @@ const assets = {
   char1Avatar: new Image(),
   char2Avatar: new Image(),
   char1Idle: new Image(),
-  char2Idle: new Image()
+  char2Idle: new Image(),
+  char1Sitting: new Image(),
+  char2Sitting: new Image()
 };
 
 let isGameInitialized = false;
@@ -78,6 +80,8 @@ registerAsset('char1Avatar', 'assets/char1_avatar.png');
 registerAsset('char2Avatar', 'assets/char2_avatar.png');
 registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
+registerAsset('char1Sitting', 'assets/char1_sitting.png');
+registerAsset('char2Sitting', 'assets/char2_sitting.png');
 
 // Check if all cached already
 checkAllAssetsLoaded();
@@ -127,6 +131,7 @@ const state = {
     width: 40,
     height: 85,
     charId: 'char1',
+    isSitting: false,
     // Hitbox relative to (x, y) bottom-center (feet only for smooth navigation)
     hitbox: { w: 16, h: 8 }
   },
@@ -243,6 +248,20 @@ const SCENES = {
         }
       },
       {
+        id: 'workstation_chair',
+        x: 420, y: 310, w: 90, h: 65,
+        prompt: 'Sit in Office Chair [E / C]',
+        promptPos: { x: 465, y: 300 },
+        action: () => toggleSitInChair(465, 345)
+      },
+      {
+        id: 'left_desk_chair',
+        x: 340, y: 310, w: 80, h: 65,
+        prompt: 'Sit at Workstation [E / C]',
+        promptPos: { x: 380, y: 300 },
+        action: () => toggleSitInChair(380, 345)
+      },
+      {
         id: 'bookshelf_left',
         x: 235, y: 190, w: 85, h: 55,
         prompt: 'Read Policy Manual',
@@ -301,6 +320,13 @@ const SCENES = {
         prompt: 'Exit to Main Hall',
         promptPos: { x: 955, y: 435 },
         action: () => exitToMainHall()
+      },
+      {
+        id: 'boss_visitor_chair',
+        x: 275, y: 455, w: 90, h: 65,
+        prompt: 'Sit in Visitor Chair [E / C]',
+        promptPos: { x: 320, y: 440 },
+        action: () => toggleSitInChair(320, 495)
       },
       {
         id: 'talk_to_boss',
@@ -534,6 +560,10 @@ function setupEventListeners() {
         handleInteract();
         matched = true;
       }
+      if (k === 'c' || c === 'KeyC') {
+        toggleSitInChair();
+        matched = true;
+      }
       if (k === 'm' || c === 'KeyM') toggleSound();
       if (k === 'h' || c === 'KeyH') toggleHelpModal();
       if (k === 'f' || c === 'KeyF') toggleFullscreen();
@@ -617,6 +647,15 @@ function setupEventListeners() {
       handleInteract();
     });
   }
+
+  const touchSit = document.getElementById('touch-sit-btn');
+  if (touchSit) {
+    touchSit.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.soundManager.unlock();
+      toggleSitInChair();
+    });
+  }
 }
 
 function toggleSound() {
@@ -639,8 +678,35 @@ function toggleHelpModal() {
 }
 
 // ==========================================
-// INTERACTION & DIALOGUE LOGIC
+// CHAIR SITTING & INTERACTION
 // ==========================================
+function toggleSitInChair(chairX, chairY) {
+  const p = state.player;
+  p.isSitting = !p.isSitting;
+
+  if (p.isSitting) {
+    if (chairX !== undefined && chairY !== undefined) {
+      p.x = chairX;
+      p.y = chairY;
+    }
+    p.direction = 'up'; // face workstation
+    p.isMoving = false;
+    state.clickTarget = null;
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+    showToast('💺 Sitting comfortably in the office chair. Press [E], [C], or move to stand up.');
+  } else {
+    window.soundManager.unlock();
+    window.soundManager.playFootstep(state.currentScene === 'BOSS_CABINET');
+    showToast('🚶 Stood up from the chair.');
+  }
+
+  // Broadcast sit state
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    window.multiplayerEngine.broadcastPosition(p, state.currentScene);
+  }
+}
+
 function handleInteract() {
   if (state.isTransitioning) return;
 
@@ -1070,7 +1136,18 @@ function update(dt) {
     dy *= 0.7071;
   }
 
-  p.isMoving = dx !== 0 || dy !== 0;
+  // If sitting in chair and movement key is pressed, stand up!
+  if (p.isSitting && (dx !== 0 || dy !== 0)) {
+    p.isSitting = false;
+    window.soundManager.unlock();
+    window.soundManager.playFootstep(state.currentScene === 'BOSS_CABINET');
+    showToast('🚶 Stood up from the chair.');
+    if (window.multiplayerEngine && window.multiplayerEngine.active) {
+      window.multiplayerEngine.broadcastPosition(p, state.currentScene);
+    }
+  }
+
+  p.isMoving = !p.isSitting && (dx !== 0 || dy !== 0);
 
   if (p.isMoving) {
     // Set Facing Direction
@@ -1349,8 +1426,45 @@ function renderPlayer() {
   const ph = p.height;
   const px = p.x - pw / 2;
   const py = p.y - ph;
+  const scene = SCENES[state.currentScene];
 
   ctx.save();
+
+  // If sitting in chair, render sitting sprite!
+  if (p.isSitting) {
+    let sitImg = assets.char1Sitting;
+    if (p.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
+      sitImg = assets.char2Sitting;
+    } else if (assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
+      sitImg = assets.char1Sitting;
+    }
+
+    if (sitImg && sitImg.complete && sitImg.width > 0) {
+      const scale = scene.playerScale || 0.55;
+      const sw = Math.round(sitImg.width * scale);
+      const sh = Math.round(sitImg.height * scale);
+      const sx = Math.round(p.x - sw / 2);
+      // Subtle gentle breathing / swivel motion
+      const breath = Math.sin(performance.now() * 0.003) * 1.5;
+      const sy = Math.round(p.y - sh + breath);
+
+      // Chair shadow beneath wheels
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y - 1, sw * 0.46, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Sitting Character in Chair
+      ctx.drawImage(sitImg, sx, sy, sw, sh);
+
+      // Pixel typing particles from keyboard terminal
+      if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.22) {
+        window.pixelEngine.particles.spawnTypingParticles(p.x, p.y - sh * 0.42);
+      }
+    }
+    ctx.restore();
+    return;
+  }
 
   // 1. Soft Shadow beneath feet
   ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
@@ -1419,51 +1533,78 @@ function renderRemotePlayers() {
     const px = peer.x - pw / 2;
     const py = peer.y - ph;
 
-    ctx.save();
-
-    // 1. Soft Shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(peer.x, peer.y - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 2. Sprite Sheet
-    let sheet = assets.char1Spritesheet;
-    if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
-      sheet = assets.char2Spritesheet;
-    } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
-      sheet = assets.char1Spritesheet;
-    } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
-      sheet = assets.spritesheet;
-    }
-
-    if (sheet && sheet.complete && sheet.width > 0) {
-      const frameW = 74;
-      const frameH = 157;
-      let row = 0;
-      let isFlipped = false;
-
-      if (peer.direction === 'down') {
-        row = 0;
-      } else if (peer.direction === 'up') {
-        row = 2;
-      } else if (peer.direction === 'right') {
-        row = 1;
-      } else if (peer.direction === 'left') {
-        row = 1;
-        isFlipped = true;
+    if (peer.isSitting) {
+      let sitImg = assets.char1Sitting;
+      if (peer.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
+        sitImg = assets.char2Sitting;
+      } else if (assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
+        sitImg = assets.char1Sitting;
       }
 
-      const col = peer.isMoving ? (peer.animFrame % 4) : 0;
-      const sx = col * frameW;
-      const sy = row * frameH;
+      if (sitImg && sitImg.complete && sitImg.width > 0) {
+        const scale = scene.playerScale || 0.55;
+        const sw = Math.round(sitImg.width * scale);
+        const sh = Math.round(sitImg.height * scale);
+        const sx = Math.round(peer.x - sw / 2);
+        const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.003) * 1.5;
+        const sy = Math.round(peer.y - sh + breath);
 
-      if (isFlipped) {
-        ctx.translate(px + pw, py);
-        ctx.scale(-1, 1);
-        ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
-      } else {
-        ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(peer.x, peer.y - 1, sw * 0.46, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.drawImage(sitImg, sx, sy, sw, sh);
+
+        if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.15) {
+          window.pixelEngine.particles.spawnTypingParticles(peer.x, peer.y - sh * 0.42);
+        }
+      }
+    } else {
+      // 1. Soft Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.beginPath();
+      ctx.ellipse(peer.x, peer.y - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Sprite Sheet
+      let sheet = assets.char1Spritesheet;
+      if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
+        sheet = assets.char2Spritesheet;
+      } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
+        sheet = assets.char1Spritesheet;
+      } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
+        sheet = assets.spritesheet;
+      }
+
+      if (sheet && sheet.complete && sheet.width > 0) {
+        const frameW = 74;
+        const frameH = 157;
+        let row = 0;
+        let isFlipped = false;
+
+        if (peer.direction === 'down') {
+          row = 0;
+        } else if (peer.direction === 'up') {
+          row = 2;
+        } else if (peer.direction === 'right') {
+          row = 1;
+        } else if (peer.direction === 'left') {
+          row = 1;
+          isFlipped = true;
+        }
+
+        const col = peer.isMoving ? (peer.animFrame % 4) : 0;
+        const sx = col * frameW;
+        const sy = row * frameH;
+
+        if (isFlipped) {
+          ctx.translate(px + pw, py);
+          ctx.scale(-1, 1);
+          ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
+        } else {
+          ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+        }
       }
     }
 
@@ -1474,7 +1615,8 @@ function renderRemotePlayers() {
     const badgeW = textWidth + 22;
     const badgeH = 18;
     const badgeX = peer.x - badgeW / 2;
-    const badgeY = py - 14;
+    const headTop = peer.isSitting ? (peer.y - Math.round(135 * (scene.playerScale || 0.55))) : py;
+    const badgeY = headTop - 14;
 
     // Pill background
     ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';

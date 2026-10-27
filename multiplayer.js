@@ -26,6 +26,7 @@ class MultiplayerEngine {
       isMoving: false,
       animFrame: 0,
       scene: 'OFFICE_HALL',
+      isSitting: false,
       isReady: false
     };
 
@@ -414,6 +415,7 @@ class MultiplayerEngine {
           p.isMoving = msg.isMoving;
           p.animFrame = msg.animFrame;
           p.scene = msg.scene;
+          p.isSitting = !!msg.isSitting;
           p.lastSeen = Date.now();
         }
         break;
@@ -548,7 +550,8 @@ class MultiplayerEngine {
       direction: playerState.direction,
       isMoving: playerState.isMoving,
       animFrame: playerState.animFrame,
-      scene: currentScene
+      scene: currentScene,
+      isSitting: !!playerState.isSitting
     });
   }
 

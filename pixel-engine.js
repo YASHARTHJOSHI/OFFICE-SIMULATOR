@@ -77,6 +77,25 @@ class PixelParticleEngine {
     });
   }
 
+  /**
+   * Spawn glowing retro typing particles from keyboard/terminal when sitting at desk
+   */
+  spawnTypingParticles(x, y) {
+    if (this.particles.length >= this.maxParticles) {
+      this.particles.shift();
+    }
+    this.particles.push({
+      x: Math.round(x + (Math.random() - 0.5) * 16),
+      y: Math.round(y + (Math.random() - 0.5) * 4),
+      vx: (Math.random() - 0.5) * 16,
+      vy: -14 - Math.random() * 12,
+      size: 2,
+      colorPrefix: Math.random() > 0.5 ? 'rgba(56, 189, 248,' : 'rgba(16, 185, 129,',
+      alpha: 0.9,
+      decay: 1.8
+    });
+  }
+
   update(dt) {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
