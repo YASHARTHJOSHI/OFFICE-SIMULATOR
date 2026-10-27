@@ -2100,12 +2100,15 @@ kbd {
   color: #e2e8f0;
 }
 
-/* Tab 2: Live AI Chat Terminal */
+/* Tab 2: Live AI Chat Terminal - WhatsApp Web Dark Theme */
 .chat-terminal-wrap {
   display: flex;
   flex-direction: column;
   height: 400px;
-  background: #0b1120;
+  background-color: #0b141a;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg' opacity='0.04'%3E%3Cpath fill='%23ffffff' d='M20,10 C25,10 28,14 28,18 C28,24 20,28 20,28 C20,28 12,24 12,18 C12,14 15,10 20,10 Z M65,15 L75,15 L75,25 L65,25 Z M100,20 C105,20 108,23 108,28 C108,33 100,38 100,38 C100,38 92,33 92,28 C92,23 95,20 100,20 Z M35,45 L45,55 L35,65 L25,55 Z M80,50 C86,50 90,54 90,60 C90,66 80,72 80,72 C80,72 70,66 70,60 C70,54 74,50 80,50 Z'/%3E%3C/svg%3E");
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   overflow: hidden;
@@ -2117,29 +2120,30 @@ kbd {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .chat-msg {
-  max-width: 80%;
-  padding: 0.65rem 0.95rem;
-  border-radius: 10px;
-  font-size: 0.82rem;
+  max-width: 78%;
+  padding: 0.6rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   line-height: 1.4;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.15);
 }
 
 .chat-msg.assistant {
   align-self: flex-start;
-  background: #1e293b;
-  color: #f1f5f9;
-  border-bottom-left-radius: 2px;
+  background: #202c33;
+  color: #e9edef;
+  border-top-left-radius: 0;
 }
 
 .chat-msg.user {
   align-self: flex-end;
-  background: #2563eb;
-  color: #ffffff;
-  border-bottom-right-radius: 2px;
+  background: #005c4b;
+  color: #e9edef;
+  border-top-right-radius: 0;
 }
 
 .chat-quick-chips {
@@ -3637,177 +3641,750 @@ kbd {
   font-size: 0.85rem;
 }
 
-/* App: Slack */
-.pc-slack-wrap {
+/* App: WhatsApp Web (OfficeChat) */
+.pc-wa-app {
   display: flex;
   height: 100%;
+  width: 100%;
+  background: #111b21;
+  color: #e9edef;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  user-select: none;
 }
 
-.pc-slack-sidebar {
-  width: 175px;
-  background: #111827;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 12px 8px;
+/* 1. Leftmost Rail / Activity Bar */
+.pc-wa-rail {
+  width: 58px;
+  background: #202c33;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
-.pc-slack-workspace {
+.pc-wa-rail-top, .pc-wa-rail-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.pc-wa-rail-btn {
+  background: transparent;
+  border: none;
+  color: #aebac1;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s;
+}
+
+.pc-wa-rail-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e9edef;
+}
+
+.pc-wa-rail-btn.active {
+  background: #374248;
+  color: #e9edef;
+}
+
+.pc-wa-badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: #25d366;
+  border-radius: 50%;
+  border: 2px solid #202c33;
+}
+
+.pc-wa-meta-ai-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, #ec4899, #8b5cf6, #3b82f6, #10b981, #ec4899);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+.pc-wa-profile-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #00a884;
+  cursor: pointer;
+}
+
+.pc-wa-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 2. Left Chats List Pane */
+.pc-wa-sidebar {
+  width: 320px;
+  min-width: 280px;
+  max-width: 340px;
+  background: #111b21;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.pc-wa-sidebar-header {
+  height: 56px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font-size: 0.85rem;
 }
 
-.slack-status-dot.online {
-  width: 8px;
-  height: 8px;
-  background: #10b981;
-  border-radius: 50%;
-}
-
-.pc-slack-section {
-  color: #64748b;
-  font-size: 0.65rem;
+.pc-wa-brand-title {
+  color: #e9edef;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-top: 8px;
-  padding-left: 4px;
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
-.pc-slack-channel, .pc-slack-dm {
-  padding: 6px 8px;
-  border-radius: 5px;
-  color: #94a3b8;
-  font-size: 0.78rem;
+.pc-wa-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-wa-icon-btn {
+  background: transparent;
+  border: none;
+  color: #aebac1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.pc-slack-channel:hover, .pc-slack-dm:hover {
+.pc-wa-icon-btn:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
+  color: #e9edef;
 }
 
-.pc-slack-channel.active, .pc-slack-dm.active {
-  background: #2563eb;
-  color: #fff;
-  font-weight: 600;
+.pc-wa-newchat-btn {
+  background: #25d366;
+  color: #111b21;
 }
 
-.pc-slack-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: #0f172a;
+.pc-wa-newchat-btn:hover {
+  background: #20ba59;
+  color: #111b21;
 }
 
-.pc-slack-header {
-  height: 38px;
-  padding: 0 14px;
+.pc-wa-search-wrap {
+  padding: 0 12px 8px;
+}
+
+.pc-wa-search-box {
   display: flex;
   align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.slack-topic {
-  font-size: 0.72rem;
-  color: #64748b;
-  font-weight: normal;
-}
-
-.pc-slack-messages {
-  flex: 1;
-  padding: 14px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.slack-msg-item {
-  display: flex;
+  background: #202c33;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 35px;
   gap: 10px;
 }
 
-.slack-msg-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #1e293b;
+.pc-wa-search-icon {
+  font-size: 0.85rem;
+  color: #8696a0;
+}
+
+.pc-wa-search-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d1d7db;
+  font-size: 0.84rem;
+  font-family: inherit;
+}
+
+.pc-wa-search-box input::placeholder {
+  color: #8696a0;
+}
+
+.pc-wa-filters {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 10px;
+  overflow-x: auto;
+}
+
+.pc-wa-filter-chip {
+  background: #202c33;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 4px 12px;
+  color: #8696a0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.pc-wa-filter-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #d1d7db;
+}
+
+.pc-wa-filter-chip.active {
+  background: #103629;
+  color: #00a884;
+  border-color: rgba(0, 168, 132, 0.3);
+  font-weight: 600;
+}
+
+.pc-wa-notif-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #182229;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pc-wa-notif-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 168, 132, 0.15);
+  color: #00a884;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
+  flex-shrink: 0;
 }
 
-.slack-msg-content {
+.pc-wa-notif-text {
   flex: 1;
-}
-
-.slack-msg-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.slack-msg-meta strong {
-  color: #38bdf8;
-  font-size: 0.82rem;
-}
-
-.slack-msg-time {
-  color: #64748b;
-  font-size: 0.68rem;
-}
-
-.slack-msg-text {
-  color: #e2e8f0;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  color: #e9edef;
   line-height: 1.35;
 }
 
-.pc-slack-input-row {
-  padding: 10px;
-  display: flex;
-  gap: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.pc-wa-notif-text a {
+  color: #00a884;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-.pc-slack-input-row input {
-  flex: 1;
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  padding: 6px 12px;
-  color: #fff;
-  font-size: 0.82rem;
-  outline: none;
+.pc-wa-notif-text a:hover {
+  text-decoration: underline;
 }
 
-.pc-btn-primary {
-  background: #2563eb;
+.pc-wa-notif-close {
+  background: transparent;
   border: none;
+  color: #8696a0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.pc-wa-notif-close:hover {
+  color: #e9edef;
+}
+
+.pc-wa-chat-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-wa-chat-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.pc-wa-chat-item:hover {
+  background: #202c33;
+}
+
+.pc-wa-chat-item.active {
+  background: #2a3942;
+}
+
+.wa-item-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #2a3942;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wa-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wa-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
   color: #fff;
-  padding: 6px 14px;
-  border-radius: 6px;
+}
+
+.wa-item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wa-item-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.wa-item-name {
+  color: #e9edef;
+  font-size: 0.92rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wa-item-time {
+  color: #8696a0;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.wa-item-row-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wa-item-snippet {
+  color: #8696a0;
+  font-size: 0.81rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wa-preview-check {
+  color: #53bdeb;
+  margin-right: 3px;
+  font-weight: bold;
+}
+
+.wa-unread-badge {
+  background: #25d366;
+  color: #111b21;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  flex-shrink: 0;
+}
+
+.pc-wa-bottom-promo {
+  padding: 10px 14px;
+  background: #111b21;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00a884;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.pc-btn-primary:hover {
-  background: #1d4ed8;
+.pc-wa-bottom-promo:hover {
+  background: #182229;
 }
 
+/* 3. Right Active Chat Pane */
+.pc-wa-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #0b141a;
+  position: relative;
+  min-width: 0;
+}
+
+.pc-wa-chat-header {
+  height: 56px;
+  padding: 0 16px;
+  background: #202c33;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.pc-wa-header-contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.pc-wa-header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #2a3942;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pc-wa-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-wa-header-info strong {
+  color: #e9edef;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.wa-status-online {
+  color: #8696a0;
+  font-size: 0.75rem;
+}
+
+.wa-status-typing {
+  color: #25d366;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.wa-status-muted {
+  color: #8696a0;
+  font-size: 0.72rem;
+}
+
+.pc-wa-header-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pc-wa-tool-btn {
+  background: transparent;
+  border: none;
+  color: #aebac1;
+  font-size: 1rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pc-wa-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e9edef;
+}
+
+.pc-wa-tool-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+}
+
+/* Chat Body with Dark Doodle Wallpaper */
+.pc-wa-chat-body {
+  flex: 1;
+  background-color: #0b141a;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg' opacity='0.05'%3E%3Cpath fill='%23ffffff' d='M20,10 C25,10 28,14 28,18 C28,24 20,28 20,28 C20,28 12,24 12,18 C12,14 15,10 20,10 Z M65,15 L75,15 L75,25 L65,25 Z M100,20 C105,20 108,23 108,28 C108,33 100,38 100,38 C100,38 92,33 92,28 C92,23 95,20 100,20 Z M35,45 L45,55 L35,65 L25,55 Z M80,50 C86,50 90,54 90,60 C90,66 80,72 80,72 C80,72 70,66 70,60 C70,54 74,50 80,50 Z M15,85 L25,85 L25,95 L15,95 Z M55,80 C60,80 64,84 64,90 C64,96 55,102 55,102 C55,102 46,96 46,90 C46,84 50,80 55,80 Z M105,85 L115,95 L105,105 L95,95 Z'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  padding: 16px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wa-date-divider {
+  align-self: center;
+  background: #182229;
+  color: #8696a0;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 8px;
+  margin: 6px 0 10px;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+.wa-bubble {
+  max-width: 68%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin-bottom: 3px;
+}
+
+.wa-bubble.incoming {
+  align-self: flex-start;
+}
+
+.wa-bubble.outgoing {
+  align-self: flex-end;
+}
+
+.wa-bubble-content {
+  padding: 6px 9px 5px 9px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);
+  word-wrap: break-word;
+}
+
+.wa-bubble.incoming .wa-bubble-content {
+  background: #202c33;
+  color: #e9edef;
+  border-top-left-radius: 0;
+}
+
+.wa-bubble.outgoing .wa-bubble-content {
+  background: #005c4b;
+  color: #e9edef;
+  border-top-right-radius: 0;
+}
+
+.wa-bubble-sender-title {
+  color: #53bdeb;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.wa-bubble-text {
+  font-size: 0.88rem;
+  line-height: 1.38;
+}
+
+.wa-bubble-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  float: right;
+  margin-left: 12px;
+  margin-top: 4px;
+}
+
+.wa-bubble-time {
+  font-size: 0.68rem;
+  color: #8696a0;
+}
+
+.wa-bubble.outgoing .wa-bubble-time {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.wa-checkmarks.double-blue {
+  color: #53bdeb;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: -2px;
+}
+
+/* Quoted message block */
+.wa-quoted-box {
+  background: rgba(0, 0, 0, 0.22);
+  border-left: 3.5px solid #00a884;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-bottom: 5px;
+  font-size: 0.78rem;
+}
+
+.wa-quoted-author {
+  color: #00a884;
+  font-weight: 600;
+  font-size: 0.75rem;
+  margin-bottom: 2px;
+}
+
+.wa-quoted-text {
+  color: #8696a0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+/* Emoji reaction badge */
+.wa-reaction-badge {
+  position: absolute;
+  bottom: -8px;
+  right: 8px;
+  background: #202c33;
+  border: 1px solid #111b21;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  padding: 1px 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+
+.wa-system-message {
+  align-self: center;
+  background: rgba(24, 34, 41, 0.9);
+  color: #8696a0;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin: 4px 0;
+}
+
+/* Chat Input Footer */
+.pc-wa-chat-footer {
+  height: 60px;
+  padding: 8px 16px;
+  background: #202c33;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pc-wa-footer-btn {
+  background: transparent;
+  border: none;
+  color: #8696a0;
+  font-size: 1.25rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pc-wa-footer-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e9edef;
+}
+
+.pc-wa-input-pill {
+  flex: 1;
+  background: #2a3942;
+  border-radius: 8px;
+  padding: 0 14px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.pc-wa-input-pill input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d1d7db;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.pc-wa-input-pill input::placeholder {
+  color: #8696a0;
+}
+
+.pc-wa-send-btn {
+  background: transparent;
+  border: none;
+  color: #8696a0;
+  font-size: 1.2rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pc-wa-send-btn.can-send {
+  background: #00a884;
+  color: #111b21;
+  font-weight: bold;
+}
+
+.pc-wa-send-btn.can-send:hover {
+  background: #029474;
+}
+
+.wa-green-glyph {
+  background: #25d366 !important;
+  border-radius: 8px;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
 /* App: Notepad */
 .pc-notepad-container {
   display: flex;

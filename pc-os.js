@@ -603,159 +603,617 @@
     }
   }
 
-  // --- 2. SLACK / OFFICECHAT APP ---
+  // --- 2. WHATSAPP WEB / OFFICECHAT APP ---
   function initSlackApp() {
     const html = `
-      <div class="pc-slack-wrap">
-        <div class="pc-slack-sidebar">
-          <div class="pc-slack-workspace">
-            <strong>OmniCorp Slack</strong>
-            <span class="slack-status-dot online"></span>
+      <div class="pc-wa-app">
+        <!-- 1. Leftmost Activity Rail -->
+        <div class="pc-wa-rail">
+          <div class="pc-wa-rail-top">
+            <button class="pc-wa-rail-btn active" title="Chats" data-tab="chats">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3c-4.97 0-9 4.03-9 9 0 1.69.47 3.27 1.28 4.63L3 21l4.48-1.24A8.95 8.95 0 0 0 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16.2c-1.46 0-2.84-.4-4.02-1.09l-.29-.17-2.66.74.75-2.58-.19-.31A7.16 7.16 0 0 1 4.8 12c0-3.97 3.23-7.2 7.2-7.2s7.2 3.23 7.2 7.2-3.23 7.2-7.2 7.2z"/>
+              </svg>
+              <span class="pc-wa-badge-dot"></span>
+            </button>
+            <button class="pc-wa-rail-btn" title="Status">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9" stroke-dasharray="8 4"/>
+              </svg>
+            </button>
+            <button class="pc-wa-rail-btn" title="Channels">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 4v16m-7-12v8m-7-4v0"/>
+                <path d="M3 11l4-4h4l6-4v18l-6-4H7l-4-4z"/>
+              </svg>
+            </button>
+            <button class="pc-wa-rail-btn" title="Communities">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+              </svg>
+            </button>
+            <button class="pc-wa-rail-btn meta-ai-btn" title="Meta AI">
+              <div class="pc-wa-meta-ai-icon"></div>
+            </button>
           </div>
-          <div class="pc-slack-section">CHANNELS</div>
-          <div class="pc-slack-channel active" data-chan="general"># general</div>
-          <div class="pc-slack-channel" data-chan="dev-team"># dev-team</div>
-          <div class="pc-slack-channel" data-chan="watercooler"># watercooler</div>
-          <div class="pc-slack-channel" data-chan="memes"># memes</div>
-          <div class="pc-slack-section">DIRECT MESSAGES</div>
-          <div class="pc-slack-dm" data-chan="dm-rahul">🟢 Rahul (Tech Lead)</div>
-          <div class="pc-slack-dm" data-chan="dm-priya">🟢 Priya (Product PM)</div>
-          <div class="pc-slack-dm" data-chan="dm-amit">🟢 Amit (HR Manager)</div>
-          <div class="pc-slack-dm" data-chan="dm-boss">🔴 Anakin (CEO)</div>
+          <div class="pc-wa-rail-bottom">
+            <button class="pc-wa-rail-btn" title="Settings">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+            <div class="pc-wa-profile-avatar" title="My Status: Online">
+              <img id="wa-my-avatar" src="assets/char4_avatar.png" alt="Me" />
+            </div>
+          </div>
         </div>
-        <div class="pc-slack-main">
-          <div class="pc-slack-header">
-            <span id="slack-current-channel"># general</span>
-            <span class="slack-topic">Topic: Free donuts in Cafeteria! Do NOT push broken code on Friday.</span>
+
+        <!-- 2. Left Chats List Pane -->
+        <div class="pc-wa-sidebar">
+          <div class="pc-wa-sidebar-header">
+            <h2 class="pc-wa-brand-title">WhatsApp</h2>
+            <div class="pc-wa-header-actions">
+              <button class="pc-wa-icon-btn pc-wa-newchat-btn" title="New Chat">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+              </button>
+              <button class="pc-wa-icon-btn" title="Menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div class="pc-slack-messages" id="slack-msg-feed"></div>
-          <div class="pc-slack-input-row">
-            <input type="text" id="slack-input" placeholder="Message #general..." />
-            <button id="slack-send-btn" class="pc-btn-primary">Send ⏎</button>
+
+          <!-- Search Bar -->
+          <div class="pc-wa-search-wrap">
+            <div class="pc-wa-search-box">
+              <span class="pc-wa-search-icon">🔍</span>
+              <input type="text" id="wa-search-input" placeholder="Search or start a new chat" />
+            </div>
+          </div>
+
+          <!-- Filter Pills -->
+          <div class="pc-wa-filters">
+            <button class="pc-wa-filter-chip active" data-filter="all">All</button>
+            <button class="pc-wa-filter-chip" data-filter="unread">Unread</button>
+            <button class="pc-wa-filter-chip" data-filter="favs">Favourites</button>
+            <button class="pc-wa-filter-chip" data-filter="groups">Groups</button>
+            <button class="pc-wa-filter-chip add-filter" title="Add Custom Filter">+</button>
+          </div>
+
+          <!-- Notifications Off Alert Banner -->
+          <div class="pc-wa-notif-banner" id="wa-notif-banner">
+            <div class="pc-wa-notif-icon">🔕</div>
+            <div class="pc-wa-notif-text">
+              Message and call notifications are off. <a href="#" id="wa-enable-notif">Turn on</a>
+            </div>
+            <button class="pc-wa-notif-close" id="wa-close-notif" title="Dismiss">✕</button>
+          </div>
+
+          <!-- Chat Contacts List -->
+          <div class="pc-wa-chat-list" id="wa-chat-list">
+            <!-- Dynamically injected -->
+          </div>
+
+          <!-- Bottom Windows Promo -->
+          <div class="pc-wa-bottom-promo" id="wa-desktop-promo">
+            <span class="wa-promo-icon">💬</span>
+            <span class="wa-promo-text">Get WhatsApp for Windows</span>
+          </div>
+        </div>
+
+        <!-- 3. Right Active Chat Pane -->
+        <div class="pc-wa-main">
+          <!-- Active Chat Header -->
+          <div class="pc-wa-chat-header">
+            <div class="pc-wa-header-contact">
+              <div class="pc-wa-header-avatar" id="wa-active-avatar">
+                <!-- Avatar injected -->
+              </div>
+              <div class="pc-wa-header-info">
+                <strong id="wa-active-name">+91 724 871 0536</strong>
+                <span id="wa-active-status" class="wa-status-online">online</span>
+              </div>
+            </div>
+            <div class="pc-wa-header-tools">
+              <button class="pc-wa-tool-btn" title="Video Call">📹</button>
+              <button class="pc-wa-tool-btn" title="Voice Call">📞</button>
+              <span class="pc-wa-tool-divider"></span>
+              <button class="pc-wa-tool-btn" title="Search in chat">🔍</button>
+              <button class="pc-wa-tool-btn" title="More options">⋮</button>
+            </div>
+          </div>
+
+          <!-- Message Stream with WhatsApp Dark Doodle Wallpaper -->
+          <div class="pc-wa-chat-body" id="wa-msg-stream">
+            <!-- Date badge & Message Bubbles injected -->
+          </div>
+
+          <!-- Input Footer Bar -->
+          <div class="pc-wa-chat-footer">
+            <button class="pc-wa-footer-btn" title="Emojis" id="wa-emoji-btn">😊</button>
+            <button class="pc-wa-footer-btn" title="Attach file" id="wa-attach-btn">📎</button>
+            <div class="pc-wa-input-pill">
+              <input type="text" id="wa-msg-input" placeholder="Type a message" autocomplete="off" />
+            </div>
+            <button class="pc-wa-send-btn" id="wa-send-btn" title="Send message">
+              <span id="wa-send-icon">🎙️</span>
+            </button>
           </div>
         </div>
       </div>
     `;
 
-    const winEl = registerWindow('slack', 'OfficeChat - OmniCorp Workspace', '💬', html, 640, 420);
+    const winEl = registerWindow('slack', 'WhatsApp Web - OfficeChat', '💬', html, 840, 530);
 
-    const channelsData = {
-      'general': [
-        { user: 'Anakin Skywalker', avatar: 'boss', time: '09:00 AM', text: 'Good morning team. Today\'s objective: 0 critical bugs and 200% sprint productivity.' },
-        { user: 'Priya', avatar: 'npc_priya', time: '09:14 AM', text: 'Ticket triage sprint kickoff at 11 AM! Please check your assigned P0 customer tickets.' },
-        { user: 'Alex', avatar: 'npc_alex', time: '10:05 AM', text: '☕ Cafeteria update: Fresh Colombian dark roast is brewed at the espresso bar!' }
-      ],
-      'dev-team': [
-        { user: 'Rahul', avatar: 'npc_rahul', time: '09:30 AM', text: 'Reminder: PRs need clean descriptions and unit tests before requesting review.' },
-        { user: 'Neha', avatar: 'npc_neha', time: '09:45 AM', text: 'Standup in 5 mins! Keep it crisp: What you did, what you\'re doing, and blockers.' },
-        { user: 'Rahul', avatar: 'npc_rahul', time: '10:12 AM', text: 'Whoever fixed the chair sitting position: code looks super clean. Approved!' }
-      ],
-      'watercooler': [
-        { user: 'Amit', avatar: 'npc_amit', time: '10:20 AM', text: 'Remember to stretch every 45 minutes and stay hydrated at the water cooler! 💧' },
-        { user: 'Priya', avatar: 'npc_priya', time: '10:35 AM', text: 'Anyone want to split a sandwich in the Cafeteria around 1:00 PM?' }
-      ],
-      'memes': [
-        { user: 'Neha', avatar: 'npc_neha', time: '11:00 AM', text: 'QA Engineer walks into a bar. Orders a beer. Orders 0 beers. Orders 999999999 beers. Orders a lizard.' },
-        { user: 'Rahul', avatar: 'npc_rahul', time: '11:05 AM', text: 'A real customer walks into the bar and asks where the restroom is. The bar bursts into flames.' }
-      ],
-      'dm-rahul': [
-        { user: 'Rahul', avatar: 'npc_rahul', time: '10:00 AM', text: 'Hey! Ping me when you submit your PR review quest, I\'ll take a look right away.' }
-      ],
-      'dm-priya': [
-        { user: 'Priya', avatar: 'npc_priya', time: '09:40 AM', text: 'Hey there! Did you get a chance to check the escalation ticket triage game?' }
-      ],
-      'dm-amit': [
-        { user: 'Amit', avatar: 'npc_amit', time: '09:10 AM', text: 'Remember: Ask without apology! If you hit a roadblock, my 1-on-1 door is always open.' }
-      ],
-      'dm-boss': [
-        { user: 'Anakin Skywalker', avatar: 'boss', time: '08:30 AM', text: 'I sense great potential in you. Do not disappoint the Executive Committee.' }
-      ]
-    };
-
-    let curChannel = 'general';
-    const feed = winEl.querySelector('#slack-msg-feed');
-    const input = winEl.querySelector('#slack-input');
-    const sendBtn = winEl.querySelector('#slack-send-btn');
-    const chanTitle = winEl.querySelector('#slack-current-channel');
-
-    function renderFeed(ch) {
-      feed.innerHTML = '';
-      const list = channelsData[ch] || [];
-      list.forEach(m => {
-        const item = document.createElement('div');
-        item.className = 'slack-msg-item';
-        item.innerHTML = `
-          <div class="slack-msg-avatar">👤</div>
-          <div class="slack-msg-content">
-            <div class="slack-msg-meta">
-              <strong>${m.user}</strong> <span class="slack-msg-time">${m.time}</span>
-            </div>
-            <div class="slack-msg-text">${escapeHtml(m.text)}</div>
-          </div>
-        `;
-        feed.appendChild(item);
-      });
-      feed.scrollTop = feed.scrollHeight;
+    // Dynamic player avatar
+    const myAv = winEl.querySelector('#wa-my-avatar');
+    if (myAv && window.state && window.state.player) {
+      if (window.state.player.charId === 'char4') myAv.src = 'assets/char4_avatar.png';
+      else if (window.state.player.charId === 'char1') myAv.src = 'assets/char1_avatar.png';
+      else if (window.state.player.charId === 'char2') myAv.src = 'assets/char2_avatar.png';
+      else if (window.state.player.charId === 'char3') myAv.src = 'assets/char3_avatar.png';
     }
 
-    renderFeed(curChannel);
+    // Conversations Data matching screenshot & office environment
+    const contactsData = {
+      'sarthak': {
+        id: 'sarthak',
+        name: '+91 724 871 0536',
+        subtitle: 'online',
+        avatarBg: '#d97706',
+        avatarText: '🧑‍💻',
+        avatarImg: 'assets/char4_avatar.png',
+        type: 'direct',
+        unread: 0,
+        pinned: true,
+        lastTime: '8:59 pm',
+        messages: [
+          { sender: 'other', text: 'Sir ne bola agle Friday ko kar dena submit', time: '6:27 pm' },
+          { sender: 'me', text: 'Tune assignment kar liya??', time: '6:25 pm' },
+          { sender: 'me', text: 'Kal nhi karna??', time: '6:27 pm' },
+          { sender: 'other', text: 'Nahi', time: '6:29 pm' },
+          { sender: 'other', text: 'Aur sir bolre the jo aaj nahi aaya wo bhi karega lol 😂😂😂', time: '6:29 pm' },
+          { sender: 'me', text: 'Assignment??', time: '6:30 pm' },
+          { sender: 'me', text: 'Sun tu jayga waise kal??', time: '6:30 pm' },
+          { 
+            sender: 'other', 
+            text: 'Hm hum to qualify ho gaye ff ma round 2 ke liye jana he padega', 
+            time: '6:52 pm',
+            quoted: { author: 'You', text: 'Sun tu jayga waise kal??' }
+          },
+          { 
+            sender: 'me', 
+            text: 'Aaare waaah', 
+            time: '6:52 pm',
+            reaction: '❤️'
+          },
+          { sender: 'me', text: 'Bhai pakka nhi karna na kal assignment submit', time: '8:58 pm' },
+          { sender: 'other', text: 'Nahi karna ha yr', time: '8:59 pm' },
+          { sender: 'other', text: 'Puch le Sarthak se', time: '8:59 pm' }
+        ]
+      },
+      'graphite': {
+        id: 'graphite',
+        name: 'Graphite suii',
+        subtitle: 'last seen yesterday at 11:20 pm',
+        avatarBg: '#0284c7',
+        avatarText: '🌅',
+        avatarImg: 'assets/npc_priya_portrait.png',
+        type: 'direct',
+        unread: 0,
+        lastTime: 'Yesterday',
+        messages: [
+          { sender: 'other', text: 'Hey check out the sunset pics from the cafeteria balcony!', time: '05:14 PM' },
+          { sender: 'me', text: '📷 Photo', time: '05:15 PM' },
+          { sender: 'other', text: 'Whoa awesome lighting! Adding this to the office blog banner.', time: '05:16 PM' }
+        ]
+      },
+      'priyanshu': {
+        id: 'priyanshu',
+        name: '+91 70214 35548',
+        subtitle: 'offline',
+        avatarBg: '#059669',
+        avatarText: '👥',
+        type: 'direct',
+        unread: 0,
+        lastTime: 'Yesterday',
+        messages: [
+          { sender: 'me', text: 'Abhi nhi utha sakta meeting me hu', time: 'Yesterday' },
+          { sender: 'other', text: 'Theek hai free ho ke call karna!', time: 'Yesterday' }
+        ]
+      },
+      'kailash': {
+        id: 'kailash',
+        name: 'Kailash Joshi',
+        subtitle: 'last seen today at 8:00 am',
+        avatarBg: '#ea580c',
+        avatarText: '🏠',
+        type: 'direct',
+        unread: 0,
+        lastTime: 'Yesterday',
+        messages: [
+          { sender: 'other', text: 'खाना खाया', time: 'Yesterday' },
+          { sender: 'me', text: 'Haan ji papa, lunch kar liya office me!', time: 'Yesterday' },
+          { sender: 'other', text: 'Shabash, samay se ghar aana.', time: 'Yesterday' }
+        ]
+      },
+      'section-h': {
+        id: 'section-h',
+        name: 'SECTION H UNOFFICIAL',
+        subtitle: 'Priyanshu, Sarthak, Rahul, You and 42 others',
+        avatarBg: '#475569',
+        avatarText: '🏛️',
+        type: 'group',
+        unread: 3,
+        lastTime: 'Yesterday',
+        messages: [
+          { sender: 'other', user: 'Priyanshu', text: '~It: Priyanshu ne bola kal test postpone ho gaya!', time: 'Yesterday' },
+          { sender: 'other', user: 'Aman', text: 'Arre sach me kya?? Konse period me bataya?', time: 'Yesterday' },
+          { sender: 'me', text: 'Official circular aya kya group pe?', time: 'Yesterday' }
+        ]
+      },
+      'bus-transport': {
+        id: 'bus-transport',
+        name: 'Bus transport -GEHU Bhimtal Campus',
+        subtitle: '+91 92586 22152, Driver Singh, You...',
+        avatarBg: '#ca8a04',
+        avatarText: '🚌',
+        type: 'group',
+        unread: 0,
+        lastTime: 'Yesterday',
+        messages: [
+          { sender: 'system', text: '+91 92586 22152 joined via an invite link', time: 'Yesterday' },
+          { sender: 'other', user: 'Coordinator', text: 'Bus Route 4 will depart exactly at 05:15 PM from Main Gate.', time: 'Yesterday' }
+        ]
+      },
+      'rahul': {
+        id: 'rahul',
+        name: 'Rahul (Tech Lead)',
+        subtitle: 'online',
+        avatarBg: '#6366f1',
+        avatarText: '💻',
+        avatarImg: 'assets/npc_rahul_portrait.png',
+        type: 'direct',
+        unread: 0,
+        lastTime: '10:12 AM',
+        messages: [
+          { sender: 'other', text: 'Good morning! Check the PR review queue when you get to your desk.', time: '09:30 AM' },
+          { sender: 'me', text: 'Just tested the room portal badges and compact pill layout.', time: '10:00 AM' },
+          { sender: 'other', text: 'Whoever fixed the badges & character sitting position: code looks super clean. Approved! 🚀', time: '10:12 AM' }
+        ]
+      },
+      'priya': {
+        id: 'priya',
+        name: 'Priya (Product PM)',
+        subtitle: 'online',
+        avatarBg: '#ec4899',
+        avatarText: '📋',
+        avatarImg: 'assets/npc_priya_portrait.png',
+        type: 'direct',
+        unread: 0,
+        lastTime: '09:14 AM',
+        messages: [
+          { sender: 'other', text: 'Ticket triage sprint kickoff at 11 AM! Please check your assigned P0 customer tickets.', time: '09:14 AM' },
+          { sender: 'me', text: 'On it! Already locked in the diagnostic traps on the dashboard.', time: '09:20 AM' },
+          { sender: 'other', text: 'Perfect! Keep up the momentum.', time: '09:22 AM' }
+        ]
+      },
+      'amit': {
+        id: 'amit',
+        name: 'Amit (HR & Engineering)',
+        subtitle: 'busy',
+        avatarBg: '#8b5cf6',
+        avatarText: '👔',
+        avatarImg: 'assets/npc_amit_portrait.png',
+        type: 'direct',
+        unread: 0,
+        lastTime: '09:10 AM',
+        messages: [
+          { sender: 'other', text: 'Remember: Ask without apology! If you hit a roadblock, my 1-on-1 door is always open.', time: '09:10 AM' }
+        ]
+      },
+      'boss': {
+        id: 'boss',
+        name: 'Anakin Skywalker (CEO)',
+        subtitle: 'online',
+        avatarBg: '#ef4444',
+        avatarText: '⚡',
+        avatarImg: 'assets/boss_character.png',
+        type: 'direct',
+        unread: 0,
+        lastTime: '08:30 AM',
+        messages: [
+          { sender: 'other', text: 'I sense great potential in you. Do not disappoint the Executive Committee.', time: '08:30 AM' }
+        ]
+      }
+    };
 
-    // Channel Click listeners
-    winEl.querySelectorAll('.pc-slack-channel, .pc-slack-dm').forEach(btn => {
-      btn.addEventListener('click', () => {
-        winEl.querySelectorAll('.pc-slack-channel, .pc-slack-dm').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        curChannel = btn.getAttribute('data-chan');
-        chanTitle.textContent = btn.textContent;
-        renderFeed(curChannel);
+    let activeContactId = 'sarthak';
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    const chatListEl = winEl.querySelector('#wa-chat-list');
+    const msgStreamEl = winEl.querySelector('#wa-msg-stream');
+    const msgInputEl = winEl.querySelector('#wa-msg-input');
+    const sendBtnEl = winEl.querySelector('#wa-send-btn');
+    const sendIconEl = winEl.querySelector('#wa-send-icon');
+    const activeAvatarEl = winEl.querySelector('#wa-active-avatar');
+    const activeNameEl = winEl.querySelector('#wa-active-name');
+    const activeStatusEl = winEl.querySelector('#wa-active-status');
+    const searchInputEl = winEl.querySelector('#wa-search-input');
+    const notifBannerEl = winEl.querySelector('#wa-notif-banner');
+    const notifCloseEl = winEl.querySelector('#wa-close-notif');
+    const notifEnableEl = winEl.querySelector('#wa-enable-notif');
+
+    // Dismiss notifications banner
+    if (notifCloseEl) {
+      notifCloseEl.addEventListener('click', () => {
+        notifBannerEl.style.display = 'none';
+      });
+    }
+    if (notifEnableEl) {
+      notifEnableEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        notifBannerEl.innerHTML = '<span style="color:#00a884; font-size:0.8rem; font-weight:600;">🔔 Notifications enabled successfully!</span>';
+        setTimeout(() => { notifBannerEl.style.display = 'none'; }, 2000);
+      });
+    }
+
+    // Render Contact List in Sidebar
+    function renderContacts() {
+      chatListEl.innerHTML = '';
+      const keys = Object.keys(contactsData);
+
+      keys.forEach(k => {
+        const c = contactsData[k];
+        
+        // Filter logic
+        if (currentFilter === 'unread' && c.unread === 0) return;
+        if (currentFilter === 'groups' && c.type !== 'group') return;
+        if (currentFilter === 'favs' && !c.pinned) return;
+
+        // Search logic
+        if (searchQuery) {
+          const matchName = c.name.toLowerCase().includes(searchQuery.toLowerCase());
+          const lastMsg = c.messages[c.messages.length - 1];
+          const matchText = lastMsg && lastMsg.text.toLowerCase().includes(searchQuery.toLowerCase());
+          if (!matchName && !matchText) return;
+        }
+
+        const lastMsg = c.messages[c.messages.length - 1];
+        let previewText = '';
+        if (lastMsg) {
+          if (lastMsg.sender === 'me') {
+            previewText = `<span class="wa-preview-check">✓✓</span> You: ${escapeHtml(lastMsg.text)}`;
+          } else {
+            previewText = (lastMsg.user ? `~${escapeHtml(lastMsg.user)}: ` : '') + escapeHtml(lastMsg.text);
+          }
+        }
+
+        const item = document.createElement('div');
+        item.className = `pc-wa-chat-item ${k === activeContactId ? 'active' : ''}`;
+        item.setAttribute('data-id', k);
+
+        const avatarMarkup = c.avatarImg 
+          ? `<img src="${c.avatarImg}" class="wa-avatar-img" alt="" onerror="this.outerHTML='<span class=\'wa-avatar-fallback\'>${c.avatarText}</span>'" />`
+          : `<span class="wa-avatar-fallback" style="background:${c.avatarBg}">${c.avatarText}</span>`;
+
+        item.innerHTML = `
+          <div class="wa-item-avatar">
+            ${avatarMarkup}
+          </div>
+          <div class="wa-item-content">
+            <div class="wa-item-row-top">
+              <span class="wa-item-name">${escapeHtml(c.name)}</span>
+              <span class="wa-item-time">${c.lastTime || ''}</span>
+            </div>
+            <div class="wa-item-row-bottom">
+              <span class="wa-item-snippet">${previewText}</span>
+              ${c.unread > 0 ? `<span class="wa-unread-badge">${c.unread}</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        item.addEventListener('click', () => {
+          activeContactId = k;
+          c.unread = 0;
+          renderContacts();
+          renderActiveChat();
+          playSound('click');
+        });
+
+        chatListEl.appendChild(item);
+      });
+    }
+
+    // Render Active Conversation
+    function renderActiveChat() {
+      const c = contactsData[activeContactId];
+      if (!c) return;
+
+      // Update Header
+      activeNameEl.textContent = c.name;
+      activeStatusEl.textContent = c.subtitle;
+      activeStatusEl.className = c.subtitle === 'online' ? 'wa-status-online' : 'wa-status-muted';
+
+      const avatarMarkup = c.avatarImg 
+        ? `<img src="${c.avatarImg}" class="wa-avatar-img" alt="" onerror="this.outerHTML='<span class=\'wa-avatar-fallback\'>${c.avatarText}</span>'" />`
+        : `<span class="wa-avatar-fallback" style="background:${c.avatarBg}">${c.avatarText}</span>`;
+      activeAvatarEl.innerHTML = avatarMarkup;
+
+      // Build Message Bubbles
+      msgStreamEl.innerHTML = `
+        <div class="wa-date-divider">
+          <span>TODAY</span>
+        </div>
+      `;
+
+      c.messages.forEach(m => {
+        if (m.sender === 'system') {
+          const sys = document.createElement('div');
+          sys.className = 'wa-system-message';
+          sys.innerHTML = `<span>🔒 ${escapeHtml(m.text)}</span>`;
+          msgStreamEl.appendChild(sys);
+          return;
+        }
+
+        const isMe = m.sender === 'me';
+        const bubble = document.createElement('div');
+        bubble.className = `wa-bubble ${isMe ? 'outgoing' : 'incoming'} ${m.quoted ? 'has-reply' : ''} ${m.reaction ? 'has-reaction' : ''}`;
+
+        let quotedHtml = '';
+        if (m.quoted) {
+          quotedHtml = `
+            <div class="wa-quoted-box">
+              <div class="wa-quoted-author">${escapeHtml(m.quoted.author)}</div>
+              <div class="wa-quoted-text">${escapeHtml(m.quoted.text)}</div>
+            </div>
+          `;
+        }
+
+        let userHeader = '';
+        if (!isMe && c.type === 'group' && m.user) {
+          userHeader = `<div class="wa-bubble-sender-title">~${escapeHtml(m.user)}</div>`;
+        }
+
+        let reactionHtml = '';
+        if (m.reaction) {
+          reactionHtml = `<div class="wa-reaction-badge">${m.reaction}</div>`;
+        }
+
+        const checkmarks = isMe ? '<span class="wa-checkmarks double-blue">✓✓</span>' : '';
+
+        bubble.innerHTML = `
+          <div class="wa-bubble-content">
+            ${userHeader}
+            ${quotedHtml}
+            <div class="wa-bubble-text">${escapeHtml(m.text)}</div>
+            <div class="wa-bubble-meta">
+              <span class="wa-bubble-time">${m.time}</span>
+              ${checkmarks}
+            </div>
+          </div>
+          ${reactionHtml}
+        `;
+
+        msgStreamEl.appendChild(bubble);
+      });
+
+      msgStreamEl.scrollTop = msgStreamEl.scrollHeight;
+    }
+
+    // Search filter input listener
+    if (searchInputEl) {
+      searchInputEl.addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim();
+        renderContacts();
+      });
+    }
+
+    // Filter Chips
+    winEl.querySelectorAll('.pc-wa-filter-chip:not(.add-filter)').forEach(chip => {
+      chip.addEventListener('click', () => {
+        winEl.querySelectorAll('.pc-wa-filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.getAttribute('data-filter');
+        renderContacts();
         playSound('click');
       });
     });
 
-    const sendMsg = () => {
-      const val = input.value.trim();
-      if (!val) return;
+    // Send Message Handler
+    const handleSend = () => {
+      const text = msgInputEl.value.trim();
+      if (!text) return;
+
+      const c = contactsData[activeContactId];
+      if (!c) return;
+
       const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const playerName = (window.state && window.state.player && window.state.player.charId === 'char4') ? 'Josh' : 'Yasharth';
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      const timeStr = `${hours}:${minutes} ${ampm}`;
 
-      if (!channelsData[curChannel]) channelsData[curChannel] = [];
-      channelsData[curChannel].push({
-        user: `${playerName} (You)`,
-        avatar: 'player',
-        time: timeStr,
-        text: val
+      c.messages.push({
+        sender: 'me',
+        text: text,
+        time: timeStr
       });
+      c.lastTime = timeStr;
 
-      renderFeed(curChannel);
-      input.value = '';
+      msgInputEl.value = '';
+      sendIconEl.textContent = '🎙️';
+      renderActiveChat();
+      renderContacts();
       playSound('notify');
 
-      // AI coworker simulated reply after 1.2s!
+      // Show typing indicator in header
+      activeStatusEl.textContent = 'typing...';
+      activeStatusEl.className = 'wa-status-typing';
+
       setTimeout(() => {
-        const replies = [
-          'Agreed! Let\'s ship this to production today. 🚀',
-          'Nice catch on that! Added to sprint board.',
-          'Haha 100%! Grab a coffee and let\'s discuss at standup.',
-          'Looking great. Let\'s sync up after lunch!'
-        ];
-        const randomReply = replies[Math.floor(Math.random() * replies.length)];
-        const responder = curChannel.includes('rahul') ? 'Rahul' : (curChannel.includes('priya') ? 'Priya' : (curChannel.includes('amit') ? 'Amit' : 'Neha'));
-        channelsData[curChannel].push({
-          user: responder,
-          avatar: 'npc',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          text: randomReply
+        activeStatusEl.textContent = c.subtitle;
+        activeStatusEl.className = c.subtitle === 'online' ? 'wa-status-online' : 'wa-status-muted';
+
+        let replyText = 'Haha bilkul bhai! 100%';
+        if (activeContactId === 'sarthak') {
+          const sarthakReplies = [
+            'Bhai maine toh abhi tak notebook bhi nahi kholi lol 😂',
+            'Pakka confirm hai na? Sarthak se puch liya?',
+            'Arey tension mat le, subah viva se pehle milte hain cafeteria ke paas!',
+            'Hahaha true! Submission Monday tak stretch ho jayega pakka.'
+          ];
+          replyText = sarthakReplies[Math.floor(Math.random() * sarthakReplies.length)];
+        } else if (activeContactId === 'rahul') {
+          replyText = 'PR looks solid! Approving and merging into main branch now. 🚀';
+        } else if (activeContactId === 'priya') {
+          replyText = 'Awesome update! Marking ticket as resolved on our Jira board.';
+        } else if (activeContactId === 'boss') {
+          replyText = 'Impressive progress. Maintain high sprint velocity for the Executive Committee.';
+        } else if (c.type === 'group') {
+          replyText = 'Sahi baat hai bhai, group pe notification dekh lo ek baar!';
+        }
+
+        const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
+        c.messages.push({
+          sender: 'other',
+          user: c.type === 'group' ? 'Sarthak' : undefined,
+          text: replyText,
+          time: replyTime
         });
-        renderFeed(curChannel);
+        c.lastTime = replyTime;
+
+        renderActiveChat();
+        renderContacts();
         playSound('notify');
       }, 1200);
     };
 
-    sendBtn.addEventListener('click', sendMsg);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendMsg();
+    sendBtnEl.addEventListener('click', handleSend);
+    msgInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleSend();
     });
+
+    // Toggle mic / send icon when typing
+    msgInputEl.addEventListener('input', () => {
+      if (msgInputEl.value.trim().length > 0) {
+        sendIconEl.textContent = '➤';
+        sendBtnEl.classList.add('can-send');
+      } else {
+        sendIconEl.textContent = '🎙️';
+        sendBtnEl.classList.remove('can-send');
+      }
+    });
+
+    // Initial render
+    renderContacts();
+    renderActiveChat();
   }
 
   // --- 3. NOTEPAD / TODO APP ---
