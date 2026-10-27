@@ -116,14 +116,14 @@ registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
 registerAsset('char3Idle', 'assets/char3_idle.png?v=2');
 registerAsset('char4Idle', 'assets/char4_idle.png?v=7');
-registerAsset('char1Sitting', 'assets/char1_sitting.png?v=3');
-registerAsset('char2Sitting', 'assets/char2_sitting.png?v=3');
-registerAsset('char3Sitting', 'assets/char3_sitting.png?v=3');
-registerAsset('char4Sitting', 'assets/char4_seated_desk.png?v=7');
-registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=3');
-registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=3');
-registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=3');
-registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=7');
+registerAsset('char1Sitting', 'assets/char1_sitting.png?v=8');
+registerAsset('char2Sitting', 'assets/char2_sitting.png?v=8');
+registerAsset('char3Sitting', 'assets/char3_sitting.png?v=8');
+registerAsset('char4Sitting', 'assets/char4_seated_desk.png?v=8');
+registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=8');
+registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=8');
+registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=8');
+registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=8');
 registerAsset('char1DiningSitting', 'assets/char1_dining_sitting.png?v=4');
 registerAsset('char2DiningSitting', 'assets/char2_dining_sitting.png?v=4');
 registerAsset('char3DiningSitting', 'assets/char3_dining_sitting.png?v=4');
@@ -142,19 +142,19 @@ registerAsset('fgHallDeskLeft', 'assets/fg_hall_desk_left.png?v=3');
 // 4 Workplace Quest NPC Employees (Rahul, Priya, Amit, Neha)
 registerAsset('npc_rahulSpritesheet', 'assets/npc_rahul_spritesheet.png');
 registerAsset('npc_rahulPortrait', 'assets/npc_rahul_portrait.png');
-registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png');
+registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png?v=8');
 
 registerAsset('npc_priyaSpritesheet', 'assets/npc_priya_spritesheet.png');
 registerAsset('npc_priyaPortrait', 'assets/npc_priya_portrait.png');
-registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png');
+registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png?v=8');
 
 registerAsset('npc_amitSpritesheet', 'assets/npc_amit_spritesheet.png');
 registerAsset('npc_amitPortrait', 'assets/npc_amit_portrait.png');
-registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png');
+registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png?v=8');
 
 registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png');
 registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png');
-registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png');
+registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png?v=8');
 
 // Cafeteria & Lounge Assets
 registerAsset('cafeteriaRoom', 'assets/cafeteria_room.png');
@@ -312,7 +312,7 @@ const SCENES = {
         x: 65, y: 345, w: 85, h: 75,
         prompt: 'Sit & Work at Laptop Desk [E / C]',
         promptPos: { x: 95, y: 340 },
-        action: () => toggleSitInChair(95, 395, 'up', 145, 395)
+        action: () => toggleSitInChair(95, 380, 'up', 145, 395)
       },
       // Left Lower Desk (Code Monitor & Keyboard)
       {
@@ -320,35 +320,35 @@ const SCENES = {
         x: 65, y: 445, w: 85, h: 75,
         prompt: 'Sit & Work at Dev Workstation [E / C]',
         promptPos: { x: 100, y: 440 },
-        action: () => toggleSitInChair(100, 495, 'up', 100, 525)
+        action: () => toggleSitInChair(100, 480, 'up', 100, 525)
       },
       {
         id: 'workstation_bottom_left',
-        x: 375, y: 475, w: 75, h: 70,
+        x: 375, y: 475, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
-        promptPos: { x: 410, y: 460 },
-        action: () => toggleSitInChair(410, 512)
+        promptPos: { x: 410, y: 495 },
+        action: () => toggleSitInChair(410, 540, 'up', 410, 510)
       },
       {
         id: 'workstation_bottom_right',
-        x: 525, y: 475, w: 75, h: 70,
+        x: 525, y: 475, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
-        promptPos: { x: 562, y: 460 },
-        action: () => toggleSitInChair(562, 515)
+        promptPos: { x: 560, y: 495 },
+        action: () => toggleSitInChair(560, 540, 'up', 560, 510)
       },
       {
         id: 'workstation_top_left',
-        x: 375, y: 305, w: 75, h: 70,
+        x: 375, y: 305, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
-        promptPos: { x: 410, y: 290 },
-        action: () => toggleSitInChair(410, 340)
+        promptPos: { x: 409, y: 330 },
+        action: () => toggleSitInChair(409, 365, 'up', 409, 410)
       },
       {
         id: 'workstation_top_right',
-        x: 525, y: 305, w: 75, h: 70,
+        x: 520, y: 305, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
-        promptPos: { x: 560, y: 290 },
-        action: () => toggleSitInChair(560, 340)
+        promptPos: { x: 556, y: 330 },
+        action: () => toggleSitInChair(556, 365, 'up', 556, 410)
       },
       {
         id: 'cubicle_pc',

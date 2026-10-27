@@ -104,10 +104,10 @@
       questId: 'quest_pr_review',
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
-      x: 410,
-      y: 340,
-      targetX: 410,
-      targetY: 340,
+      x: 409,
+      y: 365,
+      targetX: 409,
+      targetY: 365,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -115,9 +115,9 @@
       stateTimer: 6000,
       scheduleState: 'DESK_WORK',
       activityLabel: '💻 Reviewing PR Architecture',
-      deskPos: { scene: 'OFFICE_HALL', x: 410, y: 340 },
+      deskPos: { scene: 'OFFICE_HALL', x: 409, y: 365 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 410, y: 340, sit: true, label: '💻 Reviewing PR Architecture' },
+        { scene: 'OFFICE_HALL', x: 409, y: 365, sit: true, label: '💻 Reviewing PR Architecture' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Water Cooler Break' },
         { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Espresso Break in Cafeteria' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '👥 Architecture Review in Conference Room' },
@@ -132,10 +132,10 @@
       questId: 'quest_ticket_triage',
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
-      x: 562,
-      y: 515,
-      targetX: 562,
-      targetY: 515,
+      x: 560,
+      y: 540,
+      targetX: 560,
+      targetY: 540,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -143,9 +143,9 @@
       stateTimer: 8000,
       scheduleState: 'DESK_WORK',
       activityLabel: '📋 Triage P0 Customer Tickets',
-      deskPos: { scene: 'OFFICE_HALL', x: 562, y: 515 },
+      deskPos: { scene: 'OFFICE_HALL', x: 560, y: 540 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 562, y: 515, sit: true, label: '📋 Roadmap & Sprint Priorities' },
+        { scene: 'OFFICE_HALL', x: 560, y: 540, sit: true, label: '📋 Roadmap & Sprint Priorities' },
         { scene: 'CORNER_OFFICE', x: 600, y: 490, sit: false, label: '☕ Whiteboard & Spec Review' },
         { scene: 'CORNER_OFFICE', x: 750, y: 490, sit: false, label: '📁 Consulting HR Records' },
         { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch in Cafeteria' },
@@ -161,9 +161,9 @@
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
       x: 410,
-      y: 512,
+      y: 540,
       targetX: 410,
-      targetY: 512,
+      targetY: 540,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -171,12 +171,12 @@
       stateTimer: 7000,
       scheduleState: 'DESK_WORK',
       activityLabel: '🤝 1-on-1 Mentorship & Growth',
-      deskPos: { scene: 'OFFICE_HALL', x: 410, y: 512 },
+      deskPos: { scene: 'OFFICE_HALL', x: 410, y: 540 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 410, y: 512, sit: true, label: '🤝 Reviewing Team OKRs' },
+        { scene: 'OFFICE_HALL', x: 410, y: 540, sit: true, label: '🤝 Reviewing Team OKRs' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Drinking Water at Cooler' },
         { scene: 'OFFICE_HALL', x: 275, y: 240, sit: false, label: '📚 Reading Workplace Culture Docs' },
-        { scene: 'OFFICE_HALL', x: 562, y: 515, sit: false, label: '💬 Checking in on Coworkers' },
+        { scene: 'OFFICE_HALL', x: 560, y: 540, sit: false, label: '💬 Checking in on Coworkers' },
         { scene: 'CORNER_OFFICE', x: 550, y: 490, sit: false, label: '💼 HR Mentorship Discussion' }
       ],
       systemPrompt: 'You are Amit, an empathetic Engineering Manager and HR leader. You believe in empowering interns and junior devs to ask for help with confidence ("Ask Without Apology"). You discourage imposter syndrome and teach structured communication.'
@@ -188,10 +188,10 @@
       questId: 'quest_meeting_echo',
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
-      x: 560,
-      y: 340,
-      targetX: 560,
-      targetY: 340,
+      x: 556,
+      y: 365,
+      targetX: 556,
+      targetY: 365,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -199,13 +199,13 @@
       stateTimer: 9000,
       scheduleState: 'DESK_WORK',
       activityLabel: '⚡ Standup Action Items & Jira',
-      deskPos: { scene: 'OFFICE_HALL', x: 560, y: 340 },
+      deskPos: { scene: 'OFFICE_HALL', x: 556, y: 365 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 560, y: 340, sit: true, label: '⚡ Standup Action Items & Jira' },
+        { scene: 'OFFICE_HALL', x: 556, y: 365, sit: true, label: '⚡ Standup Action Items & Jira' },
         { scene: 'OFFICE_HALL', x: 470, y: 260, sit: false, label: '🎯 Sprint Retrospective Prep' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Quick Hydration Break' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '☕ Cross-team Sync with Priya' },
-        { scene: 'OFFICE_HALL', x: 410, y: 512, sit: false, label: '📋 Velocity Chart Review' }
+        { scene: 'OFFICE_HALL', x: 410, y: 540, sit: false, label: '📋 Velocity Chart Review' }
       ],
       systemPrompt: 'You are Neha, an upbeat, high-velocity Scrum Master. You despise 45-minute rambling meetings and champion crisp decisions, explicit assignees, and realistic deadlines ("Meeting Echo"). You speak concisely and motivate teams.'
     },
@@ -259,8 +259,8 @@
         npc.targetWP = null;
         if (npc.scene === 'BOSS_CABINET') {
           npc.scene = 'OFFICE_HALL';
-          npc.x = 410;
-          npc.y = 340;
+          npc.x = npc.deskPos ? npc.deskPos.x : 409;
+          npc.y = npc.deskPos ? npc.deskPos.y : 365;
         }
         this.chatHistory[npc.id] = [
           { role: 'assistant', content: `Hey! I'm ${npc.name}, ${npc.role}. Come tackle the "${QUESTS[npc.questId].title}" workplace quest with me!` }
