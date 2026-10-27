@@ -1932,14 +1932,16 @@ function renderClassicDashboard() {
   window.aiAgent.updateHeaderScoreUI();
 }
 
-function openQuestModal(questId, npcId) {
+function openQuestModal(questId, npcId, defaultTab = 'challenge') {
   if (!window.aiAgent) return;
+  questId = questId || 'quest_pr_review';
+  npcId = npcId || 'npc_rahul';
   const quest = window.aiAgent.quests[questId];
-  const npc = window.aiAgent.npcs.find(n => n.id === npcId);
+  const npc = window.aiAgent.npcs.find(n => n.id === npcId) || window.aiAgent.npcs[0];
   if (!quest || !npc) return;
 
   currentQuestId = questId;
-  currentNPCId = npcId;
+  currentNPCId = npc.id;
 
   const modal = document.getElementById('quest-modal');
   modal.classList.remove('hidden');
@@ -1966,14 +1968,28 @@ function openQuestModal(questId, npcId) {
   const resBox = document.getElementById('quest-eval-results');
   if (resBox) resBox.classList.add('hidden');
 
-  // Default to challenge tab
-  switchQuestTab('challenge');
+  // Switch to requested tab
+  switchQuestTab(defaultTab);
+
+  // Update Mentor Pills in Chat Tab
+  updateChatMentorPills(npc.id);
 
   // Render chat history in Tab 2
-  renderChatMessages(npcId);
+  renderChatMessages(npc.id);
 
   window.soundManager.unlock();
   window.soundManager.playInteract();
+}
+
+function updateChatMentorPills(activeNpcId) {
+  const pills = document.querySelectorAll('.mentor-pill');
+  pills.forEach(p => {
+    if (p.dataset.npc === activeNpcId) {
+      p.classList.add('active');
+    } else {
+      p.classList.remove('active');
+    }
+  });
 }
 
 function closeQuestModal() {
@@ -2155,6 +2171,26 @@ function setupQuestEventListeners() {
 
   const tabChat = document.getElementById('tab-btn-chat');
   if (tabChat) tabChat.addEventListener('click', () => switchQuestTab('chat'));
+
+  // Floating Pixelated AI Doubt Button in screen corner
+  const btnFabAI = document.getElementById('floating-ai-doubt-btn');
+  if (btnFabAI) {
+    btnFabAI.addEventListener('click', () => {
+      window.toggleAIDoubtChat();
+    });
+  }
+
+  // Mentor Selector Pills in Chat Tab
+  const pills = document.querySelectorAll('.mentor-pill');
+  pills.forEach(p => {
+    p.addEventListener('click', (e) => {
+      e.preventDefault();
+      const nId = p.dataset.npc;
+      if (nId) {
+        window.toggleAIDoubtChat(nId);
+      }
+    });
+  });
 
   const btnTemplate = document.getElementById('btn-toggle-template');
   if (btnTemplate) {
@@ -2549,6 +2585,40 @@ window.startGameOffline = function() {
   if (!isGameInitialized && typeof initGame === 'function') {
     initGame();
   }
+};
+
+window.toggleAIDoubtChat = function(preferredNpcId) {
+  const modal = document.getElementById('quest-modal');
+  if (modal && !modal.classList.contains('hidden')) {
+    const tabChat = document.getElementById('quest-tab-chat');
+    if (tabChat && !tabChat.classList.contains('hidden') && !preferredNpcId) {
+      closeQuestModal();
+      return;
+    }
+  }
+
+  const npcId = preferredNpcId || currentNPCId || 'npc_rahul';
+  const questMap = {
+    npc_rahul: 'quest_pr_review',
+    npc_priya: 'quest_ticket_triage',
+    npc_amit: 'quest_ask_help',
+    npc_neha: 'quest_meeting_echo'
+  };
+  const questId = questMap[npcId] || currentQuestId || 'quest_pr_review';
+
+  openQuestModal(questId, npcId, 'chat');
+
+  if (window.soundManager) {
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+  }
+
+  setTimeout(() => {
+    const input = document.getElementById('quest-chat-input');
+    if (input) input.focus();
+    const container = document.getElementById('quest-chat-messages');
+    if (container) container.scrollTop = container.scrollHeight;
+  }, 100);
 };
 
 // Script Ready & Initialization Kickoff

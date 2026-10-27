@@ -435,6 +435,15 @@
           <!-- Tab 2: Live AI Chat Terminal -->
           <div id="quest-tab-chat" class="quest-tab-content hidden">
             <div class="chat-terminal-wrap">
+              <div class="chat-mentor-selector" id="chat-mentor-selector">
+                <span class="mentor-select-label">TALK TO MENTOR:</span>
+                <div class="mentor-select-pills">
+                  <button class="mentor-pill active" data-npc="npc_rahul" data-quest="quest_pr_review">👨‍💻 Rahul (Tech Lead)</button>
+                  <button class="mentor-pill" data-npc="npc_priya" data-quest="quest_ticket_triage">👩‍💼 Priya (PM)</button>
+                  <button class="mentor-pill" data-npc="npc_amit" data-quest="quest_ask_help">👔 Amit (Eng Mgr)</button>
+                  <button class="mentor-pill" data-npc="npc_neha" data-quest="quest_meeting_echo">📊 Neha (Scrum)</button>
+                </div>
+              </div>
               <div class="chat-messages" id="quest-chat-messages">
                 <!-- Chat Bubbles -->
               </div>
@@ -442,7 +451,7 @@
                 <!-- Quick question suggestions -->
               </div>
               <div class="chat-input-row">
-                <input type="text" id="quest-chat-input" placeholder="Ask question or seek feedback from mentor..." autocomplete="off">
+                <input type="text" id="quest-chat-input" placeholder="Ask your doubt in Hindi or English (e.g. how to write PR summary, ask help)..." autocomplete="off">
                 <button id="btn-send-chat" class="btn-action-small">Send ⏎</button>
               </div>
             </div>
@@ -451,6 +460,16 @@
       </div>
     </div>
   </div>
+
+  <!-- Floating Pixelated AI Doubt Chat Button (Screen Corner) -->
+  <button id="floating-ai-doubt-btn" class="floating-ai-fab" title="Ask AI Doubt Solver & Mentor" aria-label="Ask AI Doubt Solver" onclick="if(window.toggleAIDoubtChat) window.toggleAIDoubtChat();">
+    <div class="ai-fab-ring"></div>
+    <div class="ai-fab-content">
+      <span class="ai-fab-text">AI</span>
+    </div>
+    <div class="ai-fab-dot"></div>
+    <div class="ai-fab-badge">DOUBTS</div>
+  </button>
 
   <script src="peerjs.min.js"></script>
   <script src="audio.js"></script>
