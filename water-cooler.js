@@ -47,7 +47,10 @@
 
       if (!this.modal) return;
 
-      this.setupEvents();
+      if (!this.eventsSetup) {
+        this.setupEvents();
+        this.eventsSetup = true;
+      }
     }
 
     setupEvents() {
@@ -66,7 +69,7 @@
       if (this.dispenseBtn) {
         const startHandler = (e) => {
           e.preventDefault();
-          if (this.gameStatus === 'ready') {
+          if (this.gameStatus === 'ready' && !this.justOpened) {
             this.startDispensing();
           }
         };
@@ -96,6 +99,8 @@
           return;
         }
 
+        if (this.justOpened) return;
+
         if (this.gameStatus === 'ready' && !this.isDispensing) {
           if (k === 'e' || k === ' ' || k === 'enter' || e.code === 'KeyE' || e.code === 'Space') {
             e.preventDefault();
@@ -118,7 +123,15 @@
     }
 
     open() {
+      if (!this.modal) {
+        this.init();
+      }
       this.isOpen = true;
+      this.justOpened = true;
+      setTimeout(() => {
+        this.justOpened = false;
+      }, 250);
+
       if (this.modal) {
         this.modal.classList.remove('hidden');
       }

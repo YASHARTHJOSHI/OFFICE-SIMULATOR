@@ -5727,6 +5727,10 @@ kbd {
 /* =========================================================
    WATER COOLER PRECISION DISPENSER MINIGAME MODAL
    ========================================================= */
+#water-cooler-modal {
+  z-index: 10000;
+}
+
 .wc-modal-card {
   width: min(440px, 94vw);
   background: radial-gradient(circle at 50% 12%, #1e293b 0%, #0f172a 85%);
