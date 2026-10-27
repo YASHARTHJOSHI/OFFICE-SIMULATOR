@@ -1066,47 +1066,47 @@ function setupEventListeners() {
 
     // Direct click on room portal badges
     if (state.currentScene === 'OFFICE_HALL') {
-      // Top: Boss Suite badge (cx: 512, cy: 165)
-      if (Math.abs(targetX - 512) <= 85 && Math.abs(targetY - 165) <= 22) {
+      // Top: Boss Suite badge (cx: 512, cy: 148)
+      if (Math.abs(targetX - 512) <= 55 && Math.abs(targetY - 148) <= 16) {
         enterBossCabinet();
         return;
       }
-      // Bottom-left: Corner Office badge (cx: 70, cy: 460)
-      if (Math.abs(targetX - 70) <= 80 && Math.abs(targetY - 460) <= 22) {
+      // Bottom-left: Corner Office badge (cx: 50, cy: 462)
+      if (Math.abs(targetX - 50) <= 55 && Math.abs(targetY - 462) <= 16) {
         enterCornerOffice();
         return;
       }
-      // Right: Cafeteria badge (cx: 945, cy: 360)
-      if (Math.abs(targetX - 945) <= 75 && Math.abs(targetY - 360) <= 22) {
+      // Right: Cafeteria badge (cx: 960, cy: 355)
+      if (Math.abs(targetX - 960) <= 55 && Math.abs(targetY - 355) <= 16) {
         enterCafeteria();
         return;
       }
     } else if (state.currentScene === 'BOSS_CABINET') {
-      // Right: Main Hall badge (cx: 945, cy: 470)
-      if (Math.abs(targetX - 945) <= 75 && Math.abs(targetY - 470) <= 22) {
+      // Right: Main Hall badge (cx: 960, cy: 470)
+      if (Math.abs(targetX - 960) <= 55 && Math.abs(targetY - 470) <= 16) {
         exitToMainHall();
         return;
       }
     } else if (state.currentScene === 'CORNER_OFFICE') {
-      // Right: Main Hall badge (cx: 945, cy: 470)
-      if (Math.abs(targetX - 945) <= 75 && Math.abs(targetY - 470) <= 22) {
+      // Right: Main Hall badge (cx: 960, cy: 470)
+      if (Math.abs(targetX - 960) <= 55 && Math.abs(targetY - 470) <= 16) {
         exitCornerOfficeToMainHall();
         return;
       }
     } else if (state.currentScene === 'CAFETERIA') {
-      // Left: Main Hall badge (cx: 115, cy: 235)
-      if (Math.abs(targetX - 115) <= 75 && Math.abs(targetY - 235) <= 22) {
+      // Left: Main Hall badge (cx: 80, cy: 235)
+      if (Math.abs(targetX - 80) <= 55 && Math.abs(targetY - 235) <= 16) {
         exitCafeteriaToMainHall();
         return;
       }
-      // Right: Big Workplace badge (cx: 945, cy: 360)
-      if (Math.abs(targetX - 945) <= 85 && Math.abs(targetY - 360) <= 22) {
+      // Right: Big Workplace badge (cx: 960, cy: 355)
+      if (Math.abs(targetX - 960) <= 55 && Math.abs(targetY - 355) <= 16) {
         enterBigWorkplace();
         return;
       }
     } else if (state.currentScene === 'BIG_WORKPLACE') {
-      // Left: Cafeteria badge (cx: 70, cy: 380)
-      if (Math.abs(targetX - 70) <= 80 && Math.abs(targetY - 380) <= 22) {
+      // Left: Cafeteria badge (cx: 60, cy: 380)
+      if (Math.abs(targetX - 60) <= 55 && Math.abs(targetY - 380) <= 16) {
         exitBigWorkplaceToCafeteria();
         return;
       }
@@ -2164,106 +2164,103 @@ function drawGoldenTriangle(x, y) {
 // PIXEL ROOM PORTAL BADGES (Replaces all static doors)
 // ----------------------------------------------------
 function drawPixelBuildingIcon(x, y) {
-  // Building frame (14px wide, 14px high)
+  // Sleek compact building icon (10px wide, 10px high)
   ctx.fillStyle = '#94a3b8';
-  ctx.fillRect(x, y + 1, 14, 13);
+  ctx.fillRect(x, y + 1, 10, 9);
   // Roof trim
   ctx.fillStyle = '#cbd5e1';
-  ctx.fillRect(x + 1, y, 12, 2);
+  ctx.fillRect(x + 1, y, 8, 1);
 
   // Cyan windows (glass grid)
   ctx.fillStyle = '#38bdf8';
-  ctx.fillRect(x + 2, y + 3, 10, 6);
+  ctx.fillRect(x + 2, y + 2, 6, 4);
 
-  // Window mullions / dividers
+  // Window mullion divider
   ctx.fillStyle = '#1e293b';
-  ctx.fillRect(x + 6, y + 3, 2, 6);
-  ctx.fillRect(x + 2, y + 5, 10, 1);
+  ctx.fillRect(x + 4, y + 2, 2, 4);
 
-  // Dark archway entrance at bottom
+  // Archway entrance
   ctx.fillStyle = '#0f172a';
-  ctx.fillRect(x + 5, y + 9, 4, 5);
+  ctx.fillRect(x + 3, y + 7, 4, 3);
 }
 
 function drawPixelArrow(x, y, dir, color) {
+  // Crisp compact pixel arrow (6px wide, 6px high)
   ctx.fillStyle = color;
   if (dir === 'right') {
-    ctx.fillRect(x, y - 2, 6, 4);
-    ctx.fillRect(x + 6, y - 4, 2, 8);
-    ctx.fillRect(x + 8, y - 3, 2, 6);
-    ctx.fillRect(x + 10, y - 2, 2, 4);
-    ctx.fillRect(x + 12, y - 1, 1, 2);
+    ctx.fillRect(x, y - 1, 3, 2);
+    ctx.fillRect(x + 2, y - 3, 1, 6);
+    ctx.fillRect(x + 3, y - 2, 1, 4);
+    ctx.fillRect(x + 4, y - 1, 1, 2);
   } else if (dir === 'left') {
-    ctx.fillRect(x + 7, y - 2, 6, 4);
-    ctx.fillRect(x + 5, y - 4, 2, 8);
-    ctx.fillRect(x + 3, y - 3, 2, 6);
-    ctx.fillRect(x + 1, y - 2, 2, 4);
+    ctx.fillRect(x + 2, y - 1, 3, 2);
+    ctx.fillRect(x + 2, y - 3, 1, 6);
+    ctx.fillRect(x + 1, y - 2, 1, 4);
     ctx.fillRect(x, y - 1, 1, 2);
   } else if (dir === 'up') {
-    ctx.fillRect(x + 4, y, 4, 6);
-    ctx.fillRect(x, y - 2, 12, 2);
-    ctx.fillRect(x + 2, y - 4, 8, 2);
-    ctx.fillRect(x + 4, y - 6, 4, 2);
-    ctx.fillRect(x + 5, y - 8, 2, 2);
+    ctx.fillRect(x + 2, y - 1, 2, 3);
+    ctx.fillRect(x, y - 1, 6, 1);
+    ctx.fillRect(x + 1, y - 2, 4, 1);
+    ctx.fillRect(x + 2, y - 3, 2, 1);
   } else if (dir === 'down') {
-    ctx.fillRect(x + 4, y - 6, 4, 6);
-    ctx.fillRect(x, y, 12, 2);
-    ctx.fillRect(x + 2, y + 2, 8, 2);
-    ctx.fillRect(x + 4, y + 4, 4, 2);
-    ctx.fillRect(x + 5, y + 6, 2, 2);
+    ctx.fillRect(x + 2, y - 2, 2, 3);
+    ctx.fillRect(x, y, 6, 1);
+    ctx.fillRect(x + 1, y + 1, 4, 1);
+    ctx.fillRect(x + 2, y + 2, 2, 1);
   }
 }
 
 function drawRoomPortalBadge(x, y, label, arrowDir, isNear) {
   ctx.save();
   const time = performance.now() * 0.003;
-  const bobY = y + Math.sin(time * 2.2) * 2.5;
+  const bobY = y + Math.sin(time * 2.2) * 1.0;
 
-  ctx.font = '8px "Press Start 2P", monospace, sans-serif';
+  // Modern compact bold font - takes significantly less visual footprint
+  ctx.font = 'bold 8.5px "Outfit", sans-serif';
   const textWidth = ctx.measureText(label).width;
 
-  const padX = 10;
-  const iconW = 14;
-  const arrowW = 13;
-  const gap = 8;
-  const badgeW = padX * 2 + iconW + gap + textWidth + gap + arrowW;
-  const badgeH = 26;
+  const padX = 6;
+  const iconW = 10;
+  const arrowW = 6;
+  const gap = 4;
+  const badgeW = Math.round(padX * 2 + iconW + gap + textWidth + gap + arrowW);
+  const badgeH = 17;
   const badgeX = Math.round(x - badgeW / 2);
   const badgeY = Math.round(bobY - badgeH / 2);
 
-  // Outer Neon Purple Glow
-  ctx.shadowColor = isNear ? 'rgba(192, 132, 252, 0.95)' : 'rgba(168, 85, 247, 0.55)';
-  ctx.shadowBlur = isNear ? 16 : 8;
+  // Subtle translucent glow that does not clutter surroundings
+  ctx.shadowColor = isNear ? 'rgba(192, 132, 252, 0.75)' : 'rgba(168, 85, 247, 0.4)';
+  ctx.shadowBlur = isNear ? 8 : 4;
 
-  // Dark Navy Rounded Pill Background
-  ctx.fillStyle = '#121124';
+  // Translucent dark violet pill background
+  ctx.fillStyle = isNear ? 'rgba(18, 14, 30, 0.95)' : 'rgba(18, 14, 30, 0.82)';
   ctx.beginPath();
   if (ctx.roundRect) {
-    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 7);
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
   } else {
     ctx.rect(badgeX, badgeY, badgeW, badgeH);
   }
   ctx.fill();
 
-  // Vibrant Neon Purple 2px Border
-  ctx.strokeStyle = isNear ? '#c084fc' : '#a855f7';
-  ctx.lineWidth = 2;
+  // Subtle crisp 1px neon purple border
+  ctx.strokeStyle = isNear ? '#c084fc' : 'rgba(168, 85, 247, 0.7)';
+  ctx.lineWidth = 1;
   ctx.stroke();
 
   // Reset shadow for crisp pixel elements
   ctx.shadowBlur = 0;
 
-  // 1. Pixel Building Icon
+  // 1. Pixel Building Icon (10x10)
   const iconX = badgeX + padX;
-  const iconY = Math.round(badgeY + (badgeH - 14) / 2);
+  const iconY = Math.round(badgeY + (badgeH - 10) / 2);
   drawPixelBuildingIcon(iconX, iconY);
 
-  // 2. Pixel Text
+  // 2. Compact Crisp Text
   ctx.fillStyle = isNear ? '#f3e8ff' : '#d8b4fe';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   const textX = iconX + iconW + gap;
-  ctx.fillText(label, textX, Math.round(badgeY + badgeH / 2 + 1));
+  ctx.fillText(label, textX, Math.round(badgeY + badgeH / 2));
 
   // 3. Directional Pixel Arrow
   const arrowX = textX + textWidth + gap;
@@ -2279,14 +2276,14 @@ function renderDoorGlow() {
   const isNearCorner = p && Math.hypot(p.x - 50, p.y - 460) < 95;
   const isNearCafe = p && Math.hypot(p.x - 930, p.y - 360) < 105;
 
-  // 1. Top Boss Suite Room Portal Badge
-  drawRoomPortalBadge(512, 165, 'BOSS SUITE', 'up', isNearBoss);
+  // 1. Top Boss Suite Room Portal Badge (neatly docked right at doorway threshold)
+  drawRoomPortalBadge(512, 148, 'BOSS SUITE', 'up', isNearBoss);
 
   // 2. Corner Office Room Portal Badge in bottom-left opening
-  drawRoomPortalBadge(70, 460, 'CORNER OFFICE', 'left', isNearCorner);
+  drawRoomPortalBadge(50, 462, 'CORNER OFFICE', 'left', isNearCorner);
 
   // 3. Cafeteria Room Portal Badge on right wall
-  drawRoomPortalBadge(945, 360, 'CAFETERIA', 'right', isNearCafe);
+  drawRoomPortalBadge(960, 355, 'CAFETERIA', 'right', isNearCafe);
 }
 
 function renderCafeteriaDetails() {
@@ -2295,10 +2292,10 @@ function renderCafeteriaDetails() {
   const isNearWorkplace = p && Math.hypot(p.x - 945, p.y - 360) < 105;
 
   // 1. Room Portal Badge pointing back to Main Hall
-  drawRoomPortalBadge(115, 235, 'MAIN HALL', 'left', isNearHall);
+  drawRoomPortalBadge(80, 235, 'MAIN HALL', 'left', isNearHall);
 
   // 2. Room Portal Badge pointing to Big Workplace (connected on right after Cafeteria)
-  drawRoomPortalBadge(945, 360, 'BIG WORKPLACE', 'right', isNearWorkplace);
+  drawRoomPortalBadge(960, 355, 'BIG WORKPLACE', 'right', isNearWorkplace);
 
   // Subtle animated coffee steam over espresso machine
   const time = performance.now() * 0.003;
@@ -2319,7 +2316,7 @@ function renderBigWorkplaceDetails() {
   const isNearCafe = p && Math.hypot(p.x - 70, p.y - 380) < 105;
 
   // Room Portal Badge pointing back to Cafeteria
-  drawRoomPortalBadge(70, 380, 'CAFETERIA', 'left', isNearCafe);
+  drawRoomPortalBadge(60, 380, 'CAFETERIA', 'left', isNearCafe);
 }
 
 function renderBossInCabinet() {
@@ -2344,7 +2341,7 @@ function renderBossInCabinet() {
   // Room Portal Badge pointing to right exit doorway
   const p = state.player;
   const isNearHall = p && Math.hypot(p.x - 945, p.y - 485) < 95;
-  drawRoomPortalBadge(945, 470, 'MAIN HALL', 'right', isNearHall);
+  drawRoomPortalBadge(960, 470, 'MAIN HALL', 'right', isNearHall);
 }
 
 function renderCornerOffice() {
@@ -2369,7 +2366,7 @@ function renderCornerOffice() {
   // Room Portal Badge pointing to right exit doorway
   const p = state.player;
   const isNearHall = p && Math.hypot(p.x - 945, p.y - 485) < 95;
-  drawRoomPortalBadge(945, 470, 'MAIN HALL', 'right', isNearHall);
+  drawRoomPortalBadge(960, 470, 'MAIN HALL', 'right', isNearHall);
 }
 
 function renderPlayer() {
