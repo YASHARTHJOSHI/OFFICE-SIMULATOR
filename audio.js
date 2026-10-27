@@ -277,6 +277,95 @@ class SoundManager {
       osc.stop(t + 0.15);
     } catch (e) {}
   }
+
+  // --- WINDOWS OS SOUND SYNTHESIZER ---
+  playWindowsStartup() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      // Classic uplifting 5-note chime: Eb4 -> Bb4 -> G4 -> Eb5 -> Bb5
+      const notes = [
+        { f: 311.13, delay: 0.0, dur: 1.4, vol: 0.18 }, // Eb4
+        { f: 466.16, delay: 0.18, dur: 1.5, vol: 0.22 }, // Bb4
+        { f: 392.00, delay: 0.38, dur: 1.6, vol: 0.20 }, // G4
+        { f: 622.25, delay: 0.62, dur: 2.0, vol: 0.25 }, // Eb5
+        { f: 932.33, delay: 0.85, dur: 2.2, vol: 0.22 }  // Bb5
+      ];
+      notes.forEach(n => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(n.f, t + n.delay);
+        gain.gain.setValueAtTime(0.001, t + n.delay);
+        gain.gain.linearRampToValueAtTime(n.vol, t + n.delay + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + n.delay + n.dur);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + n.delay);
+        osc.stop(t + n.delay + n.dur + 0.1);
+      });
+    } catch (e) {}
+  }
+
+  playWindowsClick() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, t);
+      osc.frequency.exponentialRampToValueAtTime(600, t + 0.03);
+      gain.gain.setValueAtTime(0.08, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.04);
+    } catch (e) {}
+  }
+
+  playWindowsError() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      // Classic Windows "ding" chord
+      [523.25, 659.25, 783.99].forEach(f => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, t);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.5);
+      });
+    } catch (e) {}
+  }
+
+  playWindowsNotify() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, t); // D5
+      osc.frequency.setValueAtTime(880.00, t + 0.09); // A5
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.3);
+    } catch (e) {}
+  }
 }
 
 window.soundManager = new SoundManager();

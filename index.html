@@ -714,11 +714,128 @@
     </div>
   </div>
 
+  <!-- =========================================================
+       ASSIGNED WORKSTATION - RETRO WINDOWS PC INTERFACE
+       ========================================================= -->
+  <div id="pc-desktop-overlay" class="pc-desktop-overlay hidden">
+    <!-- Desktop Area with Custom Fantasy Pixel Art Wallpaper -->
+    <div class="pc-desktop-area">
+      <!-- Top Titlebar / Monitor Info Strip -->
+      <div class="pc-monitor-bezel-top">
+        <div class="pc-bezel-brand">
+          <span class="pc-brand-logo">🪟</span>
+          <span class="pc-brand-text">OfficeOS 11 Pro • Workstation #1 (Assigned Desk)</span>
+        </div>
+        <div class="pc-bezel-actions">
+          <button id="pc-exit-btn" class="pc-bezel-close" title="Exit to Office Simulation (Esc)">✕ Exit PC</button>
+        </div>
+      </div>
+
+      <!-- Desktop Icons Grid -->
+      <div class="pc-desktop-icons">
+        <div class="pc-desktop-icon" data-app="terminal">
+          <div class="pc-icon-glyph">💻</div>
+          <span class="pc-icon-label">Terminal</span>
+        </div>
+        <div class="pc-desktop-icon" data-app="slack">
+          <div class="pc-icon-glyph">💬</div>
+          <span class="pc-icon-label">OfficeChat</span>
+        </div>
+        <div class="pc-desktop-icon" data-app="notepad">
+          <div class="pc-icon-glyph">📝</div>
+          <span class="pc-icon-label">Tasks.txt</span>
+        </div>
+        <div class="pc-desktop-icon" data-app="minesweeper">
+          <div class="pc-icon-glyph">💣</div>
+          <span class="pc-icon-label">Minesweeper</span>
+        </div>
+        <div class="pc-desktop-icon" data-app="browser">
+          <div class="pc-icon-glyph">🌐</div>
+          <span class="pc-icon-label">Intranet</span>
+        </div>
+        <div class="pc-desktop-icon" data-app="explorer">
+          <div class="pc-icon-glyph">📁</div>
+          <span class="pc-icon-label">My Projects</span>
+        </div>
+        <div class="pc-desktop-icon" data-app="recycle">
+          <div class="pc-icon-glyph">🗑️</div>
+          <span class="pc-icon-label">Recycle Bin</span>
+        </div>
+      </div>
+
+      <!-- Windows Start Menu Popup -->
+      <div class="pc-start-menu">
+        <div class="pc-start-header">
+          <img id="pc-user-avatar" src="assets/char1_avatar.png" class="pc-start-avatar" alt="User Avatar" />
+          <div class="pc-start-user-info">
+            <strong id="pc-user-name">Yasharth (Lead Dev)</strong>
+            <span id="pc-user-role">Assigned Workstation #1</span>
+          </div>
+        </div>
+        <div class="pc-start-body">
+          <div class="pc-start-section-title">PINNED APPS</div>
+          <div class="pc-start-item" data-app="terminal">
+            <span class="pc-start-item-icon">💻</span>
+            <span>Command Prompt (cmd.exe)</span>
+          </div>
+          <div class="pc-start-item" data-app="slack">
+            <span class="pc-start-item-icon">💬</span>
+            <span>OfficeChat / Slack</span>
+          </div>
+          <div class="pc-start-item" data-app="notepad">
+            <span class="pc-start-item-icon">📝</span>
+            <span>Notepad (todo.txt)</span>
+          </div>
+          <div class="pc-start-item" data-app="minesweeper">
+            <span class="pc-start-item-icon">💣</span>
+            <span>Minesweeper</span>
+          </div>
+          <div class="pc-start-item" data-app="browser">
+            <span class="pc-start-item-icon">🌐</span>
+            <span>OmniCorp Intranet</span>
+          </div>
+          <div class="pc-start-item" data-app="explorer">
+            <span class="pc-start-item-icon">📁</span>
+            <span>File Explorer</span>
+          </div>
+          <div class="pc-start-item" data-app="recycle">
+            <span class="pc-start-item-icon">🗑️</span>
+            <span>Recycle Bin</span>
+          </div>
+        </div>
+        <div class="pc-start-footer">
+          <button id="pc-start-shutdown" class="pc-start-power-btn">
+            <span>⏻</span> Shut Down (Exit PC)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Windows Taskbar -->
+    <div class="pc-taskbar">
+      <div class="pc-taskbar-left">
+        <button id="pc-start-btn" class="pc-start-button">
+          <span class="pc-start-logo">🪟</span>
+          <span class="pc-start-text">Start</span>
+        </button>
+        <div class="pc-taskbar-apps"></div>
+      </div>
+      <div class="pc-taskbar-tray">
+        <span id="pc-tray-sound" class="pc-tray-icon" title="Toggle Audio Volume">🔊</span>
+        <span class="pc-tray-icon" title="Wi-Fi: OmniCorp-Secure 5G (Connected)">📶</span>
+        <span class="pc-tray-icon" title="AC Power: 100% Plugged in">🔋</span>
+        <div class="pc-tray-clock"></div>
+        <div class="pc-tray-peek" title="Show Desktop"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="peerjs.min.js"></script>
   <script src="audio.js"></script>
   <script src="pixel-engine.js"></script>
   <script src="ai-agent.js"></script>
   <script src="multiplayer.js"></script>
+  <script src="pc-os.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

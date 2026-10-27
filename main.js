@@ -306,13 +306,19 @@ const SCENES = {
           showToast('💧 Gulp, gulp... Refreshing! Stamina restored to 100%.');
         }
       },
-      // Left Upper Desk (Laptop & Red Mug)
+      // Assigned Workstation (Marked Laptop & Red Mug on Left Upper Desk)
       {
         id: 'workstation_upper_left',
         x: 65, y: 345, w: 85, h: 75,
-        prompt: 'Sit & Work at Laptop Desk [E / C]',
-        promptPos: { x: 95, y: 340 },
-        action: () => toggleSitInChair(95, 380, 'up', 145, 395)
+        prompt: '💻 Open Assigned PC [E]  •  Sit [C]',
+        promptPos: { x: 95, y: 335 },
+        action: () => {
+          if (window.openWorkstationPC) {
+            window.openWorkstationPC();
+          } else {
+            toggleSitInChair(95, 380, 'up', 145, 395);
+          }
+        }
       },
       // Left Lower Desk (Code Monitor & Keyboard)
       {
@@ -1820,6 +1826,11 @@ function render() {
     }
   }
 
+  // Floating Assigned PC Indicator in OFFICE_HALL
+  if (state.currentScene === 'OFFICE_HALL') {
+    drawAssignedPCBadge(95, 305);
+  }
+
   // 7. Render Pixel Particles (Dust puffs, golden embers, water sparkles)
   if (window.pixelEngine && window.pixelEngine.particles) {
     window.pixelEngine.particles.render(ctx);
@@ -1834,6 +1845,51 @@ function render() {
   if (window.pixelEngine) {
     window.pixelEngine.renderCRTScanlines(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
+}
+
+// Floating Assigned PC Indicator Badge
+function drawAssignedPCBadge(x, y) {
+  const time = performance.now() * 0.003;
+  const bobY = y + Math.sin(time * 2.0) * 3;
+  const isNear = state.player && Math.hypot(state.player.x - x, state.player.y - 380) < 130;
+
+  ctx.save();
+  ctx.shadowColor = isNear ? '#38bdf8' : 'rgba(56, 189, 248, 0.45)';
+  ctx.shadowBlur = isNear ? 12 : 6;
+
+  // Background badge pill
+  const text = '💻 MY ASSIGNED PC';
+  ctx.font = 'bold 9px "Outfit", sans-serif';
+  const textW = ctx.measureText(text).width;
+  const badgeW = textW + 16;
+  const badgeH = 18;
+  const badgeX = x - badgeW / 2;
+  const badgeY = bobY - badgeH;
+
+  ctx.fillStyle = isNear ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.75)';
+  ctx.strokeStyle = isNear ? '#38bdf8' : 'rgba(56, 189, 248, 0.55)';
+  ctx.lineWidth = 1.2;
+
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
+  else ctx.rect(badgeX, badgeY, badgeW, badgeH);
+  ctx.fill();
+  ctx.stroke();
+
+  // Downward pointer tip
+  ctx.beginPath();
+  ctx.moveTo(x - 4, bobY);
+  ctx.lineTo(x + 4, bobY);
+  ctx.lineTo(x, bobY + 4);
+  ctx.closePath();
+  ctx.fillStyle = isNear ? '#38bdf8' : 'rgba(56, 189, 248, 0.7)';
+  ctx.fill();
+
+  // Text
+  ctx.fillStyle = isNear ? '#38bdf8' : '#cbd5e1';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, x, badgeY + 12);
+  ctx.restore();
 }
 
 // Floating Golden Triangle Indicator (exact same style as above the door)
