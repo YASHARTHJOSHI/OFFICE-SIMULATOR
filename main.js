@@ -1616,6 +1616,21 @@ function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   state.player.vy = 0;
   state.clickTarget = null;
 
+  // Spawn Safety Guard: If player inadvertently spawns overlapping an obstacle, nudge to clear ground
+  if (typeof getCollisionOverlap === 'function' && getCollisionOverlap(state.player.x, state.player.y, scene) > 0) {
+    const searchOffsets = [
+      { x: -35, y: 0 }, { x: 35, y: 0 }, { x: 0, y: 35 }, { x: 0, y: -35 },
+      { x: -60, y: 40 }, { x: -70, y: 0 }, { x: 0, y: 60 }, { x: 60, y: 40 }
+    ];
+    for (const off of searchOffsets) {
+      if (getCollisionOverlap(state.player.x + off.x, state.player.y + off.y, scene) === 0) {
+        state.player.x += off.x;
+        state.player.y += off.y;
+        break;
+      }
+    }
+  }
+
   // Broadcast scene transition immediately in multiplayer
   if (window.multiplayerEngine && window.multiplayerEngine.active) {
     window.multiplayerEngine.broadcastPosition(state.player, sceneKey);
@@ -1783,7 +1798,7 @@ function enterBigWorkplace() {
   overlay.classList.add('active');
 
   setTimeout(() => {
-    switchScene('BIG_WORKPLACE', 80, 380, 'right');
+    switchScene('BIG_WORKPLACE', 90, 350, 'right');
     if (window.workplacePaper) window.workplacePaper.init();
     window.soundManager.playDoorClose();
 
@@ -1809,7 +1824,7 @@ function exitBigWorkplaceToCafeteria() {
   overlay.classList.add('active');
 
   setTimeout(() => {
-    switchScene('CAFETERIA', 890, 360, 'left');
+    switchScene('CAFETERIA', 800, 420, 'left');
     window.soundManager.playDoorClose();
 
     setTimeout(() => {
