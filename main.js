@@ -20,7 +20,13 @@ const assets = {
   doorSlightlyOpen: new Image(),
   doorLightSpill: new Image(),
   partnerCharacter: new Image(),
-  partnerPortrait: new Image()
+  partnerPortrait: new Image(),
+  char1Spritesheet: new Image(),
+  char2Spritesheet: new Image(),
+  char1Avatar: new Image(),
+  char2Avatar: new Image(),
+  char1Idle: new Image(),
+  char2Idle: new Image()
 };
 
 let assetsLoadedCount = 0;
@@ -54,6 +60,12 @@ assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=5';
 assets.doorLightSpill.src = 'assets/door_light_spill.png?v=3';
 assets.partnerCharacter.src = 'assets/partner_character.png';
 assets.partnerPortrait.src = 'assets/partner_portrait.png';
+assets.char1Spritesheet.src = 'assets/char1_spritesheet.png';
+assets.char2Spritesheet.src = 'assets/char2_spritesheet.png';
+assets.char1Avatar.src = 'assets/char1_avatar.png';
+assets.char2Avatar.src = 'assets/char2_avatar.png';
+assets.char1Idle.src = 'assets/char1_idle.png';
+assets.char2Idle.src = 'assets/char2_idle.png';
 
 // Setup load listeners
 Object.keys(assets).forEach(key => {
@@ -110,6 +122,7 @@ const state = {
     scale: 1,
     width: 40,
     height: 85,
+    charId: 'char1',
     // Hitbox relative to (x, y) bottom-center (feet only for smooth navigation)
     hitbox: { w: 16, h: 8 }
   },
@@ -430,6 +443,7 @@ const SCENES = {
 // ==========================================
 function initGame() {
   setupEventListeners();
+  setupStartMenuAndLobby();
   updateResponsiveCanvas();
   window.addEventListener('resize', updateResponsiveCanvas);
 
@@ -1086,6 +1100,12 @@ function update(dt) {
 
   // Trigger Zone Detection
   updateTriggers();
+
+  // Multiplayer Real-time Synchronization
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    window.multiplayerEngine.broadcastPosition(p, state.currentScene);
+    window.multiplayerEngine.updateRemotePlayers(dt);
+  }
 }
 
 function updateTriggers() {
@@ -1134,6 +1154,9 @@ function render() {
 
   // 3. Draw Player Character
   renderPlayer();
+
+  // 3b. Draw Other Online Players in Same Scene
+  renderRemotePlayers();
 
   // 4. Draw Foreground Elements (e.g. if character walks behind desk)
   renderForeground();
@@ -1269,8 +1292,17 @@ function renderPlayer() {
   ctx.fill();
 
   // 2. Sprite Animation Frame
-  // Spritesheet: 4 columns (frames 0..3), 3 rows (0: Down, 1: Side/Right, 2: Up)
-  if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
+  // Pick active spritesheet based on chosen character!
+  let sheet = assets.char1Spritesheet;
+  if (p.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
+    sheet = assets.char2Spritesheet;
+  } else if (p.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
+    sheet = assets.char1Spritesheet;
+  } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
+    sheet = assets.spritesheet;
+  }
+
+  if (sheet && sheet.complete && sheet.width > 0) {
     const frameW = 74;
     const frameH = 157;
     let row = 0;
@@ -1287,28 +1319,440 @@ function renderPlayer() {
       isFlipped = true;
     }
 
-    const col = p.isMoving ? p.animFrame : 0;
+    const col = p.isMoving ? (p.animFrame % 4) : 0;
     const sx = col * frameW;
     const sy = row * frameH;
 
     if (isFlipped) {
       ctx.translate(px + pw, py);
       ctx.scale(-1, 1);
-      ctx.drawImage(assets.spritesheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
+      ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
     } else {
-      ctx.drawImage(assets.spritesheet, sx, sy, frameW, frameH, px, py, pw, ph);
+      ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
     }
   } else if (assets.charIdle.complete) {
-    // Fallback if sheet not yet loaded
     ctx.drawImage(assets.charIdle, px, py, pw, ph);
   }
 
   ctx.restore();
 }
 
+function renderRemotePlayers() {
+  if (!window.multiplayerEngine || !window.multiplayerEngine.active) return;
+
+  const currentScene = state.currentScene;
+  const scene = SCENES[currentScene];
+  const pw = scene.playerWidth || 40;
+  const ph = scene.playerHeight || 86;
+
+  window.multiplayerEngine.peers.forEach((peer) => {
+    // Only render if peer is currently in the same scene
+    if (peer.scene !== currentScene) return;
+
+    const px = peer.x - pw / 2;
+    const py = peer.y - ph;
+
+    ctx.save();
+
+    // 1. Soft Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(peer.x, peer.y - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Sprite Sheet
+    let sheet = assets.char1Spritesheet;
+    if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
+      sheet = assets.char2Spritesheet;
+    } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
+      sheet = assets.char1Spritesheet;
+    } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
+      sheet = assets.spritesheet;
+    }
+
+    if (sheet && sheet.complete && sheet.width > 0) {
+      const frameW = 74;
+      const frameH = 157;
+      let row = 0;
+      let isFlipped = false;
+
+      if (peer.direction === 'down') {
+        row = 0;
+      } else if (peer.direction === 'up') {
+        row = 2;
+      } else if (peer.direction === 'right') {
+        row = 1;
+      } else if (peer.direction === 'left') {
+        row = 1;
+        isFlipped = true;
+      }
+
+      const col = peer.isMoving ? (peer.animFrame % 4) : 0;
+      const sx = col * frameW;
+      const sy = row * frameH;
+
+      if (isFlipped) {
+        ctx.translate(px + pw, py);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
+      } else {
+        ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+      }
+    }
+
+    // 3. Floating Player Name Tag Pill above head
+    const tagText = peer.name || 'Colleague';
+    ctx.font = 'bold 11px Outfit, sans-serif';
+    const textWidth = ctx.measureText(tagText).width;
+    const badgeW = textWidth + 22;
+    const badgeH = 18;
+    const badgeX = peer.x - badgeW / 2;
+    const badgeY = py - 14;
+
+    // Pill background
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 9);
+    } else {
+      ctx.rect(badgeX, badgeY, badgeW, badgeH);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    // Online green dot
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(badgeX + 8, badgeY + badgeH / 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Name text
+    ctx.fillStyle = '#f8fafc';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tagText, badgeX + 16, badgeY + badgeH / 2 + 1);
+
+    ctx.restore();
+  });
+}
+
+function setupStartMenuAndLobby() {
+  const startModal = document.getElementById('start-menu-modal');
+  const startStepInitial = document.getElementById('start-step-initial');
+  const startStepModes = document.getElementById('start-step-modes');
+  const btnInitialStart = document.getElementById('btn-initial-start');
+  const btnBackToStart = document.getElementById('btn-back-to-start');
+  const btnModeOffline = document.getElementById('btn-mode-offline');
+  const btnModeOnline = document.getElementById('btn-mode-online');
+
+  const mpModal = document.getElementById('multiplayer-modal');
+  const btnCloseLobby = document.getElementById('btn-close-lobby');
+  const inputRoomCode = document.getElementById('input-room-code');
+  const inputPlayerName = document.getElementById('input-player-name');
+  const btnCopyCode = document.getElementById('btn-copy-code');
+  const btnRegenCode = document.getElementById('btn-regen-code');
+  const btnCreateRoomTab = document.getElementById('btn-create-room');
+  const btnJoinRoomTab = document.getElementById('btn-join-room');
+  const charGrid = document.getElementById('character-grid');
+  const rosterList = document.getElementById('roster-list');
+  const rosterCount = document.getElementById('roster-count');
+  const btnEnterOffice = document.getElementById('btn-enter-office');
+  const charSelectionStatus = document.getElementById('char-selection-status');
+
+  const onlineBadge = document.getElementById('online-badge');
+  const onlineRoomText = document.getElementById('online-room-text');
+  const onlinePlayerCount = document.getElementById('online-player-count');
+  const btnLeaveRoom = document.getElementById('btn-leave-room');
+
+  let isHosting = true;
+  let currentRoomCode = MultiplayerEngine.generateRoomCode();
+  if (inputRoomCode) inputRoomCode.value = currentRoomCode;
+
+  // Step 1: Initial "START GAME" button reveals the "Online" and "Offline" options
+  if (btnInitialStart) {
+    btnInitialStart.onclick = () => {
+      window.soundManager.unlock();
+      window.soundManager.playInteract();
+      startStepInitial.classList.add('hidden');
+      startStepModes.classList.remove('hidden');
+    };
+  }
+
+  if (btnBackToStart) {
+    btnBackToStart.onclick = () => {
+      window.soundManager.playInteract();
+      startStepModes.classList.add('hidden');
+      startStepInitial.classList.remove('hidden');
+    };
+  }
+
+  // Offline Mode: Launches immediately into existing single-player office
+  if (btnModeOffline) {
+    btnModeOffline.onclick = () => {
+      window.soundManager.unlock();
+      window.soundManager.playInteract();
+      startModal.classList.add('hidden');
+      state.player.charId = 'char1';
+      showToast('🏢 Welcome to Office Simulator! Single-Player Mode.');
+    };
+  }
+
+  // Online Mode: Opens Multiplayer Lobby
+  if (btnModeOnline) {
+    btnModeOnline.onclick = () => {
+      window.soundManager.unlock();
+      window.soundManager.playInteract();
+      startModal.classList.add('hidden');
+      mpModal.classList.remove('hidden');
+      joinOrHostCurrentRoom();
+    };
+  }
+
+  function joinOrHostCurrentRoom() {
+    const code = (inputRoomCode.value || currentRoomCode).toUpperCase().trim();
+    const name = inputPlayerName.value.trim() || 'Colleague';
+    window.multiplayerEngine.startSession(code, name, isHosting);
+    renderLobbyUI();
+  }
+
+  if (btnCreateRoomTab) {
+    btnCreateRoomTab.onclick = () => {
+      isHosting = true;
+      btnCreateRoomTab.classList.add('active');
+      btnJoinRoomTab.classList.remove('active');
+      currentRoomCode = MultiplayerEngine.generateRoomCode();
+      inputRoomCode.value = currentRoomCode;
+      joinOrHostCurrentRoom();
+    };
+  }
+
+  if (btnJoinRoomTab) {
+    btnJoinRoomTab.onclick = () => {
+      isHosting = false;
+      btnJoinRoomTab.classList.add('active');
+      btnCreateRoomTab.classList.remove('active');
+      inputRoomCode.value = '';
+      inputRoomCode.focus();
+    };
+  }
+
+  if (inputRoomCode) {
+    inputRoomCode.onchange = () => {
+      if (inputRoomCode.value.trim().length >= 4) {
+        joinOrHostCurrentRoom();
+      }
+    };
+  }
+
+  if (inputPlayerName) {
+    inputPlayerName.onchange = () => {
+      const newName = inputPlayerName.value.trim() || 'Colleague';
+      window.multiplayerEngine.localPlayer.name = newName;
+      if (window.multiplayerEngine.active) {
+        window.multiplayerEngine.broadcast({
+          type: 'PRESENCE',
+          senderId: window.multiplayerEngine.localPlayer.id,
+          player: window.multiplayerEngine.localPlayer
+        });
+      }
+      renderLobbyUI();
+    };
+  }
+
+  if (btnCopyCode) {
+    btnCopyCode.onclick = () => {
+      const code = inputRoomCode.value || currentRoomCode;
+      navigator.clipboard.writeText(code).then(() => {
+        showToast(`📋 Room Code [${code}] copied to clipboard!`);
+      }).catch(() => {
+        showToast(`Room Code: ${code}`);
+      });
+    };
+  }
+
+  if (btnRegenCode) {
+    btnRegenCode.onclick = () => {
+      currentRoomCode = MultiplayerEngine.generateRoomCode();
+      inputRoomCode.value = currentRoomCode;
+      joinOrHostCurrentRoom();
+      showToast(`🎲 Generated New Room Code: ${currentRoomCode}`);
+    };
+  }
+
+  if (btnCloseLobby) {
+    btnCloseLobby.onclick = () => {
+      window.multiplayerEngine.disconnect();
+      mpModal.classList.add('hidden');
+      startModal.classList.remove('hidden');
+      startStepModes.classList.remove('hidden');
+      startStepInitial.classList.add('hidden');
+    };
+  }
+
+  if (btnLeaveRoom) {
+    btnLeaveRoom.onclick = () => {
+      window.multiplayerEngine.disconnect();
+      onlineBadge.classList.add('hidden');
+      startModal.classList.remove('hidden');
+      startStepModes.classList.remove('hidden');
+      startStepInitial.classList.add('hidden');
+      showToast('🚪 Disconnected from multiplayer room.');
+    };
+  }
+
+  if (onlineRoomText) {
+    onlineRoomText.onclick = () => {
+      if (window.multiplayerEngine.roomCode) {
+        navigator.clipboard.writeText(window.multiplayerEngine.roomCode).then(() => {
+          showToast(`📋 Room Code [${window.multiplayerEngine.roomCode}] copied to clipboard!`);
+        });
+      }
+    };
+  }
+
+  // Render Character Cards with Live Locks
+  function renderLobbyUI() {
+    if (!charGrid) return;
+    charGrid.innerHTML = '';
+
+    const myId = window.multiplayerEngine.localPlayer.id;
+    const myCharId = window.multiplayerEngine.localPlayer.charId;
+
+    window.multiplayerEngine.characters.forEach(char => {
+      const card = document.createElement('div');
+      card.className = 'char-card';
+
+      const isClaimedByMe = myCharId === char.id;
+      const isClaimedByOther = char.claimedBy && char.claimedBy !== myId;
+
+      if (char.isLocked) {
+        card.classList.add('locked');
+      } else if (isClaimedByMe) {
+        card.classList.add('selected');
+      } else if (isClaimedByOther) {
+        card.classList.add('claimed');
+      }
+
+      let badgeHtml = '';
+      if (char.isLocked) {
+        badgeHtml = '<span class="char-badge-pill badge-locked">🔒 LOCKED</span>';
+      } else if (isClaimedByMe) {
+        badgeHtml = '<span class="char-badge-pill badge-selected">✓ SELECTED</span>';
+      } else if (isClaimedByOther) {
+        badgeHtml = `<span class="char-badge-pill badge-claimed">⛔ CLAIMED BY ${char.claimedByName || 'PEER'}</span>`;
+      } else {
+        badgeHtml = '<span class="char-badge-pill badge-available">● AVAILABLE</span>';
+      }
+
+      card.innerHTML = `
+        <div class="char-avatar-frame">
+          ${char.isLocked 
+            ? '<span class="char-locked-icon">🔒</span>' 
+            : `<img class="char-avatar-img" src="${char.avatar}" alt="${char.name}">`}
+        </div>
+        <div class="char-name">${char.name}</div>
+        <div class="char-role">${char.role}</div>
+        ${badgeHtml}
+      `;
+
+      card.onclick = () => {
+        if (char.isLocked) {
+          showToast('⏳ This character slot will be unlocked in the next expansion!');
+          return;
+        }
+
+        window.soundManager.unlock();
+        const res = window.multiplayerEngine.selectCharacter(char.id);
+        if (res.success) {
+          window.soundManager.playInteract();
+          state.player.charId = char.id;
+          renderLobbyUI();
+        } else {
+          showToast(`⚠️ ${res.reason}`);
+        }
+      };
+
+      charGrid.appendChild(card);
+    });
+
+    // Update Enter Office Button state
+    if (myCharId) {
+      const selectedChar = window.multiplayerEngine.characters.find(c => c.id === myCharId);
+      btnEnterOffice.disabled = false;
+      btnEnterOffice.classList.remove('btn-enter-disabled');
+      btnEnterOffice.innerHTML = `<span>▶</span> ENTER OFFICE AS ${selectedChar ? selectedChar.name.toUpperCase() : 'SELECTED'}`;
+      charSelectionStatus.textContent = `Selected: ${selectedChar ? selectedChar.name : ''} (${selectedChar ? selectedChar.role : ''})`;
+      charSelectionStatus.style.color = '#10b981';
+    } else {
+      btnEnterOffice.disabled = true;
+      btnEnterOffice.classList.add('btn-enter-disabled');
+      btnEnterOffice.textContent = 'SELECT CHARACTER TO ENTER';
+      charSelectionStatus.textContent = 'Choose an available character to unlock entry';
+      charSelectionStatus.style.color = '#94a3b8';
+    }
+
+    // Update Connected Roster List
+    if (rosterList) {
+      rosterList.innerHTML = '';
+      const totalCount = 1 + window.multiplayerEngine.peers.size;
+      rosterCount.textContent = totalCount;
+
+      // Local player
+      const meChar = window.multiplayerEngine.characters.find(c => c.id === myCharId);
+      const myPill = document.createElement('div');
+      myPill.className = 'roster-pill you';
+      myPill.innerHTML = `<span>●</span> <strong>${window.multiplayerEngine.localPlayer.name} (You)</strong> - <em>${meChar ? meChar.name : 'Selecting...'}</em>`;
+      rosterList.appendChild(myPill);
+
+      // Remote peers
+      window.multiplayerEngine.peers.forEach(peer => {
+        const peerChar = window.multiplayerEngine.characters.find(c => c.id === peer.charId);
+        const pill = document.createElement('div');
+        pill.className = 'roster-pill';
+        pill.innerHTML = `<span>●</span> <strong>${peer.name}</strong> - <em>${peerChar ? peerChar.name : 'Selecting...'}</em>`;
+        rosterList.appendChild(pill);
+      });
+    }
+
+    // Update in-game header online badge
+    if (window.multiplayerEngine.active) {
+      onlineRoomText.textContent = `ROOM: ${window.multiplayerEngine.roomCode}`;
+      onlinePlayerCount.textContent = `👥 ${1 + window.multiplayerEngine.peers.size}`;
+    }
+  }
+
+  // Enter Office Click
+  if (btnEnterOffice) {
+    btnEnterOffice.onclick = () => {
+      if (!window.multiplayerEngine.localPlayer.charId) return;
+
+      window.soundManager.unlock();
+      window.soundManager.playDoorOpen();
+      mpModal.classList.add('hidden');
+
+      state.player.charId = window.multiplayerEngine.localPlayer.charId;
+      onlineBadge.classList.remove('hidden');
+      onlineRoomText.textContent = `ROOM: ${window.multiplayerEngine.roomCode}`;
+      onlinePlayerCount.textContent = `👥 ${1 + window.multiplayerEngine.peers.size}`;
+
+      const chosen = window.multiplayerEngine.characters.find(c => c.id === state.player.charId);
+      showToast(`🏢 Entered ${window.multiplayerEngine.roomCode}! Playing as ${chosen ? chosen.name : 'Specialist'}.`);
+    };
+  }
+
+  // Hook engine callbacks
+  window.multiplayerEngine.onLobbyUpdate = () => {
+    renderLobbyUI();
+  };
+
+  window.multiplayerEngine.onToast = (msg) => {
+    showToast(msg);
+  };
+}
+
 function renderForeground() {
-  // If player is in Boss Cabinet and standing near/behind the desk,
-  // we clip the desk front so depth sorting looks natural
+  // Depth sorting clips if needed
 }
 
 // ==========================================

@@ -20,6 +20,12 @@
           <span class="loc-dot"></span>
           <span id="location-name">Main Office Hall</span>
         </div>
+        <div class="online-badge hidden" id="online-badge">
+          <span class="online-dot"></span>
+          <span id="online-room-text" title="Click to copy Room Code">OFF-0000</span>
+          <span id="online-player-count">👥 1</span>
+          <button id="btn-leave-room" class="btn-leave-room" title="Leave Multiplayer Room">Leave</button>
+        </div>
       </div>
       <div class="header-center">
         <div class="objective-tracker" id="objective-tracker">
@@ -105,6 +111,116 @@
       <div class="status-clock" id="status-clock">09:41 AM</div>
     </footer>
 
+    <!-- Initial Start Game Menu Modal -->
+    <div id="start-menu-modal" class="modal">
+      <div class="modal-card start-card">
+        <div class="start-banner">
+          <div class="start-logo-glow">🏢</div>
+          <h1 class="start-title">OFFICE SIMULATOR</h1>
+          <p class="start-subtitle">Interactive 2D Corporate Workplace Adventure</p>
+        </div>
+        
+        <!-- Step 1: Initial Start Game Button -->
+        <div id="start-step-initial" class="start-step">
+          <button id="btn-initial-start" class="btn-pixel-primary">
+            <span class="btn-icon-start">▶</span> START GAME
+          </button>
+        </div>
+
+        <!-- Step 2: Mode Selection (Revealed upon clicking Start Game) -->
+        <div id="start-step-modes" class="start-step hidden">
+          <p class="mode-select-label">SELECT GAME MODE</p>
+          <div class="mode-buttons-wrap">
+            <button id="btn-mode-offline" class="btn-pixel-mode btn-mode-offline">
+              <span class="mode-icon">🎮</span>
+              <div class="mode-info">
+                <span class="mode-name">Offline</span>
+                <span class="mode-desc">Single-Player Office Story</span>
+              </div>
+            </button>
+            <button id="btn-mode-online" class="btn-pixel-mode btn-mode-online">
+              <span class="mode-icon">🌐</span>
+              <div class="mode-info">
+                <span class="mode-name">Online</span>
+                <span class="mode-desc">Live Multiplayer Lobby</span>
+              </div>
+            </button>
+          </div>
+          <button id="btn-back-to-start" class="btn-subtle">‹ Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multiplayer Lobby & Character Selection Modal -->
+    <div id="multiplayer-modal" class="modal hidden">
+      <div class="modal-card mp-lobby-card">
+        <div class="modal-header">
+          <div class="mp-header-left">
+            <span class="mp-header-icon">🌐</span>
+            <div>
+              <h3>MULTIPLAYER LOBBY</h3>
+              <p class="mp-subtitle">Team up with colleagues in real time</p>
+            </div>
+          </div>
+          <button id="btn-close-lobby" class="modal-close">&times;</button>
+        </div>
+
+        <div class="modal-body mp-modal-body">
+          <!-- Room Setup Row -->
+          <div class="mp-config-row">
+            <!-- Room Code Box -->
+            <div class="mp-field-group">
+              <label>TEAM / ROOM CODE</label>
+              <div class="code-input-wrap">
+                <input type="text" id="input-room-code" maxlength="12" placeholder="e.g. OFF-8421" spellcheck="false" autocomplete="off">
+                <button id="btn-copy-code" class="btn-action-small" title="Copy Room Code">📋 Copy</button>
+                <button id="btn-regen-code" class="btn-action-small" title="Generate New Room Code">🎲 New</button>
+              </div>
+            </div>
+
+            <!-- Player Nickname -->
+            <div class="mp-field-group">
+              <label>YOUR NAME</label>
+              <input type="text" id="input-player-name" maxlength="16" placeholder="Enter name" value="Colleague">
+            </div>
+          </div>
+
+          <!-- Room Action Bar -->
+          <div class="mp-room-actions">
+            <button id="btn-create-room" class="btn-tab active">Create Room</button>
+            <button id="btn-join-room" class="btn-tab">Join Existing Room</button>
+          </div>
+
+          <!-- Character Selection Section (4-Player Hierarchy) -->
+          <div class="char-select-section">
+            <div class="char-select-header">
+              <h4>SELECT YOUR CHARACTER <span class="rule-tag">1 Player Per Character</span></h4>
+              <span class="char-selection-status" id="char-selection-status">Choose an available character</span>
+            </div>
+
+            <div class="character-grid" id="character-grid">
+              <!-- Dynamically populated cards with live lock indicators -->
+            </div>
+          </div>
+
+          <!-- Connected Players in Room -->
+          <div class="mp-room-roster">
+            <label>COLLEAGUES IN ROOM (<span id="roster-count">1</span>/4):</label>
+            <div id="roster-list" class="roster-list">
+              <!-- Players list -->
+            </div>
+          </div>
+
+          <!-- Lobby Action Footer -->
+          <div class="mp-footer-actions">
+            <button id="btn-enter-office" class="btn-pixel-primary btn-enter-disabled" disabled>
+              SELECT CHARACTER TO ENTER
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Help Modal -->
     <div id="help-modal" class="modal hidden">
       <div class="modal-card">
@@ -138,7 +254,9 @@
     </div>
   </div>
 
+  <script src="peerjs.min.js"></script>
   <script src="audio.js"></script>
+  <script src="multiplayer.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
