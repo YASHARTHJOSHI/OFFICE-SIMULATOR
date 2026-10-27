@@ -182,7 +182,7 @@ registerAsset('npc_nehaBack', 'assets/npc_neha_back.png?v=12');
 // Cafeteria & Lounge Assets
 registerAsset('cafeteriaRoom', 'assets/cafeteria_room.png');
 registerAsset('cafeteriaDoor', 'assets/cafeteria_door.png');
-registerAsset('bigWorkplace', 'assets/big_workplace.png?v=35');
+registerAsset('bigWorkplace', 'assets/big_workplace.png?v=36');
 
 // ==========================================
 // GAME STATE & CONSTANTS
@@ -803,35 +803,7 @@ const SCENES = {
     playerWidth: 42,
     playerHeight: 90,
     spawn: { x: 80, y: 380, dir: 'right' },
-    foregroundProps: [
-      {
-        id: 'comp_pod1',
-        img: () => assets.fgComputerCrtMonitor,
-        x: 105,
-        y: 365,
-        w: 55,
-        h: 62,
-        sortY: 427
-      },
-      {
-        id: 'comp_pod2',
-        img: () => assets.fgComputerCrtMonitor,
-        x: 309,
-        y: 365,
-        w: 55,
-        h: 62,
-        sortY: 427
-      },
-      {
-        id: 'comp_pod3',
-        img: () => assets.fgComputerCrtMonitor,
-        x: 513,
-        y: 365,
-        w: 55,
-        h: 62,
-        sortY: 427
-      }
-    ],
+    foregroundProps: [],
     obstacles: [
       // Top panoramic glass window wall & back developer desks barrier
       { x: 0, y: 0, w: CANVAS_WIDTH, h: 140, label: 'Panoramic Windows & Back Desks' },
@@ -844,12 +816,12 @@ const SCENES = {
       { x: 1008, y: 0, w: 16, h: CANVAS_HEIGHT, label: 'Right Wall' },
 
       // Central Rolling Whiteboards Partition
-      { x: 60, y: 140, w: 580, h: 125, label: 'Whiteboards & Architecture Partition' },
+      { x: 60, y: 195, w: 600, h: 110, label: 'Whiteboards & Architecture Partition' },
 
       // Foreground Developer Workstation Pods
-      { x: 40, y: 440, w: 195, h: 80, label: 'Dev Pod 1 (Frontend & Systems)' },
-      { x: 245, y: 440, w: 195, h: 80, label: 'Dev Pod 2 (Core AI & Engine)' },
-      { x: 450, y: 440, w: 195, h: 80, label: 'Dev Pod 3 (Telemetry & Cloud)' },
+      { x: 45, y: 395, w: 185, h: 90, label: 'Dev Pod 1 (Frontend & Systems)' },
+      { x: 245, y: 395, w: 185, h: 90, label: 'Dev Pod 2 (Core AI & Engine)' },
+      { x: 450, y: 395, w: 185, h: 90, label: 'Dev Pod 3 (Telemetry & Cloud)' },
 
       // Break Counter & Credenza
       { x: 745, y: 70, w: 165, h: 75, label: 'Coffee Credenza' },
@@ -858,8 +830,8 @@ const SCENES = {
 
       // Right Raised Stage Presentation Area
       { x: 775, y: 200, w: 240, h: 120, label: 'Stage Keynote Screen' },
-      { x: 720, y: 350, w: 40, h: 65, label: 'Water Cooler' },
-      { x: 925, y: 470, w: 65, h: 70, label: 'Stage Lectern' }
+      { x: 735, y: 310, w: 45, h: 65, label: 'Water Cooler' },
+      { x: 935, y: 430, w: 75, h: 80, label: 'Stage Lectern' }
     ],
 
     triggers: [
@@ -944,16 +916,16 @@ const SCENES = {
       // 7. Water Cooler Station
       {
         id: 'water_cooler',
-        x: 710, y: 345, w: 55, h: 80,
+        x: 725, y: 300, w: 65, h: 80,
         prompt: '💧 Hydrate at Water Cooler [E]',
-        promptPos: { x: 735, y: 350 },
+        promptPos: { x: 755, y: 300 },
         action: () => {
           if (window.waterCoolerGame) {
             window.waterCoolerGame.open();
           } else {
             window.soundManager.playInteract();
             if (window.pixelEngine && window.pixelEngine.particles) {
-              window.pixelEngine.particles.spawnWaterSparkles(735, 360);
+              window.pixelEngine.particles.spawnWaterSparkles(755, 320);
             }
             showToast('💧 Refreshing ice-cold water! "Did you see that telemetry curve on stage? Incredible work!"');
           }
