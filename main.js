@@ -929,6 +929,25 @@ function render() {
     ctx.stroke();
     ctx.restore();
   }
+
+  // 6. Draw Floating Golden Triangle Indicator above any active interactable object
+  if (state.activePrompt && state.activePrompt.promptPos && state.activePrompt.id !== 'door_to_boss') {
+    const time = performance.now() * 0.003;
+    const targetX = state.activePrompt.promptPos.x;
+    const targetY = state.activePrompt.promptPos.y - 8 + Math.sin(time * 2) * 4;
+
+    ctx.save();
+    ctx.fillStyle = '#f59e0b';
+    ctx.shadowColor = '#f59e0b';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(targetX, targetY + 12);
+    ctx.lineTo(targetX - 8, targetY);
+    ctx.lineTo(targetX + 8, targetY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
 }
 
 function renderDoorGlow() {

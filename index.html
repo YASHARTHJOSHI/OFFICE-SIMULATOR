@@ -45,9 +45,9 @@
       <div id="canvas-wrapper">
         <canvas id="game-canvas" width="1024" height="576" tabindex="0"></canvas>
 
-        <!-- Dynamic Context Prompt (e.g. [E] Enter Boss's Cabinet) -->
+        <!-- Dynamic Context Prompt (with triangle indicator) -->
         <div id="interaction-prompt" class="hidden">
-          <span class="key-badge">E</span>
+          <span class="key-badge">▼</span>
           <span id="prompt-text">Enter Boss's Cabinet</span>
         </div>
 
@@ -66,7 +66,7 @@
             <div id="dialogue-text" class="dialogue-typing"></div>
             <div id="dialogue-choices" class="dialogue-choices-wrap"></div>
             <div class="dialogue-footer">
-              <span class="dialogue-hint">Press [E] or [Space] to continue ▼</span>
+              <span class="dialogue-hint">Press [▼] or [Space] to continue ▼</span>
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@
         </div>
         <div class="action-buttons">
           <button id="touch-action-btn" class="action-circle-btn">
-            <span>E</span>
+            <span>▼</span>
             <small>ACT</small>
           </button>
         </div>
@@ -102,7 +102,7 @@
     <footer id="game-footer">
       <div class="controls-guide">
         <span class="guide-item"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Arrows</kbd> Move</span>
-        <span class="guide-item"><kbd>E</kbd> or <kbd>Space</kbd> Interact / Open Door</span>
+        <span class="guide-item"><kbd>▼</kbd> or <kbd>E</kbd> / <kbd>Space</kbd> Interact / Open Door</span>
         <span class="guide-item"><kbd>Shift</kbd> Run</span>
         <span class="guide-item"><kbd>M</kbd> Mute</span>
       </div>
@@ -124,8 +124,8 @@
               <span>Move character freely around rooms</span>
             </div>
             <div class="help-row">
-              <span class="key-combo"><kbd>E</kbd> or <kbd>Space</kbd></span>
-              <span>Open doors, talk to boss, inspect computers & water cooler</span>
+              <span class="key-combo"><kbd>▼</kbd> / <kbd>E</kbd> or <kbd>Space</kbd></span>
+              <span>Open doors, talk to Anakin Skywalker, inspect computers & water cooler</span>
             </div>
             <div class="help-row">
               <span class="key-combo"><kbd>Shift</kbd></span>
