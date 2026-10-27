@@ -762,6 +762,136 @@ const SCENES = {
             toggleSitInChair(830, 560, 'right', 795, 535);
           }
         }
+      },
+      // 12. Doorway to Big Workplace Hub (connected after Cafeteria)
+      {
+        id: 'door_to_big_workplace',
+        x: 900, y: 310, w: 110, h: 120,
+        prompt: 'Enter Big Workplace 🏢 [E / Space]',
+        promptPos: { x: 950, y: 340 },
+        action: () => enterBigWorkplace()
+      }
+    ]
+  },
+
+  BIG_WORKPLACE: {
+    name: 'Mega Tech Workplace & Innovation Lab',
+    badge: 'Big Workplace',
+    objective: 'Explore the high-tech engineering pods, collaborate with developers, or draw on the Paper.js Innovation Board',
+    bg: () => (window.workplacePaper ? window.workplacePaper.getCanvas() : null),
+    playerScale: 0.58,
+    playerWidth: 42,
+    playerHeight: 90,
+    spawn: { x: 120, y: 380, dir: 'right' },
+    foregroundProps: [],
+    obstacles: [
+      // Top panoramic glass window barrier
+      { x: 0, y: 0, w: CANVAS_WIDTH, h: 220, label: 'Panoramic Window Wall' },
+      // Bottom room boundary
+      { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom Boundary' },
+      // Left boundary (leaving open corridor at y: 320-440 for Cafeteria entrance)
+      { x: 0, y: 0, w: 18, h: 320, label: 'Left Wall Upper' },
+      { x: 0, y: 440, w: 18, h: 140, label: 'Left Wall Lower' },
+      // Right boundary wall
+      { x: 1008, y: 0, w: 16, h: CANVAS_HEIGHT, label: 'Right Wall' },
+
+      // Pod A: Mobile & Frontend Workstations
+      { x: 175, y: 295, w: 150, h: 65, label: 'Pod A Desk Surface' },
+      // Pod B: Core AI Engine Workstations
+      { x: 475, y: 295, w: 150, h: 65, label: 'Pod B Desk Surface' },
+      // Pod C: Cloud & SRE Workstations
+      { x: 775, y: 295, w: 150, h: 65, label: 'Pod C Desk Surface' },
+
+      // Central Collaboration Table base
+      { x: 425, y: 425, w: 110, h: 45, label: 'Collaboration Table Base' },
+      // Quantum Server Rack in bottom-right corner
+      { x: 920, y: 430, w: 75, h: 90, label: 'Quantum Server Chassis' },
+      // Velvet Ideation Sofa in bottom-left corner
+      { x: 50, y: 440, w: 75, h: 60, label: 'Velvet Sofa Base' }
+    ],
+
+    triggers: [
+      // Exit Doorway back to Cafeteria
+      {
+        id: 'door_back_to_cafe',
+        x: 0, y: 320, w: 80, h: 120,
+        prompt: 'Return to Cafeteria [E / Space]',
+        promptPos: { x: 70, y: 380 },
+        action: () => exitBigWorkplaceToCafeteria()
+      },
+      // Paper.js Smart Vector Whiteboard
+      {
+        id: 'paper_vector_board',
+        x: 420, y: 195, w: 185, h: 55,
+        prompt: '🎨 Open Paper.js Innovation Board [E]',
+        promptPos: { x: 512, y: 180 },
+        action: () => {
+          window.soundManager.playInteract();
+          if (window.workplacePaper) window.workplacePaper.openStudio();
+        }
+      },
+      // Pod A Workstation Interaction
+      {
+        id: 'pod_a_pc',
+        x: 180, y: 350, w: 140, h: 60,
+        prompt: 'Inspect Mobile Dev Pod [E]',
+        promptPos: { x: 250, y: 340 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('📱 Pod A: Flutter & WebAssembly pipeline compiling flawlessly!');
+        }
+      },
+      // Pod B Workstation Interaction
+      {
+        id: 'pod_b_pc',
+        x: 480, y: 350, w: 140, h: 60,
+        prompt: 'Inspect AI Engine Pod [E]',
+        promptPos: { x: 550, y: 340 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🧠 Pod B: 70B parameter model training at 98.4% efficiency!');
+        }
+      },
+      // Pod C Workstation Interaction
+      {
+        id: 'pod_c_pc',
+        x: 780, y: 350, w: 140, h: 60,
+        prompt: 'Inspect Cloud Systems Pod [E]',
+        promptPos: { x: 850, y: 340 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('☁️ Pod C: Kubernetes cluster healthy across 12 global regions.');
+        }
+      },
+      // Central Hologram Collaboration Hub
+      {
+        id: 'collab_hub',
+        x: 430, y: 440, w: 100, h: 60,
+        prompt: 'Activate Hologram Projector [E]',
+        promptPos: { x: 480, y: 430 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('✨ Holographic roadmap projected in true 3D vector space!');
+        }
+      },
+      // Quantum Server Cluster
+      {
+        id: 'quantum_servers',
+        x: 915, y: 440, w: 85, h: 70,
+        prompt: 'Inspect Quantum Compute Rack [E]',
+        promptPos: { x: 955, y: 430 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('⚡ Quantum Cores chilled at 0.015 Kelvin. Zero quantum decoherence.');
+        }
+      },
+      // Ideation Lounge Sofa
+      {
+        id: 'lounge_sofa',
+        x: 50, y: 450, w: 75, h: 60,
+        prompt: 'Relax in Ideation Lounge [E / C]',
+        promptPos: { x: 85, y: 440 },
+        action: () => toggleSitInChair(85, 480, 'up', 85, 520)
       }
     ]
   }
@@ -951,6 +1081,22 @@ function setupEventListeners() {
       // Left: Main Hall badge (cx: 115, cy: 235)
       if (Math.abs(targetX - 115) <= 75 && Math.abs(targetY - 235) <= 22) {
         exitCafeteriaToMainHall();
+        return;
+      }
+      // Right: Big Workplace badge (cx: 945, cy: 360)
+      if (Math.abs(targetX - 945) <= 85 && Math.abs(targetY - 360) <= 22) {
+        enterBigWorkplace();
+        return;
+      }
+    } else if (state.currentScene === 'BIG_WORKPLACE') {
+      // Left: Cafeteria badge (cx: 70, cy: 380)
+      if (Math.abs(targetX - 70) <= 80 && Math.abs(targetY - 380) <= 22) {
+        exitBigWorkplaceToCafeteria();
+        return;
+      }
+      // Paper.js Whiteboard click (cx: 512, cy: 130)
+      if (Math.abs(targetX - 512) <= 100 && Math.abs(targetY - 130) <= 60) {
+        if (window.workplacePaper) window.workplacePaper.openStudio();
         return;
       }
     }
@@ -1497,9 +1643,62 @@ function exitCafeteriaToMainHall() {
   }, 350);
 }
 
+function enterBigWorkplace() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.unlock();
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    switchScene('BIG_WORKPLACE', 120, 380, 'right');
+    if (window.workplacePaper) window.workplacePaper.init();
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('✨ Welcome to the Big Workplace & Paper.js Innovation Hub!');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
+function exitBigWorkplaceToCafeteria() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.unlock();
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    switchScene('CAFETERIA', 890, 360, 'left');
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('☕ Back in the Office Cafeteria.');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
 // Expose navigation to window
 window.enterCafeteria = enterCafeteria;
 window.exitCafeteriaToMainHall = exitCafeteriaToMainHall;
+window.enterBigWorkplace = enterBigWorkplace;
+window.exitBigWorkplaceToCafeteria = exitBigWorkplaceToCafeteria;
 
 // ==========================================
 // COLLISION DETECTION & PHYSICS
@@ -1753,8 +1952,11 @@ function render() {
 
   // 1. Draw Room Background
   const bg = scene.bg();
-  if (bg && bg.complete) {
+  if (bg && (bg.complete || bg instanceof HTMLCanvasElement)) {
     ctx.drawImage(bg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  }
+  if (state.currentScene === 'BIG_WORKPLACE' && window.workplacePaper) {
+    window.workplacePaper.render(ctx);
   }
 
   // 2. Draw Scene-Specific Interactive Decor / Characters
@@ -1766,6 +1968,8 @@ function render() {
     renderCornerOffice();
   } else if (state.currentScene === 'CAFETERIA') {
     renderCafeteriaDetails();
+  } else if (state.currentScene === 'BIG_WORKPLACE') {
+    renderBigWorkplaceDetails();
   }
 
   // 3. Unified Dynamic Depth Sorting (Characters, Remote Peers, NPCs, and Foreground Desk/Monitor Props)
@@ -1843,7 +2047,9 @@ function render() {
     state.activePrompt.id === 'door_to_cafeteria' ||
     state.activePrompt.id === 'door_back_to_hall' ||
     state.activePrompt.id === 'exit_corner_to_hall' ||
-    state.activePrompt.id === 'exit_cafeteria_to_hall'
+    state.activePrompt.id === 'exit_cafeteria_to_hall' ||
+    state.activePrompt.id === 'door_to_big_workplace' ||
+    state.activePrompt.id === 'door_back_to_cafe'
   );
   if (state.activePrompt && state.activePrompt.promptPos && !isPortalTrigger) {
     if (state.activePrompt.id === 'talk_to_boss') {
@@ -2070,9 +2276,13 @@ function renderDoorGlow() {
 function renderCafeteriaDetails() {
   const p = state.player;
   const isNearHall = p && Math.hypot(p.x - 110, p.y - 250) < 95;
+  const isNearWorkplace = p && Math.hypot(p.x - 945, p.y - 360) < 105;
 
-  // Room Portal Badge pointing back to Main Hall
+  // 1. Room Portal Badge pointing back to Main Hall
   drawRoomPortalBadge(115, 235, 'MAIN HALL', 'left', isNearHall);
+
+  // 2. Room Portal Badge pointing to Big Workplace (connected on right after Cafeteria)
+  drawRoomPortalBadge(945, 360, 'BIG WORKPLACE', 'right', isNearWorkplace);
 
   // Subtle animated coffee steam over espresso machine
   const time = performance.now() * 0.003;
@@ -2086,6 +2296,14 @@ function renderCafeteriaDetails() {
     ctx.fill();
   }
   ctx.restore();
+}
+
+function renderBigWorkplaceDetails() {
+  const p = state.player;
+  const isNearCafe = p && Math.hypot(p.x - 70, p.y - 380) < 105;
+
+  // Room Portal Badge pointing back to Cafeteria
+  drawRoomPortalBadge(70, 380, 'CAFETERIA', 'left', isNearCafe);
 }
 
 function renderBossInCabinet() {
