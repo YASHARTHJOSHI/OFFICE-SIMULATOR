@@ -88,7 +88,7 @@ class MultiplayerEngine {
       },
       {
         id: 'char5',
-        name: 'Yasharth',
+        name: 'Arjun',
         role: 'Principal Architect',
         desc: 'Glasses, beard, Graphite 26 tee & Spider-Man back print with developer lanyard. Full-stack mastermind.',
         avatar: 'assets/char5_avatar.png?v=1',

@@ -157,9 +157,9 @@
         char2: 'Neha (Strategic Planner)',
         char3: 'Kabir (Research Lead)',
         char4: 'Josh (Lead Architect)',
-        char5: 'Yasharth (Principal Architect)'
+        char5: 'Arjun (Principal Architect)'
       };
-      userName.textContent = charNames[player.charId] || player.name || 'Yasharth';
+      userName.textContent = charNames[player.charId] || player.name || 'Vikram';
       if (userRole) userRole.textContent = 'Assigned Workstation #1 • OmniCorp';
       if (userImg) {
         userImg.src = `assets/${player.charId || 'char1'}_avatar.png`;
@@ -2056,9 +2056,9 @@ git add . && git commit -m "another day another feature"`;
         char2: 'neha.planner@omnicorp.internal',
         char3: 'kabir.research@omnicorp.internal',
         char4: 'josh.architect@omnicorp.internal',
-        char5: 'yasharth.architect@omnicorp.internal'
+        char5: 'arjun.architect@omnicorp.internal'
       };
-      userEmailEl.textContent = emailMap[charId] || 'yasharth.dev@omnicorp.internal';
+      userEmailEl.textContent = emailMap[charId] || 'colleague@omnicorp.internal';
     }
 
     // Update Badges

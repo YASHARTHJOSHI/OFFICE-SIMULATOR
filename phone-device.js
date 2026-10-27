@@ -273,7 +273,7 @@
         completed: false
       }
     ],
-    char5: [ // Yasharth: Principal Architect / Full-Stack Mastermind
+    char5: [ // Arjun: Principal Architect / Full-Stack Mastermind
       {
         id: 'task_y1',
         priority: 'P0',
@@ -762,7 +762,7 @@
         },
         char5: {
           id: 'char5',
-          name: 'Yasharth',
+          name: 'Arjun',
           role: 'Principal Architect',
           carrier: 'GRAPHITE 5G',
           deviceName: 'Graphite Titan Pro',
