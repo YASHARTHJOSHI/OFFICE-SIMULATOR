@@ -617,13 +617,13 @@ const SCENES = {
     playerScale: 0.58,
     playerWidth: 42,
     playerHeight: 90,
-    spawn: { x: 180, y: 340, dir: 'right' },
+    spawn: { x: 115, y: 295, dir: 'down' },
     // Boundaries & Obstacles for clean open movement
     obstacles: [
-      // Top wall barrier (leaving door opening at x: 75-150 open up to y: 245)
-      { x: 0, y: 0, w: 75, h: 260, label: 'Wall' },
-      { x: 75, y: 0, w: 75, h: 245, label: 'Door Threshold' },
-      { x: 150, y: 0, w: CANVAS_WIDTH - 150, h: 260, label: 'Wall' },
+      // Top wall barrier (leaving door opening at x: 75-160 open up to y: 245)
+      { x: 0, y: 0, w: 75, h: 260, label: 'Wall Left of Door' },
+      { x: 75, y: 0, w: 85, h: 245, label: 'Door Threshold' },
+      { x: 160, y: 0, w: CANVAS_WIDTH - 160, h: 260, label: 'Wall Right of Door' },
       // Bottom barrier
       { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom' },
       // Left boundary wall
@@ -632,13 +632,13 @@ const SCENES = {
       { x: 1010, y: 0, w: 15, h: CANVAS_HEIGHT, label: 'Wall' },
 
       // Back Counter & Kitchen Island (Y <= 270)
-      { x: 290, y: 220, w: 715, h: 65, label: 'Cafeteria Counter' },
+      { x: 310, y: 220, w: 695, h: 65, label: 'Cafeteria Counter' },
 
-      // Left Lounge Velvet Sofa & Table
-      { x: 5, y: 350, w: 75, h: 180, label: 'Velvet Sofa' },
-      { x: 110, y: 410, w: 75, h: 70, label: 'Coffee Table' },
-      { x: 185, y: 330, w: 75, h: 75, label: 'Armchair Top' },
-      { x: 185, y: 470, w: 75, h: 75, label: 'Armchair Bottom' },
+      // Left Lounge Velvet Sofa & Table (Accurately bounded so all hallways are 100% wide and clear)
+      { x: 5, y: 360, w: 70, h: 170, label: 'Velvet Sofa' },
+      { x: 95, y: 430, w: 70, h: 60, label: 'Coffee Table' },
+      { x: 180, y: 385, w: 75, h: 70, label: 'Armchair Top' },
+      { x: 180, y: 500, w: 75, h: 70, label: 'Armchair Bottom' },
 
       // Center Dining Table with 2 colleagues chatting
       { x: 445, y: 430, w: 105, h: 55, label: 'Center Dining Table' },
@@ -651,12 +651,12 @@ const SCENES = {
     ],
 
     triggers: [
-      // 1. Exit Door back to Main Office Hall (Door at x: 75-160, y: 250)
+      // 1. Exit Door back to Main Office Hall (Door at x: 75-160, y: 240)
       {
         id: 'exit_cafeteria_to_hall',
-        x: 75, y: 250, w: 90, h: 50,
+        x: 75, y: 240, w: 85, h: 45,
         prompt: 'Exit to Main Office Hall',
-        promptPos: { x: 120, y: 235 },
+        promptPos: { x: 115, y: 235 },
         action: () => exitCafeteriaToMainHall()
       },
       // 2. Professional Espresso Machine
@@ -1699,7 +1699,7 @@ function enterCafeteria() {
   overlay.classList.add('active');
 
   setTimeout(() => {
-    switchScene('CAFETERIA', 180, 340, 'right');
+    switchScene('CAFETERIA', 115, 295, 'down');
     window.soundManager.playDoorClose();
 
     setTimeout(() => {
@@ -1909,12 +1909,34 @@ function update(dt) {
     }
 
     // Collision Sliding & Unstick Mechanics:
-    // If movement reduces or maintains 0 overlap, it is 100% allowed!
     const scene = SCENES[state.currentScene];
     const targetX = p.x + dx * currentSpeed * dt;
     const targetY = p.y + dy * currentSpeed * dt;
 
-    const curOverlap = getCollisionOverlap(p.x, p.y, scene);
+    let curOverlap = getCollisionOverlap(p.x, p.y, scene);
+
+    // Emergency Soft Unstick Resolver:
+    // If player somehow overlaps any obstacle, gently push toward zero overlap
+    if (curOverlap > 0) {
+      const dirs = [
+        { x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 },
+        { x: 1, y: 1 }, { x: -1, y: 1 }, { x: 1, y: -1 }, { x: -1, y: -1 }
+      ];
+      let bestDir = null;
+      let minOverlap = curOverlap;
+      for (const d of dirs) {
+        const testOverlap = getCollisionOverlap(p.x + d.x * 3, p.y + d.y * 3, scene);
+        if (testOverlap < minOverlap) {
+          minOverlap = testOverlap;
+          bestDir = d;
+        }
+      }
+      if (bestDir) {
+        p.x += bestDir.x * 3;
+        p.y += bestDir.y * 3;
+        curOverlap = getCollisionOverlap(p.x, p.y, scene);
+      }
+    }
 
     const newOverlapX = getCollisionOverlap(targetX, p.y, scene);
     if (newOverlapX === 0 || newOverlapX < curOverlap) {
@@ -1927,6 +1949,31 @@ function update(dt) {
     }
   } else {
     p.animFrame = 0;
+
+    // Even while idle, if player somehow spawned or got bumped into geometry, resolve unstick!
+    const scene = SCENES[state.currentScene];
+    if (scene) {
+      const curOverlap = getCollisionOverlap(p.x, p.y, scene);
+      if (curOverlap > 0) {
+        const dirs = [
+          { x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 },
+          { x: 1, y: 1 }, { x: -1, y: 1 }, { x: 1, y: -1 }, { x: -1, y: -1 }
+        ];
+        let bestDir = null;
+        let minOverlap = curOverlap;
+        for (const d of dirs) {
+          const testOverlap = getCollisionOverlap(p.x + d.x * 3, p.y + d.y * 3, scene);
+          if (testOverlap < minOverlap) {
+            minOverlap = testOverlap;
+            bestDir = d;
+          }
+        }
+        if (bestDir) {
+          p.x += bestDir.x * 3;
+          p.y += bestDir.y * 3;
+        }
+      }
+    }
   }
 
   // Check Door Auto-Entry in Office Hall (walking straight into top door)
@@ -1960,7 +2007,7 @@ function update(dt) {
   }
 
   // Check Exit Door in Cafeteria (walking into left exit door)
-  if (state.currentScene === 'CAFETERIA' && p.x >= 65 && p.x <= 155 && p.y <= 275) {
+  if (state.currentScene === 'CAFETERIA' && p.x >= 75 && p.x <= 155 && p.y <= 255) {
     exitCafeteriaToMainHall();
     return;
   }
