@@ -88,7 +88,10 @@ registerAsset('officeHall', 'assets/office_hall.png?v=5');
 registerAsset('bossCabinet', 'assets/boss_cabinet.png');
 registerAsset('spritesheet', 'assets/spritesheet.png');
 registerAsset('charIdle', 'assets/character_idle.png');
-registerAsset('charBack', 'assets/char_back.png');
+registerAsset('charBack', 'assets/char_back.png?v=6');
+registerAsset('char1Back', 'assets/char1_back.png?v=6');
+registerAsset('char2Back', 'assets/char2_back.png?v=6');
+registerAsset('char3Back', 'assets/char3_back.png?v=6');
 registerAsset('bossPortrait', 'assets/boss_portrait.png?v=3');
 registerAsset('playerPortrait', 'assets/player_portrait.png?v=3');
 registerAsset('bossStanding', 'assets/boss_standing.png?v=3');
@@ -98,15 +101,15 @@ registerAsset('doorSlightlyOpen', 'assets/door_slightly_open.png?v=5');
 registerAsset('doorLightSpill', 'assets/door_light_spill.png?v=3');
 registerAsset('partnerCharacter', 'assets/partner_character.png');
 registerAsset('partnerPortrait', 'assets/partner_portrait.png');
-registerAsset('char1Spritesheet', 'assets/char1_spritesheet.png');
-registerAsset('char2Spritesheet', 'assets/char2_spritesheet.png');
+registerAsset('char1Spritesheet', 'assets/char1_spritesheet.png?v=6');
+registerAsset('char2Spritesheet', 'assets/char2_spritesheet.png?v=6');
 registerAsset('char1Avatar', 'assets/char1_avatar.png');
 registerAsset('char2Avatar', 'assets/char2_avatar.png');
 registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
 registerAsset('char1Sitting', 'assets/char1_sitting.png?v=3');
 registerAsset('char2Sitting', 'assets/char2_sitting.png?v=3');
-registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png?v=2');
+registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png?v=6');
 registerAsset('char3Avatar', 'assets/char3_avatar.png?v=2');
 registerAsset('char3Idle', 'assets/char3_idle.png?v=2');
 registerAsset('char3Sitting', 'assets/char3_sitting.png?v=3');
@@ -1637,6 +1640,16 @@ function renderPlayer() {
     } else {
       ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
     }
+  } else if (p.direction === 'up') {
+    let backImg = assets.char1Back || assets.charBack;
+    if (p.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
+    else if (p.charId === 'char2' && assets.char2Back && assets.char2Back.complete) backImg = assets.char2Back;
+    else if (p.charId === 'char1' && assets.char1Back && assets.char1Back.complete) backImg = assets.char1Back;
+    if (backImg && backImg.complete && backImg.width > 0) {
+      ctx.drawImage(backImg, px, py, pw, ph);
+    } else if (assets.charIdle.complete) {
+      ctx.drawImage(assets.charIdle, px, py, pw, ph);
+    }
   } else if (assets.charIdle.complete) {
     ctx.drawImage(assets.charIdle, px, py, pw, ph);
   }
@@ -1752,6 +1765,14 @@ function renderRemotePlayers() {
             ctx.restore();
           } else {
             ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+          }
+        } else if (peer.direction === 'up') {
+          let backImg = assets.char1Back || assets.charBack;
+          if (peer.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
+          else if (peer.charId === 'char2' && assets.char2Back && assets.char2Back.complete) backImg = assets.char2Back;
+          else if (peer.charId === 'char1' && assets.char1Back && assets.char1Back.complete) backImg = assets.char1Back;
+          if (backImg && backImg.complete && backImg.width > 0) {
+            ctx.drawImage(backImg, px, py, pw, ph);
           }
         }
       }
