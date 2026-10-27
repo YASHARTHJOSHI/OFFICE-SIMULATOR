@@ -338,7 +338,13 @@
     }
 
     buildDOM() {
-      if (document.getElementById('phone-overlay')) return;
+      const existing = document.getElementById('phone-overlay');
+      if (existing) {
+        this.overlay = existing;
+        this.wrapper = document.getElementById('phone-wrapper');
+        this.body = document.getElementById('phone-body');
+        return;
+      }
 
       const overlay = document.createElement('div');
       overlay.id = 'phone-overlay';
@@ -541,18 +547,15 @@
     }
 
     setupListeners() {
-      // Global hotkey listener for [P] and [Escape]
+      // Global hotkey listener for [Escape] to close phone
       window.addEventListener('keydown', (e) => {
         const tag = (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '');
-        if (tag === 'input' || tag === 'textarea') return;
+        if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) return;
 
         const k = (e.key || '').toLowerCase();
         const code = e.code || '';
 
-        if (k === 'p' || code === 'KeyP') {
-          e.preventDefault();
-          this.toggle();
-        } else if (k === 'escape' && this.isOpen) {
+        if ((k === 'escape' || code === 'Escape') && this.isOpen) {
           e.preventDefault();
           this.close();
         }
@@ -881,6 +884,12 @@ Each object must have these exact keys:
     }
 
     toggle() {
+      const now = Date.now();
+      if (this._lastToggle && (now - this._lastToggle) < 220) {
+        return; // Debounce rapid keydown repeats
+      }
+      this._lastToggle = now;
+
       if (this.isOpen) {
         this.close();
       } else {
@@ -890,6 +899,10 @@ Each object must have these exact keys:
 
     open() {
       if (!this.initialized) this.init();
+      if (!this.overlay) this.overlay = document.getElementById('phone-overlay');
+      if (!this.wrapper) this.wrapper = document.getElementById('phone-wrapper');
+      if (!this.body) this.body = document.getElementById('phone-body');
+
       this.isOpen = true;
 
       // Update character-specific phone theme
@@ -897,7 +910,9 @@ Each object must have these exact keys:
       const profile = this.profiles[charId] || this.profiles.char1;
 
       // Update phone wrapper theme class
-      this.wrapper.className = `phone-wrapper ${profile.themeClass}`;
+      if (this.wrapper) {
+        this.wrapper.className = `phone-wrapper ${profile.themeClass}`;
+      }
 
       // Update clock & carrier
       const now = new Date();
@@ -923,7 +938,9 @@ Each object must have these exact keys:
       this.playPhoneChime(profile.tones);
 
       // Show overlay
-      this.overlay.classList.remove('hidden');
+      if (this.overlay) {
+        this.overlay.classList.remove('hidden');
+      }
 
       // Clear unread badge
       this.updatePhoneBadge();
@@ -932,6 +949,7 @@ Each object must have these exact keys:
     close() {
       if (!this.isOpen) return;
       this.isOpen = false;
+      if (!this.overlay) this.overlay = document.getElementById('phone-overlay');
       if (this.overlay) {
         this.overlay.classList.add('hidden');
       }

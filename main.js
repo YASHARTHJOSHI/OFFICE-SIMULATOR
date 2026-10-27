@@ -1040,6 +1040,9 @@ function updateClock() {
 // ==========================================
 function setupEventListeners() {
   const handleKey = (e, isDown) => {
+    const tag = (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '');
+    if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) return;
+
     window.soundManager.unlock();
     const k = (e.key || '').toLowerCase();
     const c = e.code || '';
@@ -1089,6 +1092,12 @@ function setupEventListeners() {
       if (k === 'p' || c === 'KeyP') {
         if (window.phoneDevice) window.phoneDevice.toggle();
         matched = true;
+      }
+      if (k === 'escape' || c === 'Escape') {
+        if (window.phoneDevice && window.phoneDevice.isOpen) {
+          window.phoneDevice.close();
+          matched = true;
+        }
       }
       if (k === 'm' || c === 'KeyM') toggleSound();
       if (k === 'h' || c === 'KeyH') toggleHelpModal();
