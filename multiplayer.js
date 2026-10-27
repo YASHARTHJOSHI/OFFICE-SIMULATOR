@@ -137,29 +137,37 @@ class MultiplayerEngine {
     }
 
     const cleanRoom = this.roomCode.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
-    const peerPrefix = `officesim-${cleanRoom}`;
-    const myId = `${peerPrefix}-${this.localPlayer.id}`;
+    const peerPrefix = `offsim-${cleanRoom}`;
+    // Host has fixed deterministic ID; guests have unique IDs
+    const myId = this.isHost ? `${peerPrefix}-host` : `${peerPrefix}-p-${this.localPlayer.id}`;
 
     try {
+      if (this.peer) {
+        try { this.peer.destroy(); } catch (e) {}
+      }
+
       this.peer = new Peer(myId, {
         debug: 1,
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' }
           ]
         }
       });
 
       this.peer.on('open', (id) => {
         this.peerId = id;
-        console.log('[Multiplayer] PeerJS connected with ID:', id);
+        console.log('[Multiplayer] WebRTC PeerJS online with ID:', id);
 
-        // If not host, attempt connection to host ID convention
+        // If guest, connect to the host
         if (!this.isHost) {
           const hostId = `${peerPrefix}-host`;
           this.connectToPeer(hostId);
         }
+        if (this.onLobbyUpdate) this.onLobbyUpdate();
       });
 
       this.peer.on('connection', (conn) => {
@@ -167,7 +175,13 @@ class MultiplayerEngine {
       });
 
       this.peer.on('error', (err) => {
-        console.warn('[Multiplayer] PeerJS warning:', err);
+        console.warn('[Multiplayer] PeerJS event:', err.type, err);
+        // If host ID was already taken when trying to host, join as guest instead!
+        if (err.type === 'unavailable-id' && this.isHost) {
+          console.log('[Multiplayer] Room host already active, connecting as peer...');
+          this.isHost = false;
+          this.initPeerJS();
+        }
       });
     } catch (e) {
       console.warn('[Multiplayer] Failed to initialize PeerJS:', e);
@@ -187,6 +201,8 @@ class MultiplayerEngine {
   setupConnection(conn) {
     conn.on('open', () => {
       this.connections.set(conn.peer, conn);
+      console.log('[Multiplayer] WebRTC connection established with:', conn.peer);
+
       // Send greeting & state
       conn.send({
         type: 'JOIN',
@@ -200,15 +216,33 @@ class MultiplayerEngine {
           type: 'SYNC_CLAIMS',
           claims: this.getClaimsPayload()
         });
+
+        // Inform other peers to connect to this new peer (mesh networking)
+        this.broadcast({
+          type: 'PEER_DISCOVERY',
+          peerId: conn.peer
+        });
       }
+
+      if (this.onLobbyUpdate) this.onLobbyUpdate();
     });
 
     conn.on('data', (data) => {
       this.handleIncomingMessage(data);
+
+      // Host star-relay: if host receives state update from one peer, forward it to all other peers
+      if (this.isHost && data && data.type) {
+        this.connections.forEach((otherConn, otherPeerId) => {
+          if (otherPeerId !== conn.peer && otherConn.open) {
+            try { otherConn.send(data); } catch (e) {}
+          }
+        });
+      }
     });
 
     conn.on('close', () => {
       this.connections.delete(conn.peer);
+      if (this.onLobbyUpdate) this.onLobbyUpdate();
     });
 
     conn.on('error', () => {
@@ -251,6 +285,12 @@ class MultiplayerEngine {
     if (!msg || !msg.type || msg.senderId === this.localPlayer.id) return;
 
     switch (msg.type) {
+      case 'PEER_DISCOVERY': {
+        if (msg.peerId && msg.peerId !== this.peerId && !this.connections.has(msg.peerId)) {
+          this.connectToPeer(msg.peerId);
+        }
+        break;
+      }
       case 'JOIN': {
         const p = msg.player;
         this.peers.set(p.id, {
