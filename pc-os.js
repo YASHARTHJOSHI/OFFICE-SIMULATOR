@@ -714,7 +714,7 @@
                 <!-- Avatar injected -->
               </div>
               <div class="pc-wa-header-info">
-                <strong id="wa-active-name">+91 724 871 0536</strong>
+                <strong id="wa-active-name">Siddharth Roy (DevOps Lead)</strong>
                 <span id="wa-active-status" class="wa-status-online">online</span>
               </div>
             </div>
@@ -758,116 +758,102 @@
       else if (window.state.player.charId === 'char3') myAv.src = 'assets/char3_avatar.png';
     }
 
-    // Conversations Data matching screenshot & office environment
+    // Conversations Data matching professional office & engineering environment
     const contactsData = {
-      'sarthak': {
-        id: 'sarthak',
-        name: '+91 724 871 0536',
+      'siddharth': {
+        id: 'siddharth',
+        name: 'Siddharth Roy (DevOps Lead)',
         subtitle: 'online',
-        avatarBg: '#d97706',
-        avatarText: '🧑‍💻',
-        avatarImg: 'assets/char4_avatar.png',
+        avatarBg: '#0284c7',
+        avatarText: '⚡',
+        avatarImg: 'assets/char1_avatar.png',
         type: 'direct',
         unread: 0,
         pinned: true,
-        lastTime: '8:59 pm',
+        lastTime: '10:20 AM',
         messages: [
-          { sender: 'other', text: 'Sir ne bola agle Friday ko kar dena submit', time: '6:27 pm' },
-          { sender: 'me', text: 'Tune assignment kar liya??', time: '6:25 pm' },
-          { sender: 'me', text: 'Kal nhi karna??', time: '6:27 pm' },
-          { sender: 'other', text: 'Nahi', time: '6:29 pm' },
-          { sender: 'other', text: 'Aur sir bolre the jo aaj nahi aaya wo bhi karega lol 😂😂😂', time: '6:29 pm' },
-          { sender: 'me', text: 'Assignment??', time: '6:30 pm' },
-          { sender: 'me', text: 'Sun tu jayga waise kal??', time: '6:30 pm' },
-          { 
-            sender: 'other', 
-            text: 'Hm hum to qualify ho gaye ff ma round 2 ke liye jana he padega', 
-            time: '6:52 pm',
-            quoted: { author: 'You', text: 'Sun tu jayga waise kal??' }
-          },
-          { 
-            sender: 'me', 
-            text: 'Aaare waaah', 
-            time: '6:52 pm',
-            reaction: '❤️'
-          },
-          { sender: 'me', text: 'Bhai pakka nhi karna na kal assignment submit', time: '8:58 pm' },
-          { sender: 'other', text: 'Nahi karna ha yr', time: '8:59 pm' },
-          { sender: 'other', text: 'Puch le Sarthak se', time: '8:59 pm' }
+          { sender: 'other', text: 'Hey! Saw the fresh Groq AI SWE directives on your phone. Telemetry latency is looking super clean.', time: '10:14 AM' },
+          { sender: 'me', text: 'Thanks! Digging into the Redis pool connection leak and query benchmarks now.', time: '10:16 AM' },
+          { sender: 'other', text: 'Awesome. Staging deployment passed all canary health checks. Let me know if you need any cluster logs.', time: '10:18 AM' },
+          { sender: 'me', text: 'Will do! Grab a coffee at the cafeteria after standup?', time: '10:19 AM' },
+          { sender: 'other', text: 'Deal! See you at 11:00 AM near the coffee station. ☕', time: '10:20 AM' }
         ]
       },
-      'graphite': {
-        id: 'graphite',
-        name: 'Graphite suii',
-        subtitle: 'last seen yesterday at 11:20 pm',
-        avatarBg: '#0284c7',
-        avatarText: '🌅',
+      'kavita': {
+        id: 'kavita',
+        name: 'Kavita Sen (Lead UI/UX)',
+        subtitle: 'last seen today at 10:05 AM',
+        avatarBg: '#ec4899',
+        avatarText: '🎨',
         avatarImg: 'assets/npc_priya_portrait.png',
         type: 'direct',
         unread: 0,
-        lastTime: 'Yesterday',
+        lastTime: '09:50 AM',
         messages: [
-          { sender: 'other', text: 'Hey check out the sunset pics from the cafeteria balcony!', time: '05:14 PM' },
-          { sender: 'me', text: '📷 Photo', time: '05:15 PM' },
-          { sender: 'other', text: 'Whoa awesome lighting! Adding this to the office blog banner.', time: '05:16 PM' }
+          { sender: 'other', text: 'Hey, check out the new pixel-art money icon on the top-left of the game screen!', time: '09:45 AM' },
+          { sender: 'me', text: 'Looks super clean! Sized to 38px with crisp pixel-art edges so it does not clutter the viewport.', time: '09:48 AM' },
+          { sender: 'other', text: 'Love the click stipend animation too! Approved for production. ✨', time: '09:50 AM' }
         ]
       },
-      'priyanshu': {
-        id: 'priyanshu',
-        name: '+91 70214 35548',
-        subtitle: 'offline',
-        avatarBg: '#059669',
-        avatarText: '👥',
+      'ananya': {
+        id: 'ananya',
+        name: 'Ananya Patel (QA Automation)',
+        subtitle: 'online',
+        avatarBg: '#10b981',
+        avatarText: '🧪',
+        avatarImg: 'assets/char2_avatar.png',
         type: 'direct',
         unread: 0,
-        lastTime: 'Yesterday',
+        lastTime: '09:25 AM',
         messages: [
-          { sender: 'me', text: 'Abhi nhi utha sakta meeting me hu', time: 'Yesterday' },
-          { sender: 'other', text: 'Theek hai free ho ke call karna!', time: 'Yesterday' }
+          { sender: 'other', text: 'All 42 end-to-end integration tests passed on staging! 🟢', time: '09:20 AM' },
+          { sender: 'me', text: 'Zero regressions on multiplayer room sync?', time: '09:22 AM' },
+          { sender: 'other', text: 'Zero regressions. WebSocket roundtrip latency is holding steady under 12ms.', time: '09:25 AM' }
         ]
       },
-      'kailash': {
-        id: 'kailash',
-        name: 'Kailash Joshi',
-        subtitle: 'last seen today at 8:00 am',
-        avatarBg: '#ea580c',
-        avatarText: '🏠',
+      'meera': {
+        id: 'meera',
+        name: 'Meera Joshi (HR Operations)',
+        subtitle: 'last seen today at 09:00 AM',
+        avatarBg: '#8b5cf6',
+        avatarText: '👔',
+        avatarImg: 'assets/npc_amit_portrait.png',
         type: 'direct',
         unread: 0,
-        lastTime: 'Yesterday',
+        lastTime: '08:50 AM',
         messages: [
-          { sender: 'other', text: 'खाना खाया', time: 'Yesterday' },
-          { sender: 'me', text: 'Haan ji papa, lunch kar liya office me!', time: 'Yesterday' },
-          { sender: 'other', text: 'Shabash, samay se ghar aana.', time: 'Yesterday' }
+          { sender: 'other', text: 'Good morning! Remember to check your daily workplace communication objectives.', time: '08:45 AM' },
+          { sender: 'me', text: 'On track! Aiming for Principal Engineer rank today.', time: '08:48 AM' },
+          { sender: 'other', text: 'Wonderful! Let me know if you need any feedback on your rubric.', time: '08:50 AM' }
         ]
       },
-      'section-h': {
-        id: 'section-h',
-        name: 'SECTION H UNOFFICIAL',
-        subtitle: 'Priyanshu, Sarthak, Rahul, You and 42 others',
+      'eng-core': {
+        id: 'eng-core',
+        name: '#engineering-sprint-core',
+        subtitle: 'Rahul, Priya, Siddharth, You and 18 others',
         avatarBg: '#475569',
         avatarText: '🏛️',
         type: 'group',
-        unread: 3,
-        lastTime: 'Yesterday',
+        unread: 2,
+        lastTime: '09:08 AM',
         messages: [
-          { sender: 'other', user: 'Priyanshu', text: '~It: Priyanshu ne bola kal test postpone ho gaya!', time: 'Yesterday' },
-          { sender: 'other', user: 'Aman', text: 'Arre sach me kya?? Konse period me bataya?', time: 'Yesterday' },
-          { sender: 'me', text: 'Official circular aya kya group pe?', time: 'Yesterday' }
+          { sender: 'other', user: 'Rahul (Tech Lead)', text: 'Sprint #42 is officially in code freeze. Please finish open PR reviews.', time: '09:00 AM' },
+          { sender: 'other', user: 'Priya (PM)', text: 'All P0 customer triage tickets are assigned on the dashboard.', time: '09:05 AM' },
+          { sender: 'me', text: 'Acknowledged! Reviewing the distributed consensus PR now.', time: '09:08 AM' }
         ]
       },
-      'bus-transport': {
-        id: 'bus-transport',
-        name: 'Bus transport -GEHU Bhimtal Campus',
-        subtitle: '+91 92586 22152, Driver Singh, You...',
+      'facilities': {
+        id: 'facilities',
+        name: 'OmniCorp Campus Facilities',
+        subtitle: 'Facilities, Security, You',
         avatarBg: '#ca8a04',
-        avatarText: '🚌',
+        avatarText: '🏢',
         type: 'group',
         unread: 0,
-        lastTime: 'Yesterday',
+        lastTime: '08:35 AM',
         messages: [
-          { sender: 'system', text: '+91 92586 22152 joined via an invite link', time: 'Yesterday' },
-          { sender: 'other', user: 'Coordinator', text: 'Bus Route 4 will depart exactly at 05:15 PM from Main Gate.', time: 'Yesterday' }
+          { sender: 'system', text: 'OmniCorp Facilities announcement: Cafeteria espresso station has been refilled.', time: '08:30 AM' },
+          { sender: 'other', user: 'Coordinator', text: 'Evening campus shuttle will depart at 06:15 PM from the Main Lobby.', time: '08:35 AM' }
         ]
       },
       'rahul': {
@@ -932,7 +918,7 @@
       }
     };
 
-    let activeContactId = 'sarthak';
+    let activeContactId = 'siddharth';
     let currentFilter = 'all';
     let searchQuery = '';
 
@@ -1161,15 +1147,21 @@
         activeStatusEl.textContent = c.subtitle;
         activeStatusEl.className = c.subtitle === 'online' ? 'wa-status-online' : 'wa-status-muted';
 
-        let replyText = 'Haha bilkul bhai! 100%';
-        if (activeContactId === 'sarthak') {
-          const sarthakReplies = [
-            'Bhai maine toh abhi tak notebook bhi nahi kholi lol 😂',
-            'Pakka confirm hai na? Sarthak se puch liya?',
-            'Arey tension mat le, subah viva se pehle milte hain cafeteria ke paas!',
-            'Hahaha true! Submission Monday tak stretch ho jayega pakka.'
+        let replyText = 'Got it! Looking into this right away.';
+        if (activeContactId === 'siddharth') {
+          const siddharthReplies = [
+            'Telemetry metrics are looking super healthy! 99.99% uptime on all pods.',
+            'Staging cluster updated with your changes. All green lights! 🚀',
+            'Let me know when you push your branch, will review right away.',
+            'Coffee break sounds good! See you by the cafeteria lounge in 10 mins. ☕'
           ];
-          replyText = sarthakReplies[Math.floor(Math.random() * sarthakReplies.length)];
+          replyText = siddharthReplies[Math.floor(Math.random() * siddharthReplies.length)];
+        } else if (activeContactId === 'kavita') {
+          replyText = 'Design looks crisp and pixel-perfect! Added to our design system.';
+        } else if (activeContactId === 'ananya') {
+          replyText = 'Automated regression test suite passed with 100% coverage! ✅';
+        } else if (activeContactId === 'meera') {
+          replyText = 'Feedback noted! Great progress on your communication milestones.';
         } else if (activeContactId === 'rahul') {
           replyText = 'PR looks solid! Approving and merging into main branch now. 🚀';
         } else if (activeContactId === 'priya') {
@@ -1177,13 +1169,13 @@
         } else if (activeContactId === 'boss') {
           replyText = 'Impressive progress. Maintain high sprint velocity for the Executive Committee.';
         } else if (c.type === 'group') {
-          replyText = 'Sahi baat hai bhai, group pe notification dekh lo ek baar!';
+          replyText = 'Acknowledged by the engineering team. Keep up the great velocity!';
         }
 
         const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
         c.messages.push({
           sender: 'other',
-          user: c.type === 'group' ? 'Sarthak' : undefined,
+          user: c.type === 'group' ? (c.id === 'facilities' ? 'Facilities Coordinator' : 'Rahul (Tech Lead)') : undefined,
           text: replyText,
           time: replyTime
         });
