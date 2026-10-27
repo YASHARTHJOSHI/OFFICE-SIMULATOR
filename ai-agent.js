@@ -831,8 +831,8 @@ You MUST respond strictly in valid JSON format with this exact structure:
       ctx.save();
 
       if (npc.isSitting && npc.scene !== 'CORNER_OFFICE') {
-        // Render seated at desk
-        const seatedImg = assets[`${npc.id}Seated`] || assets.char1SeatedDesk;
+        // Render seated at desk (facing computer / up)
+        const seatedImg = assets[`${npc.id}Seated`] || assets[`${npc.id}Back`] || assets.char1SeatedDesk;
         if (seatedImg && seatedImg.complete && seatedImg.width > 0) {
           const isMulti = seatedImg.width >= 200;
           const fw = isMulti ? Math.round(seatedImg.width / 4) : seatedImg.width;
@@ -863,8 +863,11 @@ You MUST respond strictly in valid JSON format with this exact structure:
         ctx.ellipse(posX, posY - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Spritesheet
+        // Spritesheet / Front & Back Images
         const sheet = assets[`${npc.id}Spritesheet`] || assets.char1Spritesheet;
+        const frontImg = assets[`${npc.id}Front`];
+        const backImg = assets[`${npc.id}Back`];
+
         if (sheet && sheet.complete && sheet.width > 0) {
           const frameW = 74;
           const frameH = 157;
@@ -891,6 +894,18 @@ You MUST respond strictly in valid JSON format with this exact structure:
             ctx.restore();
           } else {
             ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+          }
+        } else if (npc.direction === 'up' && backImg && backImg.complete && backImg.width > 0) {
+          ctx.drawImage(backImg, px, py, pw, ph);
+        } else if (frontImg && frontImg.complete && frontImg.width > 0) {
+          if (npc.direction === 'left') {
+            ctx.save();
+            ctx.translate(px + pw, py);
+            ctx.scale(-1, 1);
+            ctx.drawImage(frontImg, 0, 0, pw, ph);
+            ctx.restore();
+          } else {
+            ctx.drawImage(frontImg, px, py, pw, ph);
           }
         }
       }

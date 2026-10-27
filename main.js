@@ -39,15 +39,23 @@ const assets = {
   npc_rahulSpritesheet: new Image(),
   npc_rahulPortrait: new Image(),
   npc_rahulSeated: new Image(),
+  npc_rahulFront: new Image(),
+  npc_rahulBack: new Image(),
   npc_priyaSpritesheet: new Image(),
   npc_priyaPortrait: new Image(),
   npc_priyaSeated: new Image(),
+  npc_priyaFront: new Image(),
+  npc_priyaBack: new Image(),
   npc_amitSpritesheet: new Image(),
   npc_amitPortrait: new Image(),
   npc_amitSeated: new Image(),
+  npc_amitFront: new Image(),
+  npc_amitBack: new Image(),
   npc_nehaSpritesheet: new Image(),
   npc_nehaPortrait: new Image(),
   npc_nehaSeated: new Image(),
+  npc_nehaFront: new Image(),
+  npc_nehaBack: new Image(),
   cafeteriaRoom: new Image(),
   cafeteriaDoor: new Image()
 };
@@ -140,21 +148,29 @@ registerAsset('fgHallDeskRight', 'assets/fg_hall_desk_right.png?v=3');
 registerAsset('fgHallDeskLeft', 'assets/fg_hall_desk_left.png?v=3');
 
 // 4 Workplace Quest NPC Employees (Rahul, Priya, Amit, Neha)
-registerAsset('npc_rahulSpritesheet', 'assets/npc_rahul_spritesheet.png');
-registerAsset('npc_rahulPortrait', 'assets/npc_rahul_portrait.png');
-registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png?v=8');
+registerAsset('npc_rahulSpritesheet', 'assets/npc_rahul_spritesheet.png?v=12');
+registerAsset('npc_rahulPortrait', 'assets/npc_rahul_portrait.png?v=12');
+registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png?v=12');
+registerAsset('npc_rahulFront', 'assets/npc_rahul_front.png?v=12');
+registerAsset('npc_rahulBack', 'assets/npc_rahul_back.png?v=12');
 
-registerAsset('npc_priyaSpritesheet', 'assets/npc_priya_spritesheet.png');
-registerAsset('npc_priyaPortrait', 'assets/npc_priya_portrait.png');
-registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png?v=8');
+registerAsset('npc_priyaSpritesheet', 'assets/npc_priya_spritesheet.png?v=12');
+registerAsset('npc_priyaPortrait', 'assets/npc_priya_portrait.png?v=12');
+registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png?v=12');
+registerAsset('npc_priyaFront', 'assets/npc_priya_front.png?v=12');
+registerAsset('npc_priyaBack', 'assets/npc_priya_back.png?v=12');
 
-registerAsset('npc_amitSpritesheet', 'assets/npc_amit_spritesheet.png');
-registerAsset('npc_amitPortrait', 'assets/npc_amit_portrait.png');
-registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png?v=8');
+registerAsset('npc_amitSpritesheet', 'assets/npc_amit_spritesheet.png?v=12');
+registerAsset('npc_amitPortrait', 'assets/npc_amit_portrait.png?v=12');
+registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png?v=12');
+registerAsset('npc_amitFront', 'assets/npc_amit_front.png?v=12');
+registerAsset('npc_amitBack', 'assets/npc_amit_back.png?v=12');
 
-registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png');
-registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png');
-registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png?v=8');
+registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png?v=12');
+registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png?v=12');
+registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png?v=12');
+registerAsset('npc_nehaFront', 'assets/npc_neha_front.png?v=12');
+registerAsset('npc_nehaBack', 'assets/npc_neha_back.png?v=12');
 
 // Cafeteria & Lounge Assets
 registerAsset('cafeteriaRoom', 'assets/cafeteria_room.png');
