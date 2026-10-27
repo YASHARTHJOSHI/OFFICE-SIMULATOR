@@ -366,6 +366,52 @@ class SoundManager {
       osc.stop(t + 0.3);
     } catch (e) {}
   }
+
+  // --- SMARTPHONE NOTIFICATION POP CHIME ---
+  playPhonePop() {
+    this.playNotificationPop();
+  }
+
+  playNotificationPop() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+
+      // 1. Crisp droplet "pop" transient: rapid downward resonant sweep (1950Hz -> 620Hz in 45ms)
+      const popOsc = this.ctx.createOscillator();
+      const popGain = this.ctx.createGain();
+      popOsc.type = 'sine';
+      popOsc.frequency.setValueAtTime(1950, t);
+      popOsc.frequency.exponentialRampToValueAtTime(620, t + 0.045);
+      popGain.gain.setValueAtTime(0.26, t);
+      popGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      popOsc.connect(popGain);
+      popGain.connect(this.masterGain);
+      popOsc.start(t);
+      popOsc.stop(t + 0.06);
+
+      // 2. Harmonic chord: D5 (587.3Hz) -> A5 (880Hz) -> D6 (1174.6Hz)
+      const chord = [
+        { f: 587.33, delay: 0.035, dur: 0.28, vol: 0.16 },
+        { f: 880.00, delay: 0.075, dur: 0.35, vol: 0.22 },
+        { f: 1174.66, delay: 0.125, dur: 0.42, vol: 0.25 }
+      ];
+      chord.forEach(n => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(n.f, t + n.delay);
+        gain.gain.setValueAtTime(0.001, t + n.delay);
+        gain.gain.linearRampToValueAtTime(n.vol, t + n.delay + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + n.delay + n.dur);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + n.delay);
+        osc.stop(t + n.delay + n.dur + 0.05);
+      });
+    } catch (e) {}
+  }
 }
 
 window.soundManager = new SoundManager();

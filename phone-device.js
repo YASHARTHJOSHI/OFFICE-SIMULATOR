@@ -242,6 +242,364 @@
     ]
   };
 
+  // Curated Fallback SWE Task Pools for subsequent Sprints (Sprint 2, Sprint 3, Sprint 4)
+  const HR_SPRINT_POOLS = {
+    char1: [ // Vikram: Tech Lead / Backend
+      [ // Sprint 2
+        {
+          id: 'hr_v2_1',
+          priority: 'P0',
+          category: 'Security',
+          title: 'Patch SSRF vulnerability in webhook outbound dispatcher',
+          description: 'Restrict outbound HTTP calls to public IP subnets and block AWS/GCP metadata endpoint (169.254.169.254).',
+          location: 'Dev Pod 1 • Assigned Desk PC',
+          xp: 220,
+          completed: false
+        },
+        {
+          id: 'hr_v2_2',
+          priority: 'P1',
+          category: 'Backend',
+          title: 'Migrate auth service to asymmetric ed25519 JWT signatures',
+          description: 'Replace shared HMAC secrets with public key infrastructure for zero-trust microservice federation.',
+          location: 'Big Workplace • Architecture Board',
+          xp: 170,
+          completed: false
+        },
+        {
+          id: 'hr_v2_3',
+          priority: 'P1',
+          category: 'Performance',
+          title: 'Tune Linux TCP keepalive & sysctl epoll socket backlog',
+          description: 'Eliminate TCP connection drops during 50k RPS ingress spikes on API Gateway nodes.',
+          location: 'Dev Pod 1 • Terminal',
+          xp: 140,
+          completed: false
+        },
+        {
+          id: 'hr_v2_4',
+          priority: 'P2',
+          category: 'DevOps',
+          title: 'Deploy canary release of Kafka partitioned consumer v2.4',
+          description: 'Route 5% of event stream to new consumer group with lag monitoring alerts.',
+          location: 'Acme R&D Innovation Hub',
+          xp: 115,
+          completed: false
+        },
+        {
+          id: 'hr_v2_5',
+          priority: 'P2',
+          category: 'Governance',
+          title: 'Conduct architecture post-mortem on billing gateway timeout',
+          description: 'Document 5 Whys analysis and publish remediation timeline to engineering leadership.',
+          location: 'Boss Cabinet • Strategy Desk',
+          xp: 95,
+          completed: false
+        }
+      ],
+      [ // Sprint 3
+        {
+          id: 'hr_v3_1',
+          priority: 'P0',
+          category: 'Optimization',
+          title: 'Resolve Go runtime memory leak in high-throughput gateway',
+          description: 'Profile pprof heap dumps and eliminate unclosed HTTP response body buffers in streaming handler.',
+          location: 'Dev Pod 1 • Assigned Desk PC',
+          xp: 230,
+          completed: false
+        },
+        {
+          id: 'hr_v3_2',
+          priority: 'P1',
+          category: 'Resilience',
+          title: 'Build automated chaos-testing probe for cross-region failover',
+          description: 'Simulate zone blackhole using iptables drop rules to verify Kubernetes headless service self-healing.',
+          location: 'Acme R&D Innovation Hub',
+          xp: 175,
+          completed: false
+        },
+        {
+          id: 'hr_v3_3',
+          priority: 'P1',
+          category: 'Database',
+          title: 'Optimize GraphQL N+1 queries with dataloader batching',
+          description: 'Batch batch-load database lookups reducing query volume from 140 queries to 2 indexed batches per page.',
+          location: 'Big Workplace • Telemetry Screen',
+          xp: 145,
+          completed: false
+        },
+        {
+          id: 'hr_v3_4',
+          priority: 'P2',
+          category: 'Infra',
+          title: 'Migrate Elasticsearch cluster to OpenSearch 2.11',
+          description: 'Execute zero-downtime reindexing pipeline and test vector search kNN embeddings.',
+          location: 'Dev Pod 1 • Terminal',
+          xp: 120,
+          completed: false
+        }
+      ]
+    ],
+    char2: [ // Neha: Strategic Planner / Eng Manager
+      [ // Sprint 2
+        {
+          id: 'hr_n2_1',
+          priority: 'P0',
+          category: 'Strategy',
+          title: 'Mediate technical blocker between AI Core and Mobile teams',
+          description: 'Align protobuf schema contract deadlines to unblock Q1 mobile release schedule.',
+          location: 'Stage Presentation / All-Hands Hub',
+          xp: 210,
+          completed: false
+        },
+        {
+          id: 'hr_n2_2',
+          priority: 'P1',
+          category: 'FinOps',
+          title: 'Audit AWS compute spend against quarterly FinOps budget',
+          description: 'Right-size underutilized EC2 instances and purchase 1-year Savings Plans saving $18k/month.',
+          location: 'Assigned Desk PC • Notes',
+          xp: 165,
+          completed: false
+        },
+        {
+          id: 'hr_n2_3',
+          priority: 'P1',
+          category: 'Hiring',
+          title: 'Evaluate Staff SWE candidate technical architecture submissions',
+          description: 'Score system design rubrics and prepare debrief notes for engineering panel.',
+          location: 'Corner Office • HR Desk',
+          xp: 140,
+          completed: false
+        },
+        {
+          id: 'hr_n2_4',
+          priority: 'P2',
+          category: 'Compliance',
+          title: 'Prepare SOC2 Type II audit evidence with InfoSec auditors',
+          description: 'Consolidate MFA enforcement logs, branch protection rules, and quarterly access reviews.',
+          location: 'Executive Boardroom',
+          xp: 110,
+          completed: false
+        }
+      ],
+      [ // Sprint 3
+        {
+          id: 'hr_n3_1',
+          priority: 'P0',
+          category: 'Culture',
+          title: 'Establish 24/7 on-call rotation & compensation framework',
+          description: 'Draft fair pager duty policy with primary/secondary rotations and compensatory time off.',
+          location: 'Corner Office • HR Desk',
+          xp: 220,
+          completed: false
+        },
+        {
+          id: 'hr_n3_2',
+          priority: 'P1',
+          category: 'Executive',
+          title: 'Deliver quarterly technology keynote to board of directors',
+          description: 'Present latency reduction metrics, uptime 99.99% SLAs, and cloud cost efficiency gains.',
+          location: 'Stage Presentation / All-Hands Hub',
+          xp: 180,
+          completed: false
+        },
+        {
+          id: 'hr_n3_3',
+          priority: 'P1',
+          category: 'Quality',
+          title: 'Review team developer satisfaction (eNPS) & action plan',
+          description: 'Analyze retrospective pulse survey feedback and allocate 20% sprint capacity for tech debt.',
+          location: 'Cafeteria • Lounge Area',
+          xp: 135,
+          completed: false
+        },
+        {
+          id: 'hr_n3_4',
+          priority: 'P2',
+          category: 'Agile',
+          title: 'Host engineering hackathon prize ceremony & awards',
+          description: 'Award corporate bonuses for top internal tooling and productivity improvements.',
+          location: 'Big Workplace • Telemetry Screen',
+          xp: 100,
+          completed: false
+        }
+      ]
+    ],
+    char3: [ // Kabir: Senior Research Lead / Quantum
+      [ // Sprint 2
+        {
+          id: 'hr_k2_1',
+          priority: 'P0',
+          category: 'Quantum',
+          title: 'Debug phase decoherence anomaly in Qubit array registers',
+          description: 'Calibrate Josephson junction flux bias to suppress 1/f magnetic flux noise.',
+          location: 'R&D Sensor Cluster • Dev Pod',
+          xp: 225,
+          completed: false
+        },
+        {
+          id: 'hr_k2_2',
+          priority: 'P1',
+          category: 'Algorithms',
+          title: 'Formulate error-correcting surface codes for logical qubits',
+          description: 'Implement syndrome extraction circuit with minimum-weight perfect matching decoder.',
+          location: 'Big Workplace • Sensor Grid',
+          xp: 170,
+          completed: false
+        },
+        {
+          id: 'hr_k2_3',
+          priority: 'P1',
+          category: 'Simulation',
+          title: 'Accelerate Monte Carlo quantum annealing simulations on GPU',
+          description: 'Optimize CUDA kernel shared memory layout for 64-spin Ising Hamiltonian models.',
+          location: 'Assigned PC • Terminal',
+          xp: 145,
+          completed: false
+        },
+        {
+          id: 'hr_k2_4',
+          priority: 'P2',
+          category: 'Hardware',
+          title: 'Audit cryogenic dilution refrigerator thermal dissipation',
+          description: 'Verify 10mK base temperature stability under continuous microwave drive loads.',
+          location: 'Acme R&D Innovation Hub',
+          xp: 110,
+          completed: false
+        }
+      ],
+      [ // Sprint 3
+        {
+          id: 'hr_k3_1',
+          priority: 'P0',
+          category: 'Quantum',
+          title: 'Implement Variational Quantum Eigensolver (VQE) pipeline',
+          description: 'Simulate molecular ground-state energy of lithium hydride with parameterized ansatz circuit.',
+          location: 'R&D Sensor Cluster • Dev Pod',
+          xp: 235,
+          completed: false
+        },
+        {
+          id: 'hr_k3_2',
+          priority: 'P1',
+          category: 'Research',
+          title: 'File patent disclosure for fault-tolerant quantum key routing',
+          description: 'Finalize formal claims and cryptographic security bounds with Acme intellectual property counsel.',
+          location: 'Boss Cabinet • Strategy Desk',
+          xp: 180,
+          completed: false
+        },
+        {
+          id: 'hr_k3_3',
+          priority: 'P1',
+          category: 'Signal',
+          title: 'Filter high-frequency microwave crosstalk on drive lines',
+          description: 'Design digital low-pass FIR filter matrix on FPGA to isolate adjacent qubit gates.',
+          location: 'Assigned PC • Terminal',
+          xp: 140,
+          completed: false
+        },
+        {
+          id: 'hr_k3_4',
+          priority: 'P2',
+          category: 'Preprint',
+          title: 'Submit quantum supremacy milestone paper to Nature Physics',
+          description: 'Format LaTeX figures, experimental datasets, and peer review reproducibility package.',
+          location: 'Cafeteria • Lounge Area',
+          xp: 105,
+          completed: false
+        }
+      ]
+    ],
+    char4: [ // Josh: Lead Architect / Distributed Systems
+      [ // Sprint 2
+        {
+          id: 'hr_j2_1',
+          priority: 'P0',
+          category: 'Distributed',
+          title: 'Mitigate Byzantine fault tolerance edge case in validator quorum',
+          description: 'Handle equivocation and double-sign slashing logic under asynchronous network partitions.',
+          location: 'Big Workplace • Architecture Board',
+          xp: 220,
+          completed: false
+        },
+        {
+          id: 'hr_j2_2',
+          priority: 'P1',
+          category: 'Storage',
+          title: 'Architect multi-tenant storage sharding with consistent hashing',
+          description: 'Use virtual node ring to distribute data loads evenly and minimize migration rebalance cost.',
+          location: 'Assigned PC • Architecture Tool',
+          xp: 175,
+          completed: false
+        },
+        {
+          id: 'hr_j2_3',
+          priority: 'P1',
+          category: 'Networking',
+          title: 'Implement Envoy WASM proxy filter for dynamic rate limiting',
+          description: 'Compile Rust filter to WebAssembly and inject token bucket throttling at wire speed.',
+          location: 'Dev Pod 4 • Workstation',
+          xp: 145,
+          completed: false
+        },
+        {
+          id: 'hr_j2_4',
+          priority: 'P2',
+          category: 'Benchmarking',
+          title: 'Stress test geo-replicated CockroachDB cluster under 60k RPS',
+          description: 'Measure multi-region consensus latency and verify Serializable isolation anomalies.',
+          location: 'Acme R&D Innovation Hub',
+          xp: 115,
+          completed: false
+        }
+      ],
+      [ // Sprint 3
+        {
+          id: 'hr_j3_1',
+          priority: 'P0',
+          category: 'Kernel',
+          title: 'Implement zero-copy network packet routing via Linux DPDK',
+          description: 'Bypass kernel network stack using poll-mode driver for sub-500 nanosecond packet transmission.',
+          location: 'Big Workplace • Architecture Board',
+          xp: 240,
+          completed: false
+        },
+        {
+          id: 'hr_j3_2',
+          priority: 'P1',
+          category: 'Consensus',
+          title: 'Eliminate lock contention in distributed 2-Phase Commit manager',
+          description: 'Replace pessimistic row locks with optimistic timestamp ordering and MVCC snapshot validation.',
+          location: 'Dev Pod 4 • Workstation',
+          xp: 185,
+          completed: false
+        },
+        {
+          id: 'hr_j3_3',
+          priority: 'P1',
+          category: 'Crypto',
+          title: 'Deploy Zero-Knowledge Rollup contract for state transactions',
+          description: 'Verify Plonk proofs on-chain to compress 1,000 ledger transactions into a single block verification.',
+          location: 'Assigned PC • Architecture Tool',
+          xp: 150,
+          completed: false
+        },
+        {
+          id: 'hr_j3_4',
+          priority: 'P2',
+          category: 'Evaluation',
+          title: 'Present Rust vs Zig systems evaluation to Senior Tech Board',
+          description: 'Compare memory safety, compile times, C ABI interop, and binary footprint for next-gen engine.',
+          location: 'Executive Boardroom',
+          xp: 100,
+          completed: false
+        }
+      ]
+    ]
+  };
+
   class PhoneDeviceManager {
     constructor() {
       this.isOpen = false;
@@ -250,6 +608,13 @@
       this.body = null;
       this.initialized = false;
       this.hasUnread = false;
+
+      // Sprint round counter & tracking completed task titles to guarantee uniqueness
+      this.sprintRound = 1;
+      this.completedTaskTitles = new Set();
+      this._isAssigningTasks = false;
+      this._lastToggle = 0;
+      this._pushTimeout = null;
 
       // Character Tasks in Memory
       this.characterTasks = {
@@ -502,8 +867,71 @@
       this.wrapper = document.getElementById('phone-wrapper');
       this.body = document.getElementById('phone-body');
 
+      // Add floating in-game push notification banner
+      this.buildPushNotificationDOM();
+
       // Add Phone button in Header if not present
       this.addHeaderButton();
+    }
+
+    buildPushNotificationDOM() {
+      if (document.getElementById('phone-push-notification')) return;
+      const pushEl = document.createElement('div');
+      pushEl.id = 'phone-push-notification';
+      pushEl.className = 'phone-push-notification';
+      pushEl.title = 'Click to open phone [P]';
+      pushEl.innerHTML = `
+        <div class="push-notif-avatar">
+          <img src="assets/npc_amit_portrait.png" onerror="this.style.display='none'; this.parentElement.textContent='👔';" alt="Amit">
+        </div>
+        <div class="push-notif-content">
+          <div class="push-notif-header">
+            <span class="push-notif-sender">Amit (HR Manager)</span>
+            <span class="push-notif-time">Just now</span>
+          </div>
+          <div class="push-notif-msg" id="push-notif-msg">New Sprint Directive Assigned • 4 fresh tasks</div>
+        </div>
+        <div class="push-notif-action-pill">Open [P]</div>
+      `;
+
+      pushEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        pushEl.classList.remove('show');
+        if (!this.isOpen) {
+          this.open();
+        }
+      });
+
+      document.body.appendChild(pushEl);
+    }
+
+    showPushNotification(sender, message, duration = 6000) {
+      let el = document.getElementById('phone-push-notification');
+      if (!el) {
+        this.buildPushNotificationDOM();
+        el = document.getElementById('phone-push-notification');
+      }
+      if (!el) return;
+
+      const senderEl = el.querySelector('.push-notif-sender');
+      const msgEl = document.getElementById('push-notif-msg');
+      const timeEl = el.querySelector('.push-notif-time');
+
+      if (senderEl) senderEl.textContent = sender || 'Amit (HR Manager)';
+      if (msgEl) msgEl.textContent = message || 'New SWE Tasks assigned to your phone!';
+      if (timeEl) timeEl.textContent = 'Just now';
+
+      // Play phone notification pop sound
+      if (window.soundManager && typeof window.soundManager.playPhonePop === 'function') {
+        window.soundManager.playPhonePop();
+      }
+
+      el.classList.add('show');
+
+      if (this._pushTimeout) clearTimeout(this._pushTimeout);
+      this._pushTimeout = setTimeout(() => {
+        el.classList.remove('show');
+      }, duration);
     }
 
     addHeaderButton() {
@@ -574,13 +1002,14 @@
       const homePill = document.getElementById('phone-home-pill');
       if (homePill) homePill.onclick = () => this.close();
 
-      // Refresh Groq tasks button
+      // Refresh Groq tasks button -> Asks HR Manager Amit for new sprint tasks
       const refreshBtn = document.getElementById('phone-groq-refresh-btn');
       if (refreshBtn) {
         refreshBtn.onclick = (e) => {
           e.stopPropagation();
           const charId = this.getActiveCharId();
-          this.fetchGroqTasks(charId, true);
+          this.sprintRound++;
+          this.assignNewHRTasks(charId);
         };
       }
 
@@ -704,6 +1133,11 @@
     }
 
     async fetchGroqTasks(charId, forceRefresh = false) {
+      if (forceRefresh) {
+        this.sprintRound++;
+        return this.assignNewHRTasks(charId);
+      }
+
       const profile = this.profiles[charId] || this.profiles.char1;
       const refreshBtn = document.getElementById('phone-groq-refresh-btn');
 
@@ -714,83 +1148,22 @@
       }
 
       if (refreshBtn) refreshBtn.classList.add('loading');
-      if (typeof window.showToast === 'function' && forceRefresh) {
-        window.showToast(`⚡ Groq AI is generating 4-5 SWE tasks for ${profile.name}...`);
-      }
-
-      const promptSystem = `You are a Principal Software Engineering Director assigning sprint tasks in a top-tier tech firm.
-Generate exactly 4 to 5 high-impact, realistic software engineering tasks for ${profile.name}, who is ${profile.role}.
-Tasks should cover realistic modern software engineering: backend systems, performance bottlenecks, architecture, CI/CD/DevOps, code reviews, database optimization, or distributed systems.
-Respond ONLY with a valid JSON array of objects. Do not include markdown code ticks, preamble, or commentary.
-Each object must have these exact keys:
-- "id": unique string (e.g. "groq_task_1")
-- "priority": one of "P0", "P1", "P2" (make 1 P0, 2 P1, 1-2 P2)
-- "category": short category string like "Backend", "DevOps", "Architecture", "Database", "Security", or "Optimization"
-- "title": concise actionable title (6-10 words)
-- "description": 1-2 sentences of technical engineering detail
-- "location": office location in the simulator (e.g. "Dev Pod Workstation", "Architecture Whiteboard", "Acme R&D Hub", "Assigned Desk PC", or "Stage Presentation")
-- "xp": integer number between 80 and 200
-- "completed": false`;
 
       try {
-        const response = await fetch(GROQ_CONFIG.endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
-          },
-          body: JSON.stringify({
-            model: GROQ_CONFIG.model,
-            messages: [
-              { role: 'system', content: promptSystem },
-              { role: 'user', content: `Generate 4-5 fresh software engineering sprint tasks for ${profile.name} (${profile.role}).` }
-            ],
-            temperature: 0.7,
-            max_tokens: 1000
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`Groq API returned HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        let rawContent = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-        if (!rawContent) throw new Error('No content returned from Groq AI');
-
-        rawContent = rawContent.trim();
-        if (rawContent.startsWith('```')) {
-          rawContent = rawContent.replace(/^```[a-zA-Z]*\n?/, '').replace(/\n?```$/, '').trim();
-        }
-
-        const parsed = JSON.parse(rawContent);
-        if (Array.isArray(parsed) && parsed.length >= 3) {
-          this.characterTasks[charId] = parsed.map((item, idx) => ({
-            id: item.id || `groq_${charId}_${Date.now()}_${idx}`,
-            priority: (item.priority && item.priority.toUpperCase()) || (idx === 0 ? 'P0' : 'P1'),
-            category: item.category || 'Engineering',
-            title: item.title || 'Engineering Task Directive',
-            description: item.description || 'Implement assigned ticket according to sprint specifications.',
-            location: item.location || 'Assigned Desk PC',
-            xp: Number(item.xp) || (150 - idx * 15),
-            completed: false
-          }));
-
-          // Notify character
+        const tasks = await this.fetchDifferentTasksFromGroq(charId, 1);
+        if (tasks && tasks.length >= 3) {
+          this.characterTasks[charId] = tasks;
           this.playPhoneChime([659, 880, 1046]);
           if (typeof window.showToast === 'function') {
             window.showToast(`📱 Phone Alert: Groq AI assigned ${this.characterTasks[charId].length} new SWE Tasks! Press [P] to view.`);
           }
         } else {
-          throw new Error('Parsed response was not an array');
+          throw new Error('Fallback needed');
         }
       } catch (err) {
         console.warn('Groq AI task fetch failed, falling back to curated SWE tasks:', err);
         if (!this.characterTasks[charId] || this.characterTasks[charId].length === 0) {
           this.characterTasks[charId] = JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS[charId] || DEFAULT_SWE_TASKS.char1));
-        }
-        if (typeof window.showToast === 'function' && forceRefresh) {
-          window.showToast(`📱 SWE sprint directive refreshed! Check tasks in phone.`);
         }
       } finally {
         if (refreshBtn) refreshBtn.classList.remove('loading');
@@ -799,13 +1172,147 @@ Each object must have these exact keys:
       }
     }
 
+    async assignNewHRTasks(charId) {
+      const profile = this.profiles[charId] || this.profiles.char1;
+      const sprintNum = this.sprintRound;
+      const refreshBtn = document.getElementById('phone-groq-refresh-btn');
+      if (refreshBtn) refreshBtn.classList.add('loading');
+
+      let newTasks = null;
+      try {
+        newTasks = await this.fetchDifferentTasksFromGroq(charId, sprintNum);
+      } catch (err) {
+        console.warn(`Groq AI task fetch for Sprint #${sprintNum} failed, using curated HR sprint pool:`, err);
+      }
+
+      // Fallback if Groq was unavailable or returned invalid array
+      if (!newTasks || newTasks.length === 0) {
+        const pools = HR_SPRINT_POOLS[charId] || HR_SPRINT_POOLS.char1;
+        const poolIndex = (sprintNum - 2) % pools.length;
+        const pool = (poolIndex >= 0 && pools[poolIndex]) ? pools[poolIndex] : (DEFAULT_SWE_TASKS[charId] || DEFAULT_SWE_TASKS.char1);
+
+        newTasks = pool.map((t, idx) => ({
+          ...t,
+          id: `hr_sprint_${sprintNum}_${charId}_${idx}_${Date.now()}`,
+          completed: false
+        }));
+      }
+
+      this.characterTasks[charId] = newTasks;
+
+      // Update phone UI cards
+      const notifLabel = document.getElementById('phone-notif-label');
+      if (notifLabel) notifLabel.textContent = `⚡ SPRINT #${sprintNum} • AMIT (HR MANAGER)`;
+
+      const notifTitle = document.getElementById('phone-notif-title');
+      if (notifTitle) notifTitle.textContent = `Sprint #${sprintNum}: ${profile.name}'s Engineering Directives`;
+
+      const notifDesc = document.getElementById('phone-notif-desc');
+      if (notifDesc) {
+        notifDesc.textContent = `Amit (HR) reviewed your completed tickets and assigned ${newTasks.length} fresh SWE tasks for Sprint #${sprintNum}.`;
+      }
+
+      // 1. Play smartphone notification pop sound!
+      if (window.soundManager && typeof window.soundManager.playPhonePop === 'function') {
+        window.soundManager.playPhonePop();
+      } else {
+        this.playPhoneChime([587, 880, 1175]);
+      }
+
+      // 2. Display floating in-game push notification banner from HR Manager Amit
+      this.showPushNotification(
+        'Amit (HR & Engineering)',
+        `📋 Sprint #${sprintNum} Assigned: ${newTasks.length} fresh tasks on your phone!`
+      );
+
+      // 3. Update tasks in phone and header badge
+      this.renderSweTaskList(charId);
+      this.updatePhoneBadge();
+
+      if (refreshBtn) refreshBtn.classList.remove('loading');
+
+      if (typeof window.showToast === 'function') {
+        window.showToast(`📱 Phone Alert: Amit (HR) assigned ${newTasks.length} new tasks for Sprint #${sprintNum}! Press [P] to view.`);
+      }
+
+      return newTasks;
+    }
+
+    async fetchDifferentTasksFromGroq(charId, sprintNum) {
+      const profile = this.profiles[charId] || this.profiles.char1;
+      const recentTitles = Array.from(this.completedTaskTitles).slice(-8).map(t => `"${t}"`).join(', ');
+
+      const promptSystem = `You are Amit, the Head of Engineering & HR Director at Acme Innovations.
+The engineer has just successfully completed their previous sprint!
+Assign Sprint #${sprintNum} containing exactly 4 to 5 brand new, DIFFERENT, high-impact software engineering tasks for ${profile.name}, who is ${profile.role}.
+These tasks MUST be completely fresh and distinct from previous tasks.
+${recentTitles ? `Do NOT repeat or duplicate any of these recently completed tasks: ${recentTitles}` : ''}
+Tasks should cover realistic modern software engineering: backend systems, performance bottlenecks, architecture, CI/CD/DevOps, code reviews, database optimization, or distributed systems.
+Respond ONLY with a valid JSON array of objects. Do not include markdown code ticks, preamble, or commentary.
+Each object must have these exact keys:
+- "id": unique string (e.g. "hr_sprint_${sprintNum}_1")
+- "priority": one of "P0", "P1", "P2" (make 1 P0, 2 P1, 1-2 P2)
+- "category": short category string like "Backend", "DevOps", "Architecture", "Database", "Security", or "Optimization"
+- "title": concise actionable title (6-10 words)
+- "description": 1-2 sentences of technical engineering detail
+- "location": office location in the simulator (e.g. "Dev Pod Workstation", "Architecture Whiteboard", "Acme R&D Hub", "Assigned Desk PC", or "Stage Presentation")
+- "xp": integer number between 90 and 220
+- "completed": false`;
+
+      const response = await fetch(GROQ_CONFIG.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
+        },
+        body: JSON.stringify({
+          model: GROQ_CONFIG.model,
+          messages: [
+            { role: 'system', content: promptSystem },
+            { role: 'user', content: `Amit, generate 4-5 fresh software engineering sprint tasks for ${profile.name} (${profile.role}) for Sprint #${sprintNum}.` }
+          ],
+          temperature: 0.75,
+          max_tokens: 1000
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Groq API returned HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      let rawContent = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      if (!rawContent) throw new Error('No content returned from Groq AI');
+
+      rawContent = rawContent.trim();
+      if (rawContent.startsWith('```')) {
+        rawContent = rawContent.replace(/^```[a-zA-Z]*\n?/, '').replace(/\n?```$/, '').trim();
+      }
+
+      const parsed = JSON.parse(rawContent);
+      if (Array.isArray(parsed) && parsed.length >= 3) {
+        return parsed.map((item, idx) => ({
+          id: item.id || `hr_groq_${sprintNum}_${charId}_${Date.now()}_${idx}`,
+          priority: (item.priority && item.priority.toUpperCase()) || (idx === 0 ? 'P0' : 'P1'),
+          category: item.category || 'Engineering',
+          title: item.title || 'Engineering Task Directive',
+          description: item.description || 'Implement assigned ticket according to sprint specifications.',
+          location: item.location || 'Assigned Desk PC',
+          xp: Number(item.xp) || (160 - idx * 15),
+          completed: false
+        }));
+      }
+
+      throw new Error('Parsed response was not a valid task array');
+    }
+
     renderSweTaskList(charId) {
       const container = document.getElementById('phone-swe-tasks-list');
       if (!container) return;
 
       const tasks = this.characterTasks[charId] || [];
       if (tasks.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:15px; color:#94a3b8; font-size:0.75rem;">No active tasks. Tap Refresh to generate with Groq AI.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:15px; color:#94a3b8; font-size:0.75rem;">No active tasks. Tap Refresh to ask HR for tasks.</div>`;
         return;
       }
 
@@ -842,12 +1349,48 @@ Each object must have these exact keys:
       });
     }
 
+    onAllTasksCompleted(charId) {
+      if (this._isAssigningTasks) return;
+      this._isAssigningTasks = true;
+
+      const currentSprint = this.sprintRound;
+      const bonusXp = 300;
+
+      // Award sprint completion milestone bonus
+      if (window.state && window.state.player) {
+        window.state.player.score = (window.state.player.score || 0) + bonusXp;
+        const scoreEl = document.getElementById('stat-score');
+        if (scoreEl) scoreEl.textContent = window.state.player.score;
+      }
+      if (typeof window.addCorporateFunds === 'function') {
+        window.addCorporateFunds(600);
+      }
+
+      if (typeof window.showToast === 'function') {
+        window.showToast(`🏆 SPRINT #${currentSprint} COMPLETED! +${bonusXp} XP Bonus! Amit (HR) is assigning new sprint tasks...`);
+      }
+
+      this.sprintRound++;
+
+      // Realistic 1.2s delay for HR review before delivering new tasks to phone
+      setTimeout(() => {
+        this.assignNewHRTasks(charId).finally(() => {
+          this._isAssigningTasks = false;
+        });
+      }, 1200);
+    }
+
     toggleTaskCompleted(charId, taskId) {
       const tasks = this.characterTasks[charId] || [];
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
       task.completed = !task.completed;
+
+      // Track completed task title so subsequent sprints don't repeat it
+      if (task.completed) {
+        this.completedTaskTitles.add(task.title);
+      }
 
       // Play sound
       if (window.soundManager) {
@@ -881,6 +1424,12 @@ Each object must have these exact keys:
 
       this.renderSweTaskList(charId);
       this.updatePhoneBadge();
+
+      // Check if ALL tasks in the current sprint are completed!
+      const allCompleted = tasks.length > 0 && tasks.every(t => t.completed);
+      if (allCompleted) {
+        this.onAllTasksCompleted(charId);
+      }
     }
 
     toggle() {
