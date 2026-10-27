@@ -48,8 +48,8 @@ assets.playerPortrait.src = 'assets/player_portrait.png?v=3';
 assets.bossStanding.src = 'assets/boss_standing.png?v=3';
 assets.bossCharacter.src = 'assets/boss_character.png?v=3';
 assets.cornerOffice.src = 'assets/corner_office.png';
-assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png';
-assets.doorLightSpill.src = 'assets/door_light_spill.png';
+assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=2';
+assets.doorLightSpill.src = 'assets/door_light_spill.png?v=2';
 
 // Setup load listeners
 Object.keys(assets).forEach(key => {
