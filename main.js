@@ -221,7 +221,7 @@ const state = {
     width: 40,
     height: 85,
     charId: 'char1',
-    money: 2500,
+    money: 0,
     isSitting: false,
     // Hitbox relative to (x, y) bottom-center (feet only for smooth navigation)
     hitbox: { w: 16, h: 8 }
@@ -3901,7 +3901,7 @@ function setupQuestEventListeners() {
       }
       window.addCorporateFunds(100);
       if (typeof showToast === 'function') {
-        showToast(`💵 +$100 Stipend collected! Corporate Funds: $${(state.player.money || 2500).toLocaleString()}`);
+        showToast(`💵 +$100 Stipend collected! Corporate Funds: $${(state.player.money !== undefined ? state.player.money : 0).toLocaleString()}`);
       }
     });
   }
@@ -3913,7 +3913,7 @@ function setupQuestEventListeners() {
 // Global Corporate Funds Handler
 window.addCorporateFunds = function(amount = 100) {
   if (!state || !state.player) return;
-  state.player.money = Math.max(0, (state.player.money || 2500) + amount);
+  state.player.money = Math.max(0, (state.player.money !== undefined ? state.player.money : 0) + amount);
   const valEl = document.getElementById('hud-money-val');
   if (valEl) {
     valEl.textContent = '$' + state.player.money.toLocaleString();

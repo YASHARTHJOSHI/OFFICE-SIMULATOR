@@ -1513,24 +1513,36 @@ Each object must have these exact keys:
       const rewardInfo = getTaskDifficultyAndMoney(task);
       const moneyReward = rewardInfo.money;
 
-      // Award XP & Money Toast
-      if (typeof window.showToast === 'function') {
-        if (task.completed) {
+      // Award XP & Money based on task difficulty rating
+      if (task.completed) {
+        if (typeof window.addCorporateFunds === 'function') {
+          window.addCorporateFunds(moneyReward);
+        } else if (window.state && window.state.player) {
+          window.state.player.money = Math.max(0, (window.state.player.money !== undefined ? window.state.player.money : 0) + moneyReward);
+          const valEl = document.getElementById('hud-money-val');
+          if (valEl) valEl.textContent = '$' + window.state.player.money.toLocaleString();
+        }
+
+        if (window.state && window.state.player) {
+          window.state.player.score = (window.state.player.score || 0) + task.xp;
+          const scoreEl = document.getElementById('stat-score');
+          if (scoreEl) scoreEl.textContent = window.state.player.score;
+        }
+
+        if (typeof window.showToast === 'function') {
           window.showToast(`⭐ +${task.xp} XP & 💵 +$${moneyReward} Cash Reward [${rewardInfo.diffBadge}]! Completed "${task.title}".`);
-          // Update game score/XP and corporate funds if player state exists
-          if (window.state && window.state.player) {
-            window.state.player.score = (window.state.player.score || 0) + task.xp;
-            const scoreEl = document.getElementById('stat-score');
-            if (scoreEl) scoreEl.textContent = window.state.player.score;
-          }
-          if (typeof window.addCorporateFunds === 'function') {
-            window.addCorporateFunds(moneyReward);
-          }
-        } else {
+        }
+      } else {
+        if (typeof window.addCorporateFunds === 'function') {
+          window.addCorporateFunds(-moneyReward);
+        } else if (window.state && window.state.player) {
+          window.state.player.money = Math.max(0, (window.state.player.money !== undefined ? window.state.player.money : 0) - moneyReward);
+          const valEl = document.getElementById('hud-money-val');
+          if (valEl) valEl.textContent = '$' + window.state.player.money.toLocaleString();
+        }
+
+        if (typeof window.showToast === 'function') {
           window.showToast(`↩️ Marked "${task.title}" as pending (-$${moneyReward}).`);
-          if (typeof window.addCorporateFunds === 'function') {
-            window.addCorporateFunds(-moneyReward);
-          }
         }
       }
 
