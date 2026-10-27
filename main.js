@@ -36,7 +36,7 @@ function loadAsset(img, src) {
 }
 
 assets.officeHall.src = 'assets/office_hall.png';
-assets.bossCabinet.src = 'assets/boss_cabinet.png';
+assets.bossCabinet.src = 'assets/boss_cabinet.png?v=5';
 assets.spritesheet.src = 'assets/spritesheet.png';
 assets.charIdle.src = 'assets/character_idle.png';
 assets.charBack.src = 'assets/char_back.png';
@@ -178,20 +178,18 @@ const SCENES = {
       { x: 880, y: 480, w: 85, h: 75, label: 'Plant' }
     ],
 
-    // Interactive Trigger Zones
+    // Interactive Trigger Zones (with glowing white highlight bounds)
     triggers: [
       {
         id: 'door_to_boss',
         x: 462, y: 175, w: 98, h: 50,
-        prompt: 'Enter Boss\'s Cabinet',
-        promptPos: { x: 512, y: 170 },
+        glowBox: { x: 462, y: 36, w: 100, h: 178, radius: 4 },
         action: () => enterBossCabinet()
       },
       {
         id: 'hall_water_cooler',
         x: 935, y: 180, w: 75, h: 65,
-        prompt: 'Drink Ice Cold Water',
-        promptPos: { x: 975, y: 170 },
+        glowBox: { x: 944, y: 154, w: 62, h: 88, radius: 6 },
         action: () => {
           window.soundManager.playWater();
           showToast('💧 Gulp, gulp... Refreshing! Stamina restored to 100%.');
@@ -200,8 +198,7 @@ const SCENES = {
       {
         id: 'cubicle_pc',
         x: 438, y: 270, w: 74, h: 55,
-        prompt: 'Check Coworker PC',
-        promptPos: { x: 475, y: 260 },
+        glowBox: { x: 442, y: 260, w: 68, h: 68, radius: 6 },
         action: () => {
           window.soundManager.playInteract();
           showToast('💻 Screen shows: "git commit -m \'Fixed 10 bugs, created 20 new ones\'"');
@@ -210,8 +207,7 @@ const SCENES = {
       {
         id: 'bookshelf_left',
         x: 235, y: 190, w: 85, h: 55,
-        prompt: 'Read Policy Manual',
-        promptPos: { x: 275, y: 180 },
+        glowBox: { x: 235, y: 92, w: 82, h: 148, radius: 6 },
         action: () => {
           window.soundManager.playInteract();
           showToast('📚 Rule #1: Overtime is mandatory. Rule #2: Coffee is complimentary.');
@@ -220,8 +216,7 @@ const SCENES = {
       {
         id: 'office_plant',
         x: 870, y: 460, w: 95, h: 90,
-        prompt: 'Inspect Office Ficus',
-        promptPos: { x: 920, y: 450 },
+        glowBox: { x: 876, y: 465, w: 88, h: 95, radius: 8 },
         action: () => {
           window.soundManager.playInteract();
           showToast('🌿 A thriving corporate ficus. Employee of the Month 3 times running.');
@@ -258,27 +253,24 @@ const SCENES = {
       { x: 885, y: 440, w: 55, h: 30, label: 'Plant' }
     ],
 
-    // Interactive Trigger Zones
+    // Interactive Trigger Zones (with glowing white highlight bounds)
     triggers: [
       {
         id: 'door_back_to_hall',
         x: 925, y: 450, w: 70, h: 80,
-        prompt: 'Exit to Main Hall',
-        promptPos: { x: 955, y: 435 },
+        glowBox: { x: 935, y: 425, w: 65, h: 108, radius: 6 },
         action: () => exitToMainHall()
       },
       {
         id: 'talk_to_boss',
         x: 390, y: 440, w: 120, h: 90,
-        prompt: 'Talk to Boss',
-        promptPos: { x: 450, y: 410 },
+        glowBox: { x: 412, y: 345, w: 76, h: 146, radius: 8 },
         action: () => startBossDialogue()
       },
       {
         id: 'cabinet_boxes',
         x: 570, y: 440, w: 140, h: 95,
-        prompt: 'Inspect Moving Boxes',
-        promptPos: { x: 640, y: 430 },
+        glowBox: { x: 574, y: 408, w: 136, h: 124, radius: 6 },
         action: () => {
           window.soundManager.playInteract();
           showToast('📦 Box labeled: "CONFIDENTIAL: Plans to replace everyone with AI Agents"');
@@ -287,8 +279,7 @@ const SCENES = {
       {
         id: 'cabinet_water',
         x: 710, y: 440, w: 75, h: 95,
-        prompt: 'Executive Sparkling Water',
-        promptPos: { x: 745, y: 430 },
+        glowBox: { x: 715, y: 335, w: 65, h: 195, radius: 6 },
         action: () => {
           window.soundManager.playWater();
           showToast('✨ Sssip... Ultra-purified Alpine glacier water! Tastes like luxury.');
@@ -297,8 +288,7 @@ const SCENES = {
       {
         id: 'filing_cabinet',
         x: 795, y: 440, w: 85, h: 95,
-        prompt: 'Search File Cabinet',
-        promptPos: { x: 835, y: 430 },
+        glowBox: { x: 796, y: 362, w: 80, h: 170, radius: 6 },
         action: () => {
           window.soundManager.playInteract();
           showToast('🗄️ Found: "Projected 500% profits, employee bonus pool: $0.00"');
@@ -902,27 +892,28 @@ function render() {
     ctx.drawImage(bg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
-  // 2. Draw Scene-Specific Interactive Decor / Characters
+  // 2. Draw Soft White Glows around interactable objects
+  renderInteractableGlows();
+
+  // 3. Draw Scene-Specific Interactive Decor / Characters
   if (state.currentScene === 'BOSS_CABINET') {
     renderBossInCabinet();
-  } else if (state.currentScene === 'OFFICE_HALL') {
-    renderDoorGlow();
   }
 
-  // 3. Draw Player Character
+  // 4. Draw Player Character
   renderPlayer();
 
-  // 4. Draw Foreground Elements (e.g. if character walks behind desk)
+  // 5. Draw Foreground Elements
   renderForeground();
 
-  // 5. Draw Click Target Pulse
+  // 6. Draw Click Target Pulse
   if (state.clickPulse && state.clickPulse.timer > 0) {
     state.clickPulse.timer -= 0.016;
     const progress = 1 - Math.max(0, state.clickPulse.timer / 0.45);
     const radius = 6 + progress * 16;
     const alpha = Math.max(0, 1 - progress);
     ctx.save();
-    ctx.strokeStyle = `rgba(245, 158, 11, ${alpha})`;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(state.clickPulse.x, state.clickPulse.y, radius, 0, Math.PI * 2);
@@ -931,28 +922,52 @@ function render() {
   }
 }
 
-function renderDoorGlow() {
-  // Animated glow highlight around the boss's door
-  const time = performance.now() * 0.003;
+function drawWhiteGlowBox(ctx, box, intensity = 1) {
+  const time = performance.now() * 0.004;
   const pulse = (Math.sin(time) + 1) * 0.5;
+  const alpha = (0.4 + pulse * 0.45) * intensity;
 
   ctx.save();
-  ctx.strokeStyle = `rgba(245, 158, 11, ${0.25 + pulse * 0.45})`;
-  ctx.lineWidth = 3;
-  ctx.shadowColor = '#f59e0b';
-  ctx.shadowBlur = 10 + pulse * 8;
-  ctx.strokeRect(462, 36, 100, 175);
+  ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+  ctx.shadowColor = '#ffffff';
+  ctx.shadowBlur = (8 + pulse * 7) * intensity;
+  ctx.lineWidth = 2.5;
 
-  // Floating Arrow indicator pointing to door
-  const arrowY = 32 + Math.sin(time * 1.5) * 4;
-  ctx.fillStyle = '#f59e0b';
+  const r = box.radius || 6;
   ctx.beginPath();
-  ctx.moveTo(512, arrowY + 12);
-  ctx.lineTo(504, arrowY);
-  ctx.lineTo(520, arrowY);
-  ctx.closePath();
+  if (ctx.roundRect) {
+    ctx.roundRect(box.x, box.y, box.w, box.h, r);
+  } else {
+    ctx.rect(box.x, box.y, box.w, box.h);
+  }
+  ctx.stroke();
+
+  // Subtle interior white luminescence
+  ctx.fillStyle = `rgba(255, 255, 255, ${(0.03 + pulse * 0.04) * intensity})`;
   ctx.fill();
   ctx.restore();
+}
+
+function renderInteractableGlows() {
+  const scene = SCENES[state.currentScene];
+  if (!scene || !scene.triggers) return;
+
+  const p = state.player;
+
+  for (const trig of scene.triggers) {
+    if (!trig.glowBox) continue;
+
+    const dist = Math.hypot(p.x - (trig.x + trig.w / 2), p.y - (trig.y + trig.h / 2));
+
+    if (state.activePrompt === trig) {
+      // Direct interaction range: full white luminous glow
+      drawWhiteGlowBox(ctx, trig.glowBox, 1);
+    } else if (dist < 110) {
+      // Nearby proximity: gentle faint white aura
+      const proximity = Math.max(0, 1 - (dist - 40) / 70);
+      drawWhiteGlowBox(ctx, trig.glowBox, 0.4 * proximity);
+    }
+  }
 }
 
 function renderBossInCabinet() {
@@ -973,15 +988,6 @@ function renderBossInCabinet() {
     const breath = Math.sin(performance.now() * 0.003) * 1.5;
     ctx.drawImage(assets.bossCharacter, bossX - bossW / 2, bossY - bossH + breath, bossW, bossH);
   }
-
-  // Animated exit arrow on the right doorway
-  const time = performance.now() * 0.003;
-  const arrowX = 935 + Math.sin(time * 2) * 4;
-  ctx.save();
-  ctx.fillStyle = '#f59e0b';
-  ctx.font = '10px "Press Start 2P", monospace';
-  ctx.fillText('EXIT ▶', arrowX, 435);
-  ctx.restore();
 }
 
 function renderPlayer() {
