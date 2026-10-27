@@ -894,6 +894,13 @@ function setupEventListeners() {
     const scaleY = CANVAS_HEIGHT / rect.height;
     const targetX = (e.clientX - rect.left) * scaleX;
     const targetY = (e.clientY - rect.top) * scaleY;
+
+    // Direct click on Cafeteria Button in Office Hall
+    if (state.currentScene === 'OFFICE_HALL' && targetX >= 910 && targetX <= 1025 && targetY >= 330 && targetY <= 425) {
+      enterCafeteria();
+      return;
+    }
+
     state.clickTarget = { x: targetX, y: targetY };
     state.clickPulse = { x: targetX, y: targetY, timer: 0.45 };
   });
@@ -1284,6 +1291,16 @@ function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   if (window.multiplayerEngine && window.multiplayerEngine.active) {
     window.multiplayerEngine.broadcastPosition(state.player, sceneKey);
   }
+
+  // Update in-game portal buttons visibility
+  const btnCafeteria = document.getElementById('btn-portal-cafeteria');
+  const btnHall = document.getElementById('btn-portal-hall');
+  if (btnCafeteria) {
+    btnCafeteria.classList.toggle('hidden', sceneKey !== 'OFFICE_HALL');
+  }
+  if (btnHall) {
+    btnHall.classList.toggle('hidden', sceneKey !== 'CAFETERIA');
+  }
 }
 
 function enterBossCabinet() {
@@ -1435,6 +1452,10 @@ function exitCafeteriaToMainHall() {
     }, 200);
   }, 350);
 }
+
+// Expose navigation to window
+window.enterCafeteria = enterCafeteria;
+window.exitCafeteriaToMainHall = exitCafeteriaToMainHall;
 
 // ==========================================
 // COLLISION DETECTION & PHYSICS
@@ -1815,6 +1836,60 @@ function drawGoldenTriangle(x, y) {
   ctx.restore();
 }
 
+function drawCafeteriaWallButton(x, y, w, h) {
+  ctx.save();
+  const time = performance.now() * 0.003;
+  const isPlayerNear = state.currentScene === 'OFFICE_HALL' && 
+                       Math.hypot(state.player.x - (x + w / 2), state.player.y - (y + h / 2)) < 120;
+
+  // Outer shadow & glow
+  ctx.shadowColor = isPlayerNear ? 'rgba(16, 185, 129, 0.95)' : 'rgba(16, 185, 129, 0.45)';
+  ctx.shadowBlur = isPlayerNear ? 16 : 8;
+
+  // Dark slate base frame
+  ctx.fillStyle = '#064e3b';
+  ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+
+  // Gradient Face
+  const grad = ctx.createLinearGradient(x, y, x, y + h);
+  if (isPlayerNear) {
+    grad.addColorStop(0, '#34d399');
+    grad.addColorStop(1, '#059669');
+  } else {
+    grad.addColorStop(0, '#10b981');
+    grad.addColorStop(1, '#047857');
+  }
+  ctx.fillStyle = grad;
+  ctx.fillRect(x, y, w, h);
+
+  // Bevel Top & Left highlights
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.fillRect(x, y, w, 2);
+  ctx.fillRect(x, y, 2, h);
+
+  // Bevel Bottom & Right shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(x, y + h - 2, w, 2);
+  ctx.fillRect(x + w - 2, y, 2, h);
+
+  // Button text & coffee icon
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 9px var(--font-retro), monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('☕ CAFETERIA', x + w / 2, y + h / 2);
+
+  // Subtle pulsing corner indicator dot
+  const pulseAlpha = 0.5 + Math.sin(time * 5) * 0.5;
+  ctx.fillStyle = `rgba(255, 255, 255, ${pulseAlpha})`;
+  ctx.beginPath();
+  ctx.arc(x + w - 7, y + 7, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
 function renderDoorGlow() {
   const time = performance.now() * 0.003;
   const pulse = (Math.sin(time) + 1) * 0.5;
@@ -1839,12 +1914,10 @@ function renderDoorGlow() {
   // Floating Golden Triangle indicator pointing to the slightly opened door
   drawGoldenTriangle(26, 405);
 
-  // 3. Cafeteria Entrance Door on right wall above the plant (x: 935, y: 315)
-  if (assets.cafeteriaDoor && assets.cafeteriaDoor.complete) {
-    ctx.drawImage(assets.cafeteriaDoor, 935, 315, 80, 125);
-  }
-  // Floating Golden Triangle indicator pointing to cafeteria door
-  drawGoldenTriangle(975, 300);
+  // 3. Cafeteria Entrance Button on right wall above the plant (Door replaced with button)
+  drawCafeteriaWallButton(925, 355, 95, 42);
+  // Floating Golden Triangle indicator pointing to cafeteria button
+  drawGoldenTriangle(972, 335);
 }
 
 function renderCafeteriaDetails() {
