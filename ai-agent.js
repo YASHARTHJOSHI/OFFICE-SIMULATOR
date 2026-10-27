@@ -30,7 +30,7 @@
       npcId: 'npc_rahul',
       npcName: 'Rahul',
       npcRole: 'Tech Lead / Senior Dev',
-      location: 'Cabin Room (Boss Cabinet)',
+      location: 'Main Office Hall (Tech Lead Desk)',
       objective: 'Learn how to write high-impact, context-rich PR descriptions that reviewers love.',
       scenario: 'You just fixed a race condition in the checkout webhook handler that was dropping 0.5% of webhooks under heavy load. The PR touches 3 files (webhook.js, queue.js, checkout_test.go). Write a PR description that Rahul will approve without asking 10 questions.',
       defaultPrompt: 'What problem does this PR solve? What is the technical approach? What tests were run, and how can reviewers test or roll back?',
@@ -102,27 +102,26 @@
       name: 'Rahul',
       role: 'Tech Lead',
       questId: 'quest_pr_review',
-      primaryScene: 'BOSS_CABINET',
-      scene: 'BOSS_CABINET',
-      x: 320,
-      y: 490,
-      targetX: 320,
-      targetY: 490,
+      primaryScene: 'OFFICE_HALL',
+      scene: 'OFFICE_HALL',
+      x: 410,
+      y: 340,
+      targetX: 410,
+      targetY: 340,
       isMoving: false,
       isSitting: true,
       direction: 'up',
       animFrame: 0,
       stateTimer: 6000,
       scheduleState: 'DESK_WORK',
-      activityLabel: '💻 Reviewing PR #142',
-      deskPos: { scene: 'BOSS_CABINET', x: 320, y: 490 },
+      activityLabel: '💻 Reviewing PR Architecture',
+      deskPos: { scene: 'OFFICE_HALL', x: 410, y: 340 },
       waypoints: [
-        { scene: 'BOSS_CABINET', x: 320, y: 490, sit: true, label: '💻 Codebase Architecture RFC' },
-        { scene: 'BOSS_CABINET', x: 450, y: 460, sit: false, label: '🗣️ Discussing with Anakin' },
-        { scene: 'BOSS_CABINET', x: 620, y: 460, sit: false, label: '📦 Checking Release Builds' },
+        { scene: 'OFFICE_HALL', x: 410, y: 340, sit: true, label: '💻 Reviewing PR Architecture' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Water Cooler Break' },
-        { scene: 'CAFETERIA', x: 375, y: 285, sit: false, label: '☕ Espresso Break in Cafeteria' },
-        { scene: 'OFFICE_HALL', x: 410, y: 340, sit: true, label: '💻 Pair Programming at Desk' }
+        { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Espresso Break in Cafeteria' },
+        { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '👥 Architecture Review in Conference Room' },
+        { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch Break with Dev Team' }
       ],
       systemPrompt: 'You are Rahul, a Senior Tech Lead at a fast-growing tech company. You are direct, experienced, highly technical, and value clean code, clear architecture, and thorough PR descriptions. You mentor junior engineers constructively but hold high standards. Speak in friendly English/Hinglish as appropriate.'
     },
@@ -179,7 +178,7 @@
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Drinking Water at Cooler' },
         { scene: 'OFFICE_HALL', x: 275, y: 240, sit: false, label: '📚 Reading Workplace Culture Docs' },
         { scene: 'OFFICE_HALL', x: 562, y: 515, sit: false, label: '💬 Checking in on Coworkers' },
-        { scene: 'BOSS_CABINET', x: 450, y: 460, sit: false, label: '📋 Syncing with Leadership' }
+        { scene: 'CORNER_OFFICE', x: 350, y: 480, sit: true, label: '💼 HR 1-on-1 Mentorship' }
       ],
       systemPrompt: 'You are Amit, an empathetic Engineering Manager and HR leader. You believe in empowering interns and junior devs to ask for help with confidence ("Ask Without Apology"). You discourage imposter syndrome and teach structured communication.'
     },
@@ -255,8 +254,15 @@
       this.isEvaluating = false;
       this.chatHistory = {}; // npcId -> array of { role, content }
 
-      // Initialize chat histories
+      // Initialize chat histories & path queues
       this.npcs.forEach(npc => {
+        npc.pathQueue = [];
+        npc.targetWP = null;
+        if (npc.scene === 'BOSS_CABINET') {
+          npc.scene = 'OFFICE_HALL';
+          npc.x = 410;
+          npc.y = 340;
+        }
         this.chatHistory[npc.id] = [
           { role: 'assistant', content: `Hey! I'm ${npc.name}, ${npc.role}. Come tackle the "${QUESTS[npc.questId].title}" workplace quest with me!` }
         ];
@@ -552,27 +558,181 @@ You MUST respond strictly in valid JSON format with this exact structure:
     }
 
     // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // REALISTIC DOOR-TO-DOOR & CORRIDOR PATHFINDING (No flying/teleporting)
+    // ------------------------------------------------------------------------
+    buildPathForNPC(npc, wp) {
+      const path = [];
+      const startScene = npc.scene;
+      const targetScene = wp.scene;
+
+      // Strict Rule: Never allow any path to or through BOSS_CABINET
+      if (targetScene === 'BOSS_CABINET' || startScene === 'BOSS_CABINET') {
+        npc.scene = 'OFFICE_HALL';
+        npc.x = 410;
+        npc.y = 370;
+        return [];
+      }
+
+      if (startScene === targetScene) {
+        // Movement within the same room
+        if (startScene === 'OFFICE_HALL') {
+          // Corridor routing: navigate via central walkway (y: 370) to prevent clipping through desks
+          if (Math.abs(npc.y - 370) > 25) {
+            path.push({ x: npc.x, y: 370 });
+          }
+          path.push({ x: wp.x, y: 370 });
+          path.push({ x: wp.x, y: wp.y, isFinal: true });
+        } else if (startScene === 'CORNER_OFFICE') {
+          // Open conference room floor band
+          path.push({ x: wp.x, y: 490 });
+          path.push({ x: wp.x, y: wp.y, isFinal: true });
+        } else if (startScene === 'CAFETERIA') {
+          // Open cafeteria floor
+          path.push({ x: npc.x, y: 320 });
+          path.push({ x: wp.x, y: 320 });
+          path.push({ x: wp.x, y: wp.y, isFinal: true });
+        } else {
+          path.push({ x: wp.x, y: wp.y, isFinal: true });
+        }
+      } else {
+        // Multi-room navigation via genuine physical doorways!
+        if (startScene === 'OFFICE_HALL') {
+          // Step into central hallway aisle first
+          if (Math.abs(npc.y - 370) > 25) {
+            path.push({ x: npc.x, y: 370 });
+          }
+
+          if (targetScene === 'CAFETERIA') {
+            // Walk to the Cafeteria door on the right wall
+            path.push({ x: 920, y: 370 });
+            path.push({
+              x: 940,
+              y: 380,
+              isDoor: true,
+              targetScene: 'CAFETERIA',
+              entryPos: { x: 105, y: 285 }
+            });
+            // Inside Cafeteria: walk from entrance door to target destination
+            path.push({ x: 110, y: 320 });
+            path.push({ x: wp.x, y: 320 });
+            path.push({ x: wp.x, y: wp.y, isFinal: true });
+          } else if (targetScene === 'CORNER_OFFICE') {
+            // Walk to the Corner Office door on the bottom-left wall
+            path.push({ x: 260, y: 370 });
+            path.push({ x: 100, y: 480 });
+            path.push({
+              x: 45,
+              y: 480,
+              isDoor: true,
+              targetScene: 'CORNER_OFFICE',
+              entryPos: { x: 915, y: 495 }
+            });
+            // Inside Corner Office: walk along floor band to target
+            path.push({ x: wp.x, y: 490 });
+            path.push({ x: wp.x, y: wp.y, isFinal: true });
+          }
+        } else if (startScene === 'CAFETERIA') {
+          // Walk to Cafeteria exit door on left wall
+          path.push({ x: npc.x, y: 320 });
+          path.push({ x: 110, y: 320 });
+          path.push({
+            x: 100,
+            y: 285,
+            isDoor: true,
+            targetScene: 'OFFICE_HALL',
+            entryPos: { x: 915, y: 380 }
+          });
+
+          if (targetScene === 'OFFICE_HALL') {
+            // Arrive in Office Hall and walk down aisle to destination
+            path.push({ x: 915, y: 370 });
+            path.push({ x: wp.x, y: 370 });
+            path.push({ x: wp.x, y: wp.y, isFinal: true });
+          } else if (targetScene === 'CORNER_OFFICE') {
+            // Transit through Office Hall into Corner Office
+            path.push({ x: 915, y: 370 });
+            path.push({ x: 260, y: 370 });
+            path.push({ x: 100, y: 480 });
+            path.push({
+              x: 45,
+              y: 480,
+              isDoor: true,
+              targetScene: 'CORNER_OFFICE',
+              entryPos: { x: 915, y: 495 }
+            });
+            path.push({ x: wp.x, y: 490 });
+            path.push({ x: wp.x, y: wp.y, isFinal: true });
+          }
+        } else if (startScene === 'CORNER_OFFICE') {
+          // Walk to Corner Office exit door on right wall
+          path.push({ x: 900, y: 490 });
+          path.push({
+            x: 925,
+            y: 495,
+            isDoor: true,
+            targetScene: 'OFFICE_HALL',
+            entryPos: { x: 55, y: 480 }
+          });
+
+          if (targetScene === 'OFFICE_HALL') {
+            path.push({ x: 100, y: 480 });
+            path.push({ x: 260, y: 370 });
+            path.push({ x: wp.x, y: 370 });
+            path.push({ x: wp.x, y: wp.y, isFinal: true });
+          } else if (targetScene === 'CAFETERIA') {
+            path.push({ x: 100, y: 480 });
+            path.push({ x: 260, y: 370 });
+            path.push({ x: 920, y: 370 });
+            path.push({
+              x: 935,
+              y: 380,
+              isDoor: true,
+              targetScene: 'CAFETERIA',
+              entryPos: { x: 110, y: 285 }
+            });
+            path.push({ x: 110, y: 320 });
+            path.push({ x: wp.x, y: 320 });
+            path.push({ x: wp.x, y: wp.y, isFinal: true });
+          }
+        }
+      }
+
+      return path;
+    }
+
+    // ------------------------------------------------------------------------
     // AUTONOMOUS HUMAN-LIKE LIFE CYCLE LOOP (Called every frame in main.js)
     // ------------------------------------------------------------------------
     update(dt) {
       const now = performance.now();
 
       this.npcs.forEach(npc => {
+        // Enforce: Never permit an NPC in BOSS_CABINET under any circumstances
+        if (npc.scene === 'BOSS_CABINET') {
+          npc.scene = 'OFFICE_HALL';
+          npc.x = 410;
+          npc.y = 370;
+          npc.pathQueue = [];
+          npc.isMoving = false;
+        }
+
         npc.stateTimer -= dt;
 
-        // Schedule State Transitions
-        if (npc.stateTimer <= 0) {
+        // Schedule next routine when idle timer runs out
+        if (npc.stateTimer <= 0 && (!npc.pathQueue || npc.pathQueue.length === 0)) {
           this.pickNextRoutine(npc);
         }
 
-        // Movement towards target
-        if (npc.isMoving) {
-          const dx = npc.targetX - npc.x;
-          const dy = npc.targetY - npc.y;
+        // Process movement along pathQueue
+        if (npc.pathQueue && npc.pathQueue.length > 0) {
+          const target = npc.pathQueue[0];
+          const dx = target.x - npc.x;
+          const dy = target.y - npc.y;
           const dist = Math.hypot(dx, dy);
 
           if (dist > 3) {
-            const speed = 1.6; // gentle walking speed
+            const speed = 1.6; // realistic human walk pace
             npc.x += (dx / dist) * speed;
             npc.y += (dy / dist) * speed;
 
@@ -583,21 +743,49 @@ You MUST respond strictly in valid JSON format with this exact structure:
               npc.direction = dy > 0 ? 'down' : 'up';
             }
 
-            npc.animFrame = Math.floor(now / 160) % 4;
+            npc.animFrame = Math.floor(now / 150) % 4;
             npc.isSitting = false;
+            npc.isMoving = true;
           } else {
-            // Reached destination
-            npc.x = npc.targetX;
-            npc.y = npc.targetY;
-            npc.isMoving = false;
+            // Reached this waypoint
+            npc.x = target.x;
+            npc.y = target.y;
 
-            if (npc.scheduleState === 'DESK_WORK') {
-              npc.isSitting = true;
-              npc.direction = 'up';
-            } else if (npc.scheduleState === 'WATER_BREAK') {
-              npc.direction = 'up';
-              if (window.soundManager && Math.random() < 0.05) {
-                window.soundManager.playWater();
+            if (target.isDoor) {
+              // Transition through door portal!
+              npc.scene = target.targetScene;
+              npc.x = target.entryPos.x;
+              npc.y = target.entryPos.y;
+              if (window.soundManager && typeof state !== 'undefined' && (state.currentScene === target.targetScene || state.currentScene === npc.scene)) {
+                window.soundManager.playDoorOpen();
+              }
+            }
+
+            // Remove reached waypoint
+            npc.pathQueue.shift();
+
+            // Check if final destination reached
+            if (npc.pathQueue.length === 0) {
+              npc.isMoving = false;
+              const wp = npc.targetWP;
+
+              if (wp && wp.sit) {
+                npc.isSitting = true;
+                npc.direction = 'up';
+                npc.scheduleState = 'DESK_WORK';
+                npc.stateTimer = 16000 + Math.random() * 8000;
+              } else if (wp && (wp.label.includes('Water') || wp.label.includes('Espresso') || wp.label.includes('Tea'))) {
+                npc.isSitting = false;
+                npc.direction = 'up';
+                npc.scheduleState = 'BEVERAGE_BREAK';
+                npc.stateTimer = 8000 + Math.random() * 4000;
+                if (window.soundManager && Math.random() < 0.25) {
+                  window.soundManager.playWater();
+                }
+              } else {
+                npc.isSitting = false;
+                npc.scheduleState = 'ACTIVITY';
+                npc.stateTimer = 9000 + Math.random() * 6000;
               }
             }
           }
@@ -606,24 +794,18 @@ You MUST respond strictly in valid JSON format with this exact structure:
     }
 
     pickNextRoutine(npc) {
-      const wp = npc.waypoints[Math.floor(Math.random() * npc.waypoints.length)];
-      npc.scene = wp.scene;
-      npc.targetX = wp.x;
-      npc.targetY = wp.y;
-      npc.isMoving = true;
-      npc.isSitting = false;
-      npc.activityLabel = wp.label;
+      // Filter out any waypoint that mentions BOSS_CABINET
+      const safeWaypoints = npc.waypoints.filter(w => w.scene !== 'BOSS_CABINET');
+      if (safeWaypoints.length === 0) return;
 
-      if (wp.sit) {
-        npc.scheduleState = 'DESK_WORK';
-        npc.stateTimer = 12000 + Math.random() * 8000; // sit for 12-20s
-      } else if (wp.label.includes('Water')) {
-        npc.scheduleState = 'WATER_BREAK';
-        npc.stateTimer = 6000 + Math.random() * 4000;
-      } else {
-        npc.scheduleState = 'WANDERING';
-        npc.stateTimer = 7000 + Math.random() * 5000;
-      }
+      const wp = safeWaypoints[Math.floor(Math.random() * safeWaypoints.length)];
+      npc.targetWP = wp;
+      npc.activityLabel = wp.label;
+      npc.isSitting = false;
+
+      // Build realistic hallway and doorway path
+      npc.pathQueue = this.buildPathForNPC(npc, wp);
+      npc.isMoving = npc.pathQueue.length > 0;
     }
 
     // ------------------------------------------------------------------------
