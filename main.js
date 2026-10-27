@@ -235,15 +235,8 @@ const SCENES = {
     playerWidth: 40,
     playerHeight: 86,
     spawn: { x: 512, y: 245, dir: 'down' },
-    // Foreground occlusion props (for monitor & desk depth sorting)
-    foregroundProps: [
-      { img: () => assets.fgHallDeskTopLeft, x: 345, y: 215, w: 130, h: 145, sortY: 345 },
-      { img: () => assets.fgHallDeskTopRight, x: 495, y: 215, w: 130, h: 145, sortY: 345 },
-      { img: () => assets.fgHallDeskBotLeft, x: 345, y: 365, w: 130, h: 145, sortY: 495 },
-      { img: () => assets.fgHallDeskBotRight, x: 495, y: 365, w: 130, h: 145, sortY: 495 },
-      { img: () => assets.fgHallDeskRight, x: 750, y: 245, w: 180, h: 175, sortY: 390 },
-      { img: () => assets.fgHallDeskLeft, x: 10, y: 290, w: 170, h: 140, sortY: 415 }
-    ],
+    // Foreground occlusion props
+    foregroundProps: [],
     // AABB Obstacles - localized to object feet so walkways remain completely open!
     obstacles: [
       // Top wall (leaving wide door corridor open from x: 462 to 560, y <= 214)
@@ -275,8 +268,8 @@ const SCENES = {
       { x: 350, y: 425, w: 88, h: 55, label: 'Desk Bottom-Left' },
       { x: 512, y: 425, w: 88, h: 55, label: 'Desk Bottom-Right' },
 
-      // Right desk
-      { x: 765, y: 295, w: 155, h: 135, label: 'Desk' },
+      // Right desk (compact bounds so hallway to cafeteria is wide open)
+      { x: 765, y: 310, w: 110, h: 80, label: 'Desk' },
 
       // Right plant (bottom)
       { x: 880, y: 480, w: 85, h: 75, label: 'Plant' }
@@ -385,10 +378,8 @@ const SCENES = {
     playerWidth: 68,
     playerHeight: 145,
     spawn: { x: 930, y: 495, dir: 'left' },
-    // Foreground occlusion props (for monitor & desk depth sorting)
-    foregroundProps: [
-      { img: () => assets.bossDeskFg, x: 180, y: 350, w: 260, h: 195, sortY: 535 }
-    ],
+    // Foreground occlusion props
+    foregroundProps: [],
     // Walkable floor band (y: 475 to 530)
     obstacles: [
       // Top wall barrier
@@ -467,16 +458,14 @@ const SCENES = {
   CORNER_OFFICE: {
     name: 'Executive Corner Suite',
     badge: 'Corner Office',
-    objective: 'Explore the study, or exit through the right door',
+    objective: 'Explore the study, talk to HR Ma\'am, or exit through the right door',
     bg: () => assets.cornerOffice,
     playerScale: 0.95,
     playerWidth: 68,
     playerHeight: 145,
     spawn: { x: 930, y: 495, dir: 'left' },
-    // Foreground occlusion props (for monitor & desk depth sorting)
-    foregroundProps: [
-      { img: () => assets.fgCornerDesk, x: 175, y: 320, w: 240, h: 215, sortY: 520 }
-    ],
+    // Foreground occlusion props
+    foregroundProps: [],
     // Walkable floor band (y: 475 to 535)
     obstacles: [
       // Top wall barrier
@@ -491,7 +480,7 @@ const SCENES = {
       // Back-wall furniture bases (y <= 472 so foreground floor is 100% open and walkable!)
       { x: 35, y: 440, w: 60, h: 30, label: 'Coat Rack' },
       { x: 175, y: 440, w: 220, h: 30, label: 'Mahogany Desk' },
-      { x: 310, y: 468, w: 30, h: 20, label: 'Senior Partner' },
+      { x: 435, y: 468, w: 30, h: 20, label: 'HR Lead' },
       { x: 530, y: 440, w: 180, h: 30, label: 'Coffee Table' },
       { x: 715, y: 440, w: 65, h: 30, label: 'Ficus Plant' },
       { x: 795, y: 440, w: 85, h: 30, label: 'Filing Cabinet' },
@@ -509,10 +498,17 @@ const SCENES = {
       },
       {
         id: 'talk_to_partner',
-        x: 275, y: 440, w: 100, h: 90,
-        prompt: 'Talk to Senior Partner',
-        promptPos: { x: 325, y: 410 },
+        x: 390, y: 440, w: 120, h: 90,
+        prompt: 'Talk to HR Ma\'am',
+        promptPos: { x: 450, y: 410 },
         action: () => startPartnerDialogue()
+      },
+      {
+        id: 'corner_visitor_chair',
+        x: 275, y: 455, w: 90, h: 65,
+        prompt: 'Sit in Visitor Chair [E / C]',
+        promptPos: { x: 320, y: 440 },
+        action: () => toggleSitInChair(320, 495)
       },
       {
         id: 'corner_coat_rack',
@@ -575,11 +571,13 @@ const SCENES = {
     playerScale: 0.58,
     playerWidth: 42,
     playerHeight: 90,
-    spawn: { x: 100, y: 285, dir: 'right' },
+    spawn: { x: 180, y: 340, dir: 'right' },
     // Boundaries & Obstacles for clean open movement
     obstacles: [
-      // Top wall barrier (above counters & exit door)
-      { x: 0, y: 0, w: CANVAS_WIDTH, h: 260, label: 'Wall' },
+      // Top wall barrier (leaving door opening at x: 75-150 open up to y: 245)
+      { x: 0, y: 0, w: 75, h: 260, label: 'Wall' },
+      { x: 75, y: 0, w: 75, h: 245, label: 'Door Threshold' },
+      { x: 150, y: 0, w: CANVAS_WIDTH - 150, h: 260, label: 'Wall' },
       // Bottom barrier
       { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom' },
       // Left boundary wall
@@ -591,28 +589,28 @@ const SCENES = {
       { x: 290, y: 220, w: 715, h: 65, label: 'Cafeteria Counter' },
 
       // Left Lounge Velvet Sofa & Table
-      { x: 5, y: 350, w: 90, h: 180, label: 'Velvet Sofa' },
-      { x: 110, y: 410, w: 85, h: 75, label: 'Coffee Table' },
-      { x: 175, y: 330, w: 95, h: 80, label: 'Armchair Top' },
-      { x: 175, y: 470, w: 95, h: 80, label: 'Armchair Bottom' },
+      { x: 5, y: 350, w: 75, h: 180, label: 'Velvet Sofa' },
+      { x: 110, y: 410, w: 75, h: 70, label: 'Coffee Table' },
+      { x: 185, y: 330, w: 75, h: 75, label: 'Armchair Top' },
+      { x: 185, y: 470, w: 75, h: 75, label: 'Armchair Bottom' },
 
       // Center Dining Table with 2 colleagues chatting
-      { x: 410, y: 400, w: 175, h: 90, label: 'Center Dining Table' },
+      { x: 445, y: 430, w: 105, h: 55, label: 'Center Dining Table' },
 
-      // Right Dining Tables
-      { x: 600, y: 325, w: 155, h: 80, label: 'Dining Table 1' },
-      { x: 815, y: 325, w: 155, h: 80, label: 'Dining Table 2' },
-      { x: 600, y: 460, w: 155, h: 80, label: 'Dining Table 3' },
-      { x: 815, y: 460, w: 155, h: 80, label: 'Dining Table 4' }
+      // Right Dining Tables (only the central pedestal base so chairs and walkways are 100% open)
+      { x: 655, y: 335, w: 65, h: 55, label: 'Dining Table 1' },
+      { x: 865, y: 335, w: 65, h: 55, label: 'Dining Table 2' },
+      { x: 655, y: 470, w: 65, h: 55, label: 'Dining Table 3' },
+      { x: 865, y: 470, w: 65, h: 55, label: 'Dining Table 4' }
     ],
 
     triggers: [
-      // 1. Exit Door back to Main Office Hall
+      // 1. Exit Door back to Main Office Hall (Door at x: 75-160, y: 250)
       {
         id: 'exit_cafeteria_to_hall',
-        x: 50, y: 225, w: 90, h: 85,
+        x: 75, y: 250, w: 90, h: 50,
         prompt: 'Exit to Main Office Hall',
-        promptPos: { x: 95, y: 210 },
+        promptPos: { x: 120, y: 235 },
         action: () => exitCafeteriaToMainHall()
       },
       // 2. Professional Espresso Machine
@@ -676,22 +674,67 @@ const SCENES = {
         x: 15, y: 360, w: 80, h: 140,
         prompt: 'Sit on Velvet Sofa [E / C]',
         promptPos: { x: 55, y: 345 },
-        action: () => toggleSitInChair(55, 430)
+        action: () => toggleSitInChair(55, 430, 'right', 90, 430)
       },
-      // 8. Dining Table Sitting
+      // 8. Dining Table 1 Sitting (Top-Left Dining Set)
       {
         id: 'sit_dining_table_1',
-        x: 640, y: 340, w: 80, h: 60,
-        prompt: 'Sit at Table [E / C]',
-        promptPos: { x: 680, y: 325 },
-        action: () => toggleSitInChair(680, 370)
+        x: 600, y: 320, w: 160, h: 80,
+        prompt: 'Sit at Table Chair [E / C]',
+        promptPos: { x: 680, y: 300 },
+        action: () => {
+          const isRight = state.player.x > 680;
+          if (isRight) {
+            toggleSitInChair(755, 360, 'left', 755, 395);
+          } else {
+            toggleSitInChair(620, 360, 'right', 620, 395);
+          }
+        }
       },
+      // 9. Dining Table 2 Sitting (Top-Right Dining Set)
       {
         id: 'sit_dining_table_2',
-        x: 850, y: 340, w: 80, h: 60,
-        prompt: 'Sit at Table [E / C]',
-        promptPos: { x: 890, y: 325 },
-        action: () => toggleSitInChair(890, 370)
+        x: 810, y: 320, w: 160, h: 80,
+        prompt: 'Sit at Table Chair [E / C]',
+        promptPos: { x: 890, y: 300 },
+        action: () => {
+          const isRight = state.player.x > 890;
+          if (isRight) {
+            toggleSitInChair(965, 360, 'left', 965, 395);
+          } else {
+            toggleSitInChair(830, 360, 'right', 830, 395);
+          }
+        }
+      },
+      // 10. Dining Table 3 Sitting (Bottom-Left Dining Set)
+      {
+        id: 'sit_dining_table_3',
+        x: 600, y: 450, w: 160, h: 80,
+        prompt: 'Sit at Table Chair [E / C]',
+        promptPos: { x: 680, y: 435 },
+        action: () => {
+          const isRight = state.player.x > 680;
+          if (isRight) {
+            toggleSitInChair(755, 495, 'left', 755, 530);
+          } else {
+            toggleSitInChair(620, 495, 'right', 620, 530);
+          }
+        }
+      },
+      // 11. Dining Table 4 Sitting (Bottom-Right Dining Set)
+      {
+        id: 'sit_dining_table_4',
+        x: 810, y: 450, w: 160, h: 80,
+        prompt: 'Sit at Table Chair [E / C]',
+        promptPos: { x: 890, y: 435 },
+        action: () => {
+          const isRight = state.player.x > 890;
+          if (isRight) {
+            toggleSitInChair(965, 495, 'left', 965, 530);
+          } else {
+            toggleSitInChair(830, 495, 'right', 830, 530);
+          }
+        }
       }
     ]
   }
@@ -919,11 +962,15 @@ function toggleHelpModal() {
 // ==========================================
 // CHAIR SITTING & INTERACTION
 // ==========================================
-function toggleSitInChair(chairX, chairY) {
+function toggleSitInChair(chairX, chairY, sitDir = 'up', standX, standY) {
   const p = state.player;
   p.isSitting = !p.isSitting;
 
   if (p.isSitting) {
+    // Record where the player should safely stand up outside of any obstacle
+    p.standX = (standX !== undefined) ? standX : (chairX !== undefined ? (sitDir === 'right' ? chairX - 24 : (sitDir === 'left' ? chairX + 24 : chairX)) : p.x);
+    p.standY = (standY !== undefined) ? standY : ((chairY !== undefined ? chairY : p.y) + 20);
+
     if (chairX !== undefined && chairY !== undefined) {
       p.x = chairX;
       p.y = chairY;
@@ -934,7 +981,7 @@ function toggleSitInChair(chairX, chairY) {
       let nearestTarget = null;
       if (scene && scene.triggers) {
         for (const t of scene.triggers) {
-          if (t.id && (t.id.includes('workstation') || t.id.includes('chair'))) {
+          if (t.id && (t.id.includes('workstation') || t.id.includes('chair') || t.id.includes('table') || t.id.includes('sofa'))) {
             const tx = t.promptPos ? t.promptPos.x : (t.x + t.w / 2);
             const ty = t.promptPos ? t.promptPos.y : (t.y + t.h / 2);
             const dist = Math.hypot(p.x - tx, p.y - ty);
@@ -951,17 +998,24 @@ function toggleSitInChair(chairX, chairY) {
         return;
       }
     }
-    p.direction = 'up'; // face workstation / computer desk
+    p.direction = sitDir || 'up';
     p.isMoving = false;
     state.clickTarget = null;
     window.soundManager.unlock();
     window.soundManager.playInteract();
-    showToast('👨‍💻 Sitting at workstation. Press [E], [C], or move to stand up.');
+    showToast(state.currentScene === 'CAFETERIA' ? '☕ Sitting at table. Press [E], [C], or move to stand up.' : '👨‍💻 Sitting at workstation. Press [E], [C], or move to stand up.');
   } else {
-    p.y += 12; // step back cleanly onto the floor
+    // Return safely to floor outside obstacles
+    if (typeof p.standX === 'number' && typeof p.standY === 'number') {
+      p.x = p.standX;
+      p.y = p.standY;
+    } else {
+      p.y += 18;
+    }
+    p.isSitting = false;
     window.soundManager.unlock();
     window.soundManager.playFootstep(state.currentScene === 'BOSS_CABINET');
-    showToast('🚶 Stood up from the chair.');
+    showToast('🚶 Stood up.');
   }
 
   // Broadcast sit state
@@ -1141,17 +1195,17 @@ function startPartnerDialogue() {
 
   if (state.partner.talkedCount === 1) {
     openDialogue(
-      'Senior Partner',
+      'HR Ma\'am',
       assets.partnerPortrait.src,
-      'Henderson! Good to see someone from the main hall actually making progress. Lord Skywalker has been screaming about quarterly budget spreadsheets all morning...',
+      'Good to see someone from the team making genuine progress! Lord Skywalker has been demanding unreasonable reports all morning...',
       [
         {
           label: 'Lord Skywalker demanded 500% profits and denied my vacation...',
           onSelect: () => {
             openDialogue(
-              'Senior Partner',
+              'HR Ma\'am',
               assets.partnerPortrait.src,
-              'Classic Anakin. Don\'t let his dark side intimidate you. Take a sip of the jasmine tea—it keeps us sane around here.',
+              'Classic Anakin. Don\'t let his demands intimidate you. Take a sip of the jasmine tea—it keeps us sane around here.',
               [{ label: 'Thank you, I appreciate that!', onSelect: () => closeDialogue() }]
             );
           }
@@ -1160,20 +1214,20 @@ function startPartnerDialogue() {
           label: 'What are you investigating on the whiteboard?',
           onSelect: () => {
             openDialogue(
-              'Senior Partner',
+              'HR Ma\'am',
               assets.partnerPortrait.src,
-              'Classified corporate intrigue. Someone\'s been tampering with the mainframe audit logs after hours. Keep your eyes open.',
+              'Classified corporate intrigue. Someone\'s been tampering with the audit logs after hours. Keep your eyes open.',
               [{ label: 'I\'ll stay vigilant.', onSelect: () => closeDialogue() }]
             );
           }
         },
         {
-          label: 'Is there any coffee left in this building?',
+          label: 'Is there any coffee or tea in the office?',
           onSelect: () => {
             openDialogue(
-              'Senior Partner',
+              'HR Ma\'am',
               assets.partnerPortrait.src,
-              'Only in Anakin\'s suite, and I wouldn\'t dare touch his espresso beans. Help yourself to our vintage tea set over there.',
+              'We have fresh coffee in the Cafeteria Lounge down the hall, and herbal tea right over there!',
               [{ label: 'Sounds refreshing, thanks!', onSelect: () => closeDialogue() }]
             );
           }
@@ -1182,13 +1236,13 @@ function startPartnerDialogue() {
     );
   } else {
     const randomLines = [
-      'Stay sharp, Henderson. Corporate politics is a dangerous game.',
+      'Stay sharp! Corporate politics is a high-stakes game.',
       'The CRT terminal has the encrypted audit files if you want to inspect them.',
-      'If Anakin starts choking anyone in HR again, let me know immediately.',
+      'If you need any policy clarification or mental break, head over to the Cafeteria.',
       'Have you tried the jasmine green tea? Freshly brewed from the gardens.'
     ];
     const line = randomLines[Math.floor(Math.random() * randomLines.length)];
-    openDialogue('Senior Partner', assets.partnerPortrait.src, line, [
+    openDialogue('HR Ma\'am', assets.partnerPortrait.src, line, [
       { label: 'Back to work!', onSelect: () => closeDialogue() }
     ]);
   }
@@ -1338,7 +1392,7 @@ function enterCafeteria() {
   overlay.classList.add('active');
 
   setTimeout(() => {
-    switchScene('CAFETERIA', 110, 290, 'right');
+    switchScene('CAFETERIA', 180, 340, 'right');
     window.soundManager.playDoorClose();
 
     setTimeout(() => {
@@ -1363,8 +1417,8 @@ function exitCafeteriaToMainHall() {
   overlay.classList.add('active');
 
   setTimeout(() => {
-    // Return right beside the cafeteria door above the plant on the right wall
-    switchScene('OFFICE_HALL', 915, 410, 'left');
+    // Return safely into the open hallway aisle outside the cafeteria door
+    switchScene('OFFICE_HALL', 885, 390, 'left');
     window.soundManager.playDoorClose();
 
     setTimeout(() => {
@@ -1450,12 +1504,18 @@ function update(dt) {
     dy *= 0.7071;
   }
 
-  // If sitting in chair and movement key is pressed, stand up!
+  // If sitting in chair and movement key is pressed, stand up safely!
   if (p.isSitting && (dx !== 0 || dy !== 0)) {
+    if (typeof p.standX === 'number' && typeof p.standY === 'number') {
+      p.x = p.standX;
+      p.y = p.standY;
+    } else {
+      p.y += 18;
+    }
     p.isSitting = false;
     window.soundManager.unlock();
     window.soundManager.playFootstep(state.currentScene === 'BOSS_CABINET');
-    showToast('🚶 Stood up from the chair.');
+    showToast('🚶 Stood up.');
     if (window.multiplayerEngine && window.multiplayerEngine.active) {
       window.multiplayerEngine.broadcastPosition(p, state.currentScene);
     }
@@ -1530,13 +1590,13 @@ function update(dt) {
   }
 
   // Check Entrance to Cafeteria in Office Hall (walking into right wall above plant)
-  if (state.currentScene === 'OFFICE_HALL' && p.x >= 970 && p.y >= 330 && p.y <= 445) {
+  if (state.currentScene === 'OFFICE_HALL' && p.x >= 970 && p.y >= 320 && p.y <= 445) {
     enterCafeteria();
     return;
   }
 
   // Check Exit Door in Cafeteria (walking into left exit door)
-  if (state.currentScene === 'CAFETERIA' && p.x <= 95 && p.y >= 230 && p.y <= 325) {
+  if (state.currentScene === 'CAFETERIA' && p.x >= 65 && p.x <= 155 && p.y <= 275) {
     exitCafeteriaToMainHall();
     return;
   }
@@ -1712,7 +1772,7 @@ function render() {
     if (state.activePrompt.id === 'talk_to_boss') {
       drawGoldenTriangle(450, 320);
     } else if (state.activePrompt.id === 'talk_to_partner') {
-      drawGoldenTriangle(325, 320);
+      drawGoldenTriangle(450, 320);
     } else {
       drawGoldenTriangle(state.activePrompt.promptPos.x, state.activePrompt.promptPos.y - 20);
     }
@@ -1784,8 +1844,8 @@ function renderDoorGlow() {
 }
 
 function renderCafeteriaDetails() {
-  // Floating Golden Triangle pointing to Exit Door on left wall (x: 95, y: 210)
-  drawGoldenTriangle(95, 210);
+  // Floating Golden Triangle pointing to Exit Door on left wall (x: 115, y: 220)
+  drawGoldenTriangle(115, 220);
 
   // Subtle animated coffee steam over espresso machine
   const time = performance.now() * 0.003;
@@ -1825,14 +1885,14 @@ function renderBossInCabinet() {
 }
 
 function renderCornerOffice() {
-  // In the Corner Office, render Partner full body standing at the marked place (x: 325, y: 485)
+  // In the Corner Office, render HR Ma'am full body standing at (x: 450, y: 490)
   if (assets.partnerCharacter && assets.partnerCharacter.complete) {
     const partnerW = 71;
     const partnerH = 142;
-    const partnerX = 325;
-    const partnerY = 485;
+    const partnerX = 450;
+    const partnerY = 490;
 
-    // Soft shadow beneath partner feet
+    // Soft shadow beneath HR Ma'am feet
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
     ctx.ellipse(partnerX, partnerY - 2, 26, 6, 0, 0, Math.PI * 2);
@@ -1895,11 +1955,19 @@ function renderPlayer() {
       const breath = Math.sin(performance.now() * 0.005) * 1.0;
       const dy = Math.round(p.y - dh - 5 + breath);
 
-      // Render character seated directly in the existing grey chair!
-      ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
+      // Render character seated naturally!
+      ctx.save();
+      if (p.direction === 'left') {
+        ctx.translate(p.x, dy + dh / 2);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sitImg, sx, sy, frameW, frameH, -dw / 2, -dh / 2, dw, dh);
+      } else {
+        ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
+      }
+      ctx.restore();
 
-      // Pixel typing particle sparks directly off the keyboard terminal
-      if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.28) {
+      // Pixel typing particle sparks directly off the keyboard terminal (only in office, not in cafeteria!)
+      if (state.currentScene !== 'CAFETERIA' && window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.28) {
         window.pixelEngine.particles.spawnTypingParticles(p.x, p.y - 45);
       }
     }
