@@ -1242,10 +1242,14 @@ function setupEventListeners() {
   });
 
   // UI Buttons
-  document.getElementById('btn-sound').addEventListener('click', toggleSound);
-  document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
-  document.getElementById('btn-help').addEventListener('click', toggleHelpModal);
-  document.getElementById('btn-close-help').addEventListener('click', toggleHelpModal);
+  const btnSound = document.getElementById('btn-sound');
+  if (btnSound) btnSound.addEventListener('click', toggleSound);
+  const btnFullscreen = document.getElementById('btn-fullscreen');
+  if (btnFullscreen) btnFullscreen.addEventListener('click', toggleFullscreen);
+  const btnHelp = document.getElementById('btn-help');
+  if (btnHelp) btnHelp.addEventListener('click', toggleHelpModal);
+  const btnCloseHelp = document.getElementById('btn-close-help');
+  if (btnCloseHelp) btnCloseHelp.addEventListener('click', toggleHelpModal);
 
   // Touch / Mobile D-Pad
   const dpadBtns = document.querySelectorAll('.dpad-btn');
@@ -1290,7 +1294,7 @@ function setupEventListeners() {
 function toggleSound() {
   const isMuted = window.soundManager.toggleMute();
   const soundIcon = document.getElementById('sound-icon');
-  soundIcon.textContent = isMuted ? '🔇' : '🔊';
+  if (soundIcon) soundIcon.textContent = isMuted ? '🔇' : '🔊';
 }
 
 function toggleFullscreen() {
@@ -1618,8 +1622,10 @@ function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   }
 
   // Update HUD
-  document.getElementById('location-name').textContent = scene.badge;
-  document.getElementById('objective-text').textContent = scene.objective;
+  const locEl = document.getElementById('location-name');
+  if (locEl) locEl.textContent = scene.badge;
+  const objEl = document.getElementById('objective-text');
+  if (objEl) objEl.textContent = scene.objective;
 
   // Set Player Scale & Dimensions
   state.player.scale = scene.playerScale;
@@ -2863,7 +2869,7 @@ function toggleClassicDashboard() {
   const dash = document.getElementById('classic-dashboard');
   const canvasWrap = document.getElementById('canvas-wrapper');
   const btnToggle = document.getElementById('btn-toggle-classic');
-  if (!dash || !canvasWrap || !btnToggle) return;
+  if (!dash || !canvasWrap) return;
 
   const isCurrentlyHidden = dash.classList.contains('hidden');
 
@@ -2871,8 +2877,10 @@ function toggleClassicDashboard() {
     // Switch to Dashboard Mode
     dash.classList.remove('hidden');
     canvasWrap.classList.add('hidden');
-    btnToggle.classList.add('active');
-    btnToggle.innerHTML = '<span id="toggle-mode-icon">🎮</span> <span id="toggle-mode-text">2D View</span>';
+    if (btnToggle) {
+      btnToggle.classList.add('active');
+      btnToggle.innerHTML = '<span id="toggle-mode-icon">🎮</span> <span id="toggle-mode-text">2D View</span>';
+    }
     renderClassicDashboard();
     window.soundManager.unlock();
     window.soundManager.playInteract();
@@ -2881,8 +2889,10 @@ function toggleClassicDashboard() {
     // Switch to 2D Game View
     dash.classList.add('hidden');
     canvasWrap.classList.remove('hidden');
-    btnToggle.classList.remove('active');
-    btnToggle.innerHTML = '<span id="toggle-mode-icon">📋</span> <span id="toggle-mode-text">Dashboard Mode</span>';
+    if (btnToggle) {
+      btnToggle.classList.remove('active');
+      btnToggle.innerHTML = '<span id="toggle-mode-icon">📋</span> <span id="toggle-mode-text">Dashboard Mode</span>';
+    }
     window.soundManager.unlock();
     window.soundManager.playInteract();
     showToast('🎮 Switched to 2D Office View.');

@@ -972,9 +972,10 @@
     }
 
     addHeaderButton() {
+      let btn = document.getElementById('btn-phone-toggle');
       const headerRight = document.querySelector('.header-right');
-      if (headerRight && !document.getElementById('btn-phone-toggle')) {
-        const btn = document.createElement('button');
+      if (!btn && headerRight) {
+        btn = document.createElement('button');
         btn.id = 'btn-phone-toggle';
         btn.className = 'btn-pager-toggle';
         btn.title = 'Open Smartphone & Groq AI Tasks (P)';
@@ -983,14 +984,10 @@
           <span class="pager-label">Phone</span>
           <span class="phone-badge" id="phone-header-badge">4</span>
         `;
+        headerRight.appendChild(btn);
+      }
+      if (btn) {
         btn.onclick = () => this.toggle();
-
-        const pagerBtn = document.getElementById('btn-open-pager');
-        if (pagerBtn && pagerBtn.nextSibling) {
-          headerRight.insertBefore(btn, pagerBtn.nextSibling);
-        } else {
-          headerRight.appendChild(btn);
-        }
       }
     }
 

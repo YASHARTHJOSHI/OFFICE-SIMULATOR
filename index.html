@@ -17,80 +17,18 @@
     <header id="game-header">
       <div class="header-left">
         <span class="game-logo">🏢 OFFICE SIM</span>
-        <div class="location-badge" id="location-badge">
-          <span class="loc-dot"></span>
-          <span id="location-name">Main Office Hall</span>
-        </div>
         <div class="online-badge hidden" id="online-badge">
           <span class="online-dot"></span>
           <span id="online-room-text" title="Click to copy Room Code">OFF-0000</span>
           <span id="online-player-count">👥 1</span>
           <button id="btn-leave-room" class="btn-leave-room" title="Leave Multiplayer Room">Leave</button>
         </div>
-        <div class="quest-score-badge" id="quest-score-badge" title="Workplace Quest Communication Score">
-          🎯 Mastery: 0% (New Intern)
-        </div>
-      </div>
-      <div class="header-center">
-        <div class="objective-tracker" id="objective-tracker" title="Today's Workplace Objective (Click to view Quest Log [Q])">
-          <!-- Manila Folder Index Tab -->
-          <div class="obj-folder-tab">
-            <span class="obj-tab-label" id="obj-tab-label">📁 TASK #01</span>
-          </div>
-          <!-- Left Metal Paper Clips -->
-          <div class="obj-paperclip obj-clip-top"></div>
-          <div class="obj-paperclip obj-clip-bot"></div>
-
-          <!-- Vintage Office Paper Memo Card -->
-          <div class="obj-paper-card">
-            <div class="obj-cut-corner"></div>
-
-            <!-- Heading: File Icon + TWO-TONE 'TODAY'S TASK:' -->
-            <div class="obj-heading">
-              <span class="obj-folder-icon" aria-hidden="true">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 3H6L8 5H15V13H1V3Z" fill="#D99B52" stroke="#1E2229" stroke-width="1.5" stroke-linejoin="round"/>
-                  <rect x="3" y="6" width="10" height="5" fill="#FAF6EC" rx="0.5"/>
-                  <path d="M5 8.5L7 10L11 7" stroke="#15803D" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-              <span class="obj-word-today">TODAY'S</span>
-              <span class="obj-word-task">TASK:</span>
-            </div>
-
-            <!-- Inset Debossed Plate with Objective Text -->
-            <div class="obj-inset-plate">
-              <span id="objective-text">Talk to Rahul, Priya, Amit, or Neha to learn workplace communication!</span>
-            </div>
-
-            <!-- Right Metallic Brass Rivets -->
-            <div class="obj-rivet obj-rivet-top"></div>
-            <div class="obj-rivet obj-rivet-bot"></div>
-          </div>
-        </div>
       </div>
       <div class="header-right">
-        <div class="status-clock" id="status-clock">09:41 AM</div>
-        <button id="btn-open-pager" class="btn-pager-toggle" title="Open Simulated Chat Inbox (I)" aria-label="Open OfficePager">
-          <span class="pager-icon">📟</span>
-          <span class="pager-label">OfficePager</span>
-          <span id="pager-unread-badge" class="pager-badge hidden">1</span>
-        </button>
-        <button id="btn-toggle-classic" class="btn-classic-toggle" title="Switch between 2D Office View and Quest Log (Q)">
-          <span id="toggle-mode-icon">📜</span>
-          <span id="toggle-mode-text">Quest Log</span>
-        </button>
-        <button id="btn-crt" class="btn-icon" title="Toggle Retro CRT Scanlines" aria-label="Toggle Retro CRT Scanlines">
-          <span id="crt-icon">📺</span>
-        </button>
-        <button id="btn-sound" class="btn-icon" title="Toggle Sound (M)" aria-label="Toggle Sound">
-          <span id="sound-icon">🔊</span>
-        </button>
-        <button id="btn-fullscreen" class="btn-icon" title="Toggle Fullscreen (F)" aria-label="Toggle Fullscreen">
-          <span>⛶</span>
-        </button>
-        <button id="btn-help" class="btn-icon" title="Controls & Help (H)" aria-label="Controls and Help">
-          <span>❓</span>
+        <button id="btn-phone-toggle" class="btn-pager-toggle" title="Open Smartphone & Groq AI Tasks (P)" aria-label="Open Phone">
+          <span class="pager-icon">📱</span>
+          <span class="pager-label">Phone</span>
+          <span class="phone-badge" id="phone-header-badge">4</span>
         </button>
       </div>
     </header>
