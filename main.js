@@ -29,62 +29,66 @@ const assets = {
   char2Idle: new Image()
 };
 
-let assetsLoadedCount = 0;
+let isGameInitialized = false;
+const loadedAssets = new Set();
 const totalAssets = Object.keys(assets).length;
 
-function loadAsset(img, src) {
-  img.src = src;
+function checkAllAssetsLoaded() {
+  if (isGameInitialized) return;
+  if (loadedAssets.size >= totalAssets) {
+    console.log('All game assets loaded successfully!');
+    initGame();
+  }
+}
+
+function registerAsset(key, src) {
+  const img = assets[key];
   img.onload = () => {
-    assetsLoadedCount++;
-    if (assetsLoadedCount === totalAssets) {
-      console.log('All game assets loaded successfully!');
-      initGame();
-    }
+    loadedAssets.add(key);
+    checkAllAssetsLoaded();
   };
   img.onerror = (e) => {
-    console.error('Failed to load asset:', src, e);
+    console.warn('Asset fallback for:', key, src);
+    loadedAssets.add(key);
+    checkAllAssetsLoaded();
   };
-}
-
-assets.officeHall.src = 'assets/office_hall.png?v=5';
-assets.bossCabinet.src = 'assets/boss_cabinet.png';
-assets.spritesheet.src = 'assets/spritesheet.png';
-assets.charIdle.src = 'assets/character_idle.png';
-assets.charBack.src = 'assets/char_back.png';
-assets.bossPortrait.src = 'assets/boss_portrait.png?v=3';
-assets.playerPortrait.src = 'assets/player_portrait.png?v=3';
-assets.bossStanding.src = 'assets/boss_standing.png?v=3';
-assets.bossCharacter.src = 'assets/boss_character.png?v=3';
-assets.cornerOffice.src = 'assets/corner_office.png';
-assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=5';
-assets.doorLightSpill.src = 'assets/door_light_spill.png?v=3';
-assets.partnerCharacter.src = 'assets/partner_character.png';
-assets.partnerPortrait.src = 'assets/partner_portrait.png';
-assets.char1Spritesheet.src = 'assets/char1_spritesheet.png';
-assets.char2Spritesheet.src = 'assets/char2_spritesheet.png';
-assets.char1Avatar.src = 'assets/char1_avatar.png';
-assets.char2Avatar.src = 'assets/char2_avatar.png';
-assets.char1Idle.src = 'assets/char1_idle.png';
-assets.char2Idle.src = 'assets/char2_idle.png';
-
-// Setup load listeners
-Object.keys(assets).forEach(key => {
-  if (assets[key].complete) {
-    assetsLoadedCount++;
-  } else {
-    assets[key].addEventListener('load', () => {
-      assetsLoadedCount++;
-      if (assetsLoadedCount === totalAssets) {
-        initGame();
-      }
-    });
+  img.src = src;
+  if (img.complete) {
+    loadedAssets.add(key);
   }
-});
-
-// Fallback init in case images were cached
-if (assetsLoadedCount === totalAssets) {
-  setTimeout(initGame, 50);
 }
+
+registerAsset('officeHall', 'assets/office_hall.png?v=5');
+registerAsset('bossCabinet', 'assets/boss_cabinet.png');
+registerAsset('spritesheet', 'assets/spritesheet.png');
+registerAsset('charIdle', 'assets/character_idle.png');
+registerAsset('charBack', 'assets/char_back.png');
+registerAsset('bossPortrait', 'assets/boss_portrait.png?v=3');
+registerAsset('playerPortrait', 'assets/player_portrait.png?v=3');
+registerAsset('bossStanding', 'assets/boss_standing.png?v=3');
+registerAsset('bossCharacter', 'assets/boss_character.png?v=3');
+registerAsset('cornerOffice', 'assets/corner_office.png');
+registerAsset('doorSlightlyOpen', 'assets/door_slightly_open.png?v=5');
+registerAsset('doorLightSpill', 'assets/door_light_spill.png?v=3');
+registerAsset('partnerCharacter', 'assets/partner_character.png');
+registerAsset('partnerPortrait', 'assets/partner_portrait.png');
+registerAsset('char1Spritesheet', 'assets/char1_spritesheet.png');
+registerAsset('char2Spritesheet', 'assets/char2_spritesheet.png');
+registerAsset('char1Avatar', 'assets/char1_avatar.png');
+registerAsset('char2Avatar', 'assets/char2_avatar.png');
+registerAsset('char1Idle', 'assets/char1_idle.png');
+registerAsset('char2Idle', 'assets/char2_idle.png');
+
+// Check if all cached already
+checkAllAssetsLoaded();
+
+// Safety fallback timeout: launch game within 1.5s even if an image takes long
+setTimeout(() => {
+  if (!isGameInitialized) {
+    console.log('Asset loading safety timeout reached, initializing game...');
+    initGame();
+  }
+}, 1500);
 
 // ==========================================
 // GAME STATE & CONSTANTS
@@ -442,6 +446,9 @@ const SCENES = {
 // INITIALIZATION
 // ==========================================
 function initGame() {
+  if (isGameInitialized) return;
+  isGameInitialized = true;
+
   setupEventListeners();
   setupStartMenuAndLobby();
   updateResponsiveCanvas();
@@ -539,6 +546,29 @@ function setupEventListeners() {
 
   window.addEventListener('keydown', (e) => handleKey(e, true));
   window.addEventListener('keyup', (e) => handleKey(e, false));
+
+  // Reset keys when window loses focus to prevent infinite walking
+  window.addEventListener('blur', () => {
+    state.keys.up = false;
+    state.keys.down = false;
+    state.keys.left = false;
+    state.keys.right = false;
+    state.keys.sprint = false;
+    state.clickTarget = null;
+  });
+
+  // CRT Scanline Shader Toggle
+  const btnCrt = document.getElementById('btn-crt');
+  if (btnCrt && window.pixelEngine) {
+    btnCrt.addEventListener('click', () => {
+      window.soundManager.unlock();
+      window.soundManager.playInteract();
+      const active = window.pixelEngine.toggleCRT();
+      btnCrt.style.borderColor = active ? '#10b981' : '';
+      btnCrt.style.background = active ? 'rgba(16, 185, 129, 0.25)' : '';
+      showToast(active ? '📺 Retro CRT Scanlines: ON' : '📺 Retro CRT Scanlines: OFF');
+    });
+  }
 
   // Canvas Click-to-Move
   canvas.addEventListener('click', (e) => {
@@ -862,6 +892,11 @@ function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   state.player.vx = 0;
   state.player.vy = 0;
   state.clickTarget = null;
+
+  // Broadcast scene transition immediately in multiplayer
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    window.multiplayerEngine.broadcastPosition(state.player, sceneKey);
+  }
 }
 
 function enterBossCabinet() {
@@ -1053,6 +1088,11 @@ function update(dt) {
     const isTile = state.currentScene === 'BOSS_CABINET';
     window.soundManager.playFootstep(isTile);
 
+    // Spawn footstep particles via pixelEngine
+    if (window.pixelEngine && window.pixelEngine.particles) {
+      window.pixelEngine.particles.spawnFootstepDust(p.x, p.y, state.keys.sprint, isTile);
+    }
+
     // Collision Sliding & Unstick Mechanics:
     // If movement reduces or maintains 0 overlap, it is 100% allowed!
     const scene = SCENES[state.currentScene];
@@ -1106,6 +1146,17 @@ function update(dt) {
     window.multiplayerEngine.broadcastPosition(p, state.currentScene);
     window.multiplayerEngine.updateRemotePlayers(dt);
   }
+
+  // Pixel Particles & Ambient Emitters Update
+  if (window.pixelEngine && window.pixelEngine.particles) {
+    if (state.activePrompt && state.activePrompt.promptPos) {
+      window.pixelEngine.particles.spawnEmbers(state.activePrompt.promptPos.x, state.activePrompt.promptPos.y);
+    }
+    if (state.currentScene === 'OFFICE_HALL') {
+      window.pixelEngine.particles.spawnWaterSparkles(970, 210);
+    }
+    window.pixelEngine.particles.update(dt);
+  }
 }
 
 function updateTriggers() {
@@ -1133,6 +1184,7 @@ function updateTriggers() {
 // RENDER LOOP
 // ==========================================
 function render() {
+  ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   const scene = SCENES[state.currentScene];
@@ -1185,6 +1237,21 @@ function render() {
     } else {
       drawGoldenTriangle(state.activePrompt.promptPos.x, state.activePrompt.promptPos.y - 20);
     }
+  }
+
+  // 7. Render Pixel Particles (Dust puffs, golden embers, water sparkles)
+  if (window.pixelEngine && window.pixelEngine.particles) {
+    window.pixelEngine.particles.render(ctx);
+  }
+
+  // 8. Render Ambient Retro Office Lighting & Vignette
+  if (window.pixelEngine) {
+    window.pixelEngine.renderAmbientLighting(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, state.currentScene);
+  }
+
+  // 9. Render Retro CRT Scanline Shader (if toggled ON)
+  if (window.pixelEngine) {
+    window.pixelEngine.renderCRTScanlines(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 }
 
