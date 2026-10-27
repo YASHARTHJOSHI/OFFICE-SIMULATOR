@@ -28,7 +28,11 @@ const assets = {
   char1Idle: new Image(),
   char2Idle: new Image(),
   char1Sitting: new Image(),
-  char2Sitting: new Image()
+  char2Sitting: new Image(),
+  char3Spritesheet: new Image(),
+  char3Avatar: new Image(),
+  char3Idle: new Image(),
+  char3Sitting: new Image()
 };
 
 let isGameInitialized = false;
@@ -82,6 +86,10 @@ registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
 registerAsset('char1Sitting', 'assets/char1_sitting.png');
 registerAsset('char2Sitting', 'assets/char2_sitting.png');
+registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png');
+registerAsset('char3Avatar', 'assets/char3_avatar.png');
+registerAsset('char3Idle', 'assets/char3_idle.png');
+registerAsset('char3Sitting', 'assets/char3_sitting.png');
 
 // Check if all cached already
 checkAllAssetsLoaded();
@@ -1435,7 +1443,9 @@ function renderPlayer() {
   // If sitting in chair, render sitting sprite!
   if (p.isSitting) {
     let sitImg = assets.char1Sitting;
-    if (p.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
+    if (p.charId === 'char3' && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
+      sitImg = assets.char3Sitting;
+    } else if (p.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
       sitImg = assets.char2Sitting;
     } else if (assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
       sitImg = assets.char1Sitting;
@@ -1476,7 +1486,9 @@ function renderPlayer() {
 
   // 2. Sprite Animation Frame
   let sheet = assets.char1Spritesheet;
-  if (p.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
+  if (p.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
+    sheet = assets.char3Spritesheet;
+  } else if (p.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
     sheet = assets.char2Spritesheet;
   } else if (p.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
     sheet = assets.char1Spritesheet;
@@ -1545,7 +1557,9 @@ function renderRemotePlayers() {
     try {
       if (peer.isSitting) {
         let sitImg = assets.char1Sitting;
-        if (peer.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
+        if (peer.charId === 'char3' && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
+          sitImg = assets.char3Sitting;
+        } else if (peer.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
           sitImg = assets.char2Sitting;
         } else if (assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
           sitImg = assets.char1Sitting;
@@ -1579,7 +1593,9 @@ function renderRemotePlayers() {
 
         // 2. Sprite Sheet
         let sheet = assets.char1Spritesheet;
-        if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
+        if (peer.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
+          sheet = assets.char3Spritesheet;
+        } else if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
           sheet = assets.char2Spritesheet;
         } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
           sheet = assets.char1Spritesheet;

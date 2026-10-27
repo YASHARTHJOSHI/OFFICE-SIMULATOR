@@ -59,15 +59,15 @@ class MultiplayerEngine {
       {
         id: 'char3',
         name: 'Kabir',
-        role: 'Executive Director',
-        desc: 'Corner suite veteran. Coming soon in next team update!',
-        avatar: 'assets/player_portrait.png',
-        idleSprite: null,
-        spritesheet: null,
-        available: false,
+        role: 'Senior Research Lead',
+        desc: 'Glasses, white coat & badge lanyard. Core systems architect.',
+        avatar: 'assets/char3_avatar.png',
+        idleSprite: 'assets/char3_idle.png',
+        spritesheet: 'assets/char3_spritesheet.png',
+        available: true,
         claimedBy: null,
         claimedByName: null,
-        isLocked: true
+        isLocked: false
       },
       {
         id: 'char4',
