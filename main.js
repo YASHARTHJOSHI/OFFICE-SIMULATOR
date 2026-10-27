@@ -94,6 +94,7 @@ registerAsset('charBack', 'assets/char_back.png?v=6');
 registerAsset('char1Back', 'assets/char1_back.png?v=6');
 registerAsset('char2Back', 'assets/char2_back.png?v=6');
 registerAsset('char3Back', 'assets/char3_back.png?v=6');
+registerAsset('char4Back', 'assets/char4_back.png?v=6');
 registerAsset('bossPortrait', 'assets/boss_portrait.png?v=3');
 registerAsset('playerPortrait', 'assets/player_portrait.png?v=3');
 registerAsset('bossStanding', 'assets/boss_standing.png?v=3');
@@ -105,19 +106,34 @@ registerAsset('partnerCharacter', 'assets/partner_character.png');
 registerAsset('partnerPortrait', 'assets/partner_portrait.png');
 registerAsset('char1Spritesheet', 'assets/char1_spritesheet.png');
 registerAsset('char2Spritesheet', 'assets/char2_spritesheet.png');
+registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png?v=2');
+registerAsset('char4Spritesheet', 'assets/char4_spritesheet.png?v=3');
 registerAsset('char1Avatar', 'assets/char1_avatar.png');
 registerAsset('char2Avatar', 'assets/char2_avatar.png');
+registerAsset('char3Avatar', 'assets/char3_avatar.png?v=2');
+registerAsset('char4Avatar', 'assets/char4_avatar.png?v=3');
 registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
+registerAsset('char3Idle', 'assets/char3_idle.png?v=2');
+registerAsset('char4Idle', 'assets/char4_idle.png?v=3');
 registerAsset('char1Sitting', 'assets/char1_sitting.png?v=3');
 registerAsset('char2Sitting', 'assets/char2_sitting.png?v=3');
-registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png?v=2');
-registerAsset('char3Avatar', 'assets/char3_avatar.png?v=2');
-registerAsset('char3Idle', 'assets/char3_idle.png?v=2');
 registerAsset('char3Sitting', 'assets/char3_sitting.png?v=3');
+registerAsset('char4Sitting', 'assets/char4_seated_desk.png?v=3');
 registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=3');
 registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=3');
 registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=3');
+registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=3');
+
+// Foreground occlusion props (for monitor & desk depth sorting)
+registerAsset('fgCornerDesk', 'assets/fg_corner_desk.png?v=3');
+registerAsset('bossDeskFg', 'assets/boss_desk_fg.png?v=3');
+registerAsset('fgHallDeskTopLeft', 'assets/fg_hall_desk_top_left.png?v=3');
+registerAsset('fgHallDeskTopRight', 'assets/fg_hall_desk_top_right.png?v=3');
+registerAsset('fgHallDeskBotLeft', 'assets/fg_hall_desk_bot_left.png?v=3');
+registerAsset('fgHallDeskBotRight', 'assets/fg_hall_desk_bot_right.png?v=3');
+registerAsset('fgHallDeskRight', 'assets/fg_hall_desk_right.png?v=3');
+registerAsset('fgHallDeskLeft', 'assets/fg_hall_desk_left.png?v=3');
 
 // 4 Workplace Quest NPC Employees (Rahul, Priya, Amit, Neha)
 registerAsset('npc_rahulSpritesheet', 'assets/npc_rahul_spritesheet.png');
@@ -219,6 +235,15 @@ const SCENES = {
     playerWidth: 40,
     playerHeight: 86,
     spawn: { x: 512, y: 245, dir: 'down' },
+    // Foreground occlusion props (for monitor & desk depth sorting)
+    foregroundProps: [
+      { img: () => assets.fgHallDeskTopLeft, x: 345, y: 215, w: 130, h: 145, sortY: 345 },
+      { img: () => assets.fgHallDeskTopRight, x: 495, y: 215, w: 130, h: 145, sortY: 345 },
+      { img: () => assets.fgHallDeskBotLeft, x: 345, y: 365, w: 130, h: 145, sortY: 495 },
+      { img: () => assets.fgHallDeskBotRight, x: 495, y: 365, w: 130, h: 145, sortY: 495 },
+      { img: () => assets.fgHallDeskRight, x: 750, y: 245, w: 180, h: 175, sortY: 390 },
+      { img: () => assets.fgHallDeskLeft, x: 10, y: 290, w: 170, h: 140, sortY: 415 }
+    ],
     // AABB Obstacles - localized to object feet so walkways remain completely open!
     obstacles: [
       // Top wall (leaving wide door corridor open from x: 462 to 560, y <= 214)
@@ -360,6 +385,10 @@ const SCENES = {
     playerWidth: 68,
     playerHeight: 145,
     spawn: { x: 930, y: 495, dir: 'left' },
+    // Foreground occlusion props (for monitor & desk depth sorting)
+    foregroundProps: [
+      { img: () => assets.bossDeskFg, x: 180, y: 350, w: 260, h: 195, sortY: 535 }
+    ],
     // Walkable floor band (y: 475 to 530)
     obstacles: [
       // Top wall barrier
@@ -444,6 +473,10 @@ const SCENES = {
     playerWidth: 68,
     playerHeight: 145,
     spawn: { x: 930, y: 495, dir: 'left' },
+    // Foreground occlusion props (for monitor & desk depth sorting)
+    foregroundProps: [
+      { img: () => assets.fgCornerDesk, x: 175, y: 320, w: 240, h: 215, sortY: 520 }
+    ],
     // Walkable floor band (y: 475 to 535)
     obstacles: [
       // Top wall barrier
@@ -1606,19 +1639,58 @@ function render() {
     renderCafeteriaDetails();
   }
 
-  // 3. Draw Autonomous AI NPCs (Rahul, Priya, Amit, Neha)
-  if (window.aiAgent) {
-    window.aiAgent.render(ctx, state.currentScene, assets, scene.playerScale);
+  // 3. Unified Dynamic Depth Sorting (Characters, Remote Peers, NPCs, and Foreground Desk/Monitor Props)
+  const renderables = [];
+
+  // Scene foreground props (desks, computer monitors)
+  if (scene.foregroundProps) {
+    scene.foregroundProps.forEach(prop => {
+      const img = prop.img();
+      if (img && img.complete && img.naturalWidth > 0) {
+        renderables.push({
+          y: prop.sortY,
+          draw: () => {
+            ctx.drawImage(img, prop.x, prop.y, prop.w, prop.h);
+          }
+        });
+      }
+    });
   }
 
-  // 3b. Draw Player Character
-  renderPlayer();
+  // Local Player
+  renderables.push({
+    y: state.player.y,
+    draw: () => renderPlayer()
+  });
 
-  // 3c. Draw Other Online Players in Same Scene
-  renderRemotePlayers();
+  // Remote online peers in same scene
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    window.multiplayerEngine.peers.forEach(peer => {
+      if (peer.scene === state.currentScene) {
+        const posY = Number.isFinite(peer.y) ? peer.y : 245;
+        renderables.push({
+          y: posY,
+          draw: () => renderSingleRemotePlayer(peer)
+        });
+      }
+    });
+  }
 
-  // 4. Draw Foreground Elements (e.g. if character walks behind desk)
-  renderForeground();
+  // Autonomous AI NPCs
+  if (window.aiAgent && window.aiAgent.npcs) {
+    window.aiAgent.npcs.forEach(npc => {
+      if (npc.scene === state.currentScene) {
+        renderables.push({
+          y: npc.y,
+          draw: () => window.aiAgent.renderSingleNPC(ctx, npc, assets, scene.playerScale)
+        });
+      }
+    });
+  }
+
+  // Strict Depth Sort (ascending by Y: entities further back drawn first, foreground drawn over them)
+  renderables.sort((a, b) => a.y - b.y);
+  renderables.forEach(item => item.draw());
 
   // 5. Draw Click Target Pulse
   if (state.clickPulse && state.clickPulse.timer > 0) {
@@ -1788,12 +1860,16 @@ function renderPlayer() {
   // If sitting in chair, render character naturally inside the existing in-scene chair!
   if (p.isSitting) {
     let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
-    if (p.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
+    if (p.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
+      sitImg = assets.char4SeatedDesk;
+    } else if (p.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
       sitImg = assets.char3SeatedDesk;
     } else if (p.charId === 'char2' && assets.char2SeatedDesk && assets.char2SeatedDesk.complete && assets.char2SeatedDesk.width > 0) {
       sitImg = assets.char2SeatedDesk;
     } else if (assets.char1SeatedDesk && assets.char1SeatedDesk.complete && assets.char1SeatedDesk.width > 0) {
       sitImg = assets.char1SeatedDesk;
+    } else if (p.charId === 'char4' && assets.char4Sitting && assets.char4Sitting.complete && assets.char4Sitting.width > 0) {
+      sitImg = assets.char4Sitting;
     } else if (p.charId === 'char3' && assets.char3Sitting && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
       sitImg = assets.char3Sitting;
     } else if (p.charId === 'char2' && assets.char2Sitting && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
@@ -1839,7 +1915,9 @@ function renderPlayer() {
 
   // 2. Sprite Animation Frame
   let sheet = assets.char1Spritesheet;
-  if (p.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
+  if (p.charId === 'char4' && assets.char4Spritesheet && assets.char4Spritesheet.complete && assets.char4Spritesheet.width > 0) {
+    sheet = assets.char4Spritesheet;
+  } else if (p.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
     sheet = assets.char3Spritesheet;
   } else if (p.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
     sheet = assets.char2Spritesheet;
@@ -1881,7 +1959,8 @@ function renderPlayer() {
     }
   } else if (p.direction === 'up') {
     let backImg = assets.char1Back || assets.charBack;
-    if (p.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
+    if (p.charId === 'char4' && assets.char4Back && assets.char4Back.complete) backImg = assets.char4Back;
+    else if (p.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
     else if (p.charId === 'char2' && assets.char2Back && assets.char2Back.complete) backImg = assets.char2Back;
     else if (p.charId === 'char1' && assets.char1Back && assets.char1Back.complete) backImg = assets.char1Back;
     if (backImg && backImg.complete && backImg.width > 0) {
@@ -1889,6 +1968,8 @@ function renderPlayer() {
     } else if (assets.charIdle.complete) {
       ctx.drawImage(assets.charIdle, px, py, pw, ph);
     }
+  } else if (p.charId === 'char4' && assets.char4Idle && assets.char4Idle.complete) {
+    ctx.drawImage(assets.char4Idle, px, py, pw, ph);
   } else if (assets.charIdle.complete) {
     ctx.drawImage(assets.charIdle, px, py, pw, ph);
   }
@@ -1896,163 +1977,174 @@ function renderPlayer() {
   ctx.restore();
 }
 
-function renderRemotePlayers() {
-  if (!window.multiplayerEngine || !window.multiplayerEngine.active) return;
-
+function renderSingleRemotePlayer(peer) {
   const currentScene = state.currentScene;
   const scene = SCENES[currentScene];
   const pw = scene.playerWidth || 40;
   const ph = scene.playerHeight || 86;
 
-  window.multiplayerEngine.peers.forEach((peer) => {
-    // Only render if peer is currently in the same scene
-    if (peer.scene !== currentScene) return;
+  // Safety checks for coordinates to prevent NaN crashes
+  const posX = Number.isFinite(peer.x) ? peer.x : (Number.isFinite(peer.targetX) ? peer.targetX : 512);
+  const posY = Number.isFinite(peer.y) ? peer.y : (Number.isFinite(peer.targetY) ? peer.targetY : 245);
 
-    // Safety checks for coordinates to prevent NaN crashes
-    const posX = Number.isFinite(peer.x) ? peer.x : (Number.isFinite(peer.targetX) ? peer.targetX : 512);
-    const posY = Number.isFinite(peer.y) ? peer.y : (Number.isFinite(peer.targetY) ? peer.targetY : 245);
+  const px = Math.round(posX - pw / 2);
+  const py = Math.round(posY - ph);
 
-    const px = Math.round(posX - pw / 2);
-    const py = Math.round(posY - ph);
+  ctx.save();
 
-    ctx.save();
+  try {
+    if (peer.isSitting) {
+      let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
+      if (peer.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
+        sitImg = assets.char4SeatedDesk;
+      } else if (peer.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
+        sitImg = assets.char3SeatedDesk;
+      } else if (peer.charId === 'char2' && assets.char2SeatedDesk && assets.char2SeatedDesk.complete && assets.char2SeatedDesk.width > 0) {
+        sitImg = assets.char2SeatedDesk;
+      } else if (assets.char1SeatedDesk && assets.char1SeatedDesk.complete && assets.char1SeatedDesk.width > 0) {
+        sitImg = assets.char1SeatedDesk;
+      } else if (peer.charId === 'char4' && assets.char4Sitting && assets.char4Sitting.complete && assets.char4Sitting.width > 0) {
+        sitImg = assets.char4Sitting;
+      } else if (peer.charId === 'char3' && assets.char3Sitting && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
+        sitImg = assets.char3Sitting;
+      } else if (peer.charId === 'char2' && assets.char2Sitting && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
+        sitImg = assets.char2Sitting;
+      } else if (assets.char1Sitting && assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
+        sitImg = assets.char1Sitting;
+      }
 
-    try {
-      if (peer.isSitting) {
-        let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
-        if (peer.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
-          sitImg = assets.char3SeatedDesk;
-        } else if (peer.charId === 'char2' && assets.char2SeatedDesk && assets.char2SeatedDesk.complete && assets.char2SeatedDesk.width > 0) {
-          sitImg = assets.char2SeatedDesk;
-        } else if (assets.char1SeatedDesk && assets.char1SeatedDesk.complete && assets.char1SeatedDesk.width > 0) {
-          sitImg = assets.char1SeatedDesk;
-        } else if (peer.charId === 'char3' && assets.char3Sitting && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
-          sitImg = assets.char3Sitting;
-        } else if (peer.charId === 'char2' && assets.char2Sitting && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
-          sitImg = assets.char2Sitting;
-        } else if (assets.char1Sitting && assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
-          sitImg = assets.char1Sitting;
+      if (sitImg && sitImg.complete && sitImg.width > 0) {
+        const scale = scene.playerScale || 0.55;
+        const isMultiFrame = sitImg.width >= 200;
+        const frameW = isMultiFrame ? Math.round(sitImg.width / 4) : sitImg.width;
+        const frameH = sitImg.height;
+        const animFrame = isMultiFrame ? (Math.floor((performance.now() + (peer.animFrame || 0) * 100) / 140) % 4) : 0;
+        const sx = animFrame * frameW;
+        const sy = 0;
+
+        const dw = Math.round(frameW * scale);
+        const dh = Math.round(frameH * scale);
+        const dx = Math.round(posX - dw / 2);
+        const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.005) * 1.0;
+        const dy = Math.round(posY - dh - 5 + breath);
+
+        ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
+
+        if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.2) {
+          window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);
         }
+      }
+    } else {
+      // 1. Soft Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.beginPath();
+      ctx.ellipse(posX, posY - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-        if (sitImg && sitImg.complete && sitImg.width > 0) {
-          const scale = scene.playerScale || 0.55;
-          const isMultiFrame = sitImg.width >= 200;
-          const frameW = isMultiFrame ? Math.round(sitImg.width / 4) : sitImg.width;
-          const frameH = sitImg.height;
-          const animFrame = isMultiFrame ? (Math.floor((performance.now() + (peer.animFrame || 0) * 100) / 140) % 4) : 0;
-          const sx = animFrame * frameW;
-          const sy = 0;
+      // 2. Sprite Sheet
+      let sheet = assets.char1Spritesheet;
+      if (peer.charId === 'char4' && assets.char4Spritesheet && assets.char4Spritesheet.complete && assets.char4Spritesheet.width > 0) {
+        sheet = assets.char4Spritesheet;
+      } else if (peer.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
+        sheet = assets.char3Spritesheet;
+      } else if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
+        sheet = assets.char2Spritesheet;
+      } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
+        sheet = assets.char1Spritesheet;
+      } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
+        sheet = assets.spritesheet;
+      }
 
-          const dw = Math.round(frameW * scale);
-          const dh = Math.round(frameH * scale);
-          const dx = Math.round(posX - dw / 2);
-          const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.005) * 1.0;
-          const dy = Math.round(posY - dh - 5 + breath);
+      if (sheet && sheet.complete && sheet.width > 0) {
+        const frameW = 74;
+        const frameH = 157;
+        let row = 0;
+        let isFlipped = false;
 
-          // Render remote seated player inside existing in-scene chair!
-          ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
-
-          if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.2) {
-            window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);
-          }
-        }
-      } else {
-        // 1. Soft Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-        ctx.beginPath();
-        ctx.ellipse(posX, posY - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 2. Sprite Sheet
-        let sheet = assets.char1Spritesheet;
-        if (peer.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
-          sheet = assets.char3Spritesheet;
-        } else if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
-          sheet = assets.char2Spritesheet;
-        } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
-          sheet = assets.char1Spritesheet;
-        } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
-          sheet = assets.spritesheet;
-        }
-
-        if (sheet && sheet.complete && sheet.width > 0) {
-          const frameW = 74;
-          const frameH = 157;
-          let row = 0;
-          let isFlipped = false;
-
-          if (peer.direction === 'down') {
-            row = 0;
-          } else if (peer.direction === 'up') {
-            row = 2;
-          } else if (peer.direction === 'right') {
-            row = 1;
-          } else if (peer.direction === 'left') {
-            row = 1;
-            isFlipped = true;
-          }
-
-          const col = peer.isMoving ? (peer.animFrame % 4) : 0;
-          const sx = col * frameW;
-          const sy = row * frameH;
-
-          if (isFlipped) {
-            ctx.save();
-            ctx.translate(px + pw, py);
-            ctx.scale(-1, 1);
-            ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
-            ctx.restore();
-          } else {
-            ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
-          }
+        if (peer.direction === 'down') {
+          row = 0;
         } else if (peer.direction === 'up') {
-          let backImg = assets.char1Back || assets.charBack;
-          if (peer.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
-          else if (peer.charId === 'char2' && assets.char2Back && assets.char2Back.complete) backImg = assets.char2Back;
-          else if (peer.charId === 'char1' && assets.char1Back && assets.char1Back.complete) backImg = assets.char1Back;
-          if (backImg && backImg.complete && backImg.width > 0) {
-            ctx.drawImage(backImg, px, py, pw, ph);
-          }
+          row = 2;
+        } else if (peer.direction === 'right') {
+          row = 1;
+        } else if (peer.direction === 'left') {
+          row = 1;
+          isFlipped = true;
         }
+
+        const col = peer.isMoving ? (peer.animFrame % 4) : 0;
+        const sx = col * frameW;
+        const sy = row * frameH;
+
+        if (isFlipped) {
+          ctx.save();
+          ctx.translate(px + pw, py);
+          ctx.scale(-1, 1);
+          ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
+          ctx.restore();
+        } else {
+          ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+        }
+      } else if (peer.direction === 'up') {
+        let backImg = assets.char1Back || assets.charBack;
+        if (peer.charId === 'char4' && assets.char4Back && assets.char4Back.complete) backImg = assets.char4Back;
+        else if (peer.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
+        else if (peer.charId === 'char2' && assets.char2Back && assets.char2Back.complete) backImg = assets.char2Back;
+        else if (peer.charId === 'char1' && assets.char1Back && assets.char1Back.complete) backImg = assets.char1Back;
+        if (backImg && backImg.complete && backImg.width > 0) {
+          ctx.drawImage(backImg, px, py, pw, ph);
+        }
+      } else if (peer.charId === 'char4' && assets.char4Idle && assets.char4Idle.complete) {
+        ctx.drawImage(assets.char4Idle, px, py, pw, ph);
       }
+    }
 
-      // 3. Floating Player Name Tag Pill above head
-      const tagText = peer.name || 'Colleague';
-      ctx.font = 'bold 11px Outfit, sans-serif';
-      const textWidth = ctx.measureText(tagText).width;
-      const badgeW = textWidth + 22;
-      const badgeH = 18;
-      const badgeX = posX - badgeW / 2;
-      const headTop = peer.isSitting ? (posY - Math.round(95 * (scene.playerScale || 0.55)) - 10) : py;
-      const badgeY = headTop - 14;
+    // 3. Floating Player Name Tag Pill above head
+    const tagText = peer.name || 'Colleague';
+    ctx.font = 'bold 11px Outfit, sans-serif';
+    const textWidth = ctx.measureText(tagText).width;
+    const badgeW = textWidth + 22;
+    const badgeH = 18;
+    const badgeX = posX - badgeW / 2;
+    const headTop = peer.isSitting ? (posY - Math.round(95 * (scene.playerScale || 0.55)) - 10) : py;
+    const badgeY = headTop - 14;
 
-      // Pill background
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-      ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 9);
-      } else {
-        ctx.rect(badgeX, badgeY, badgeW, badgeH);
-      }
-      ctx.fill();
-      ctx.stroke();
+    // Pill background
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 9);
+    } else {
+      ctx.rect(badgeX, badgeY, badgeW, badgeH);
+    }
+    ctx.fill();
+    ctx.stroke();
 
-      // Online green dot
-      ctx.fillStyle = '#10b981';
-      ctx.beginPath();
-      ctx.arc(badgeX + 8, badgeY + badgeH / 2, 3, 0, Math.PI * 2);
-      ctx.fill();
+    // Online green dot
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(badgeX + 8, badgeY + badgeH / 2, 3, 0, Math.PI * 2);
+    ctx.fill();
 
-      // Name text
-      ctx.fillStyle = '#f8fafc';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(tagText, badgeX + 16, badgeY + badgeH / 2 + 1);
-    } catch (err) {
-      console.warn('Error rendering remote peer:', err);
-    } finally {
-      ctx.restore();
+    // Name text
+    ctx.fillStyle = '#f8fafc';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tagText, badgeX + 16, badgeY + badgeH / 2 + 1);
+  } catch (err) {
+    console.warn('Error rendering remote peer:', err);
+  } finally {
+    ctx.restore();
+  }
+}
+
+function renderRemotePlayers() {
+  if (!window.multiplayerEngine || !window.multiplayerEngine.active) return;
+  const currentScene = state.currentScene;
+  window.multiplayerEngine.peers.forEach((peer) => {
+    if (peer.scene === currentScene) {
+      renderSingleRemotePlayer(peer);
     }
   });
 }

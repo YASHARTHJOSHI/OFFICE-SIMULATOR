@@ -74,16 +74,17 @@ class MultiplayerEngine {
       },
       {
         id: 'char4',
-        name: 'Riya',
-        role: 'Operations Analyst',
-        desc: 'Workflow optimizer. Coming soon in next team update!',
-        avatar: 'assets/partner_portrait.png',
-        idleSprite: null,
-        spritesheet: null,
-        available: false,
+        name: 'Yasharth',
+        role: 'Lead Architect',
+        desc: 'Glasses, Graphite tee & Spider-Man badge lanyard. Full-stack mastermind.',
+        avatar: 'assets/char4_avatar.png',
+        idleSprite: 'assets/char4_idle.png',
+        backSprite: 'assets/char4_back.png',
+        spritesheet: 'assets/char4_spritesheet.png',
+        available: true,
         claimedBy: null,
         claimedByName: null,
-        isLocked: true
+        isLocked: false
       }
     ];
 

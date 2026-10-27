@@ -812,85 +812,87 @@ You MUST respond strictly in valid JSON format with this exact structure:
     // RENDER NPCS ON CANVAS (Called inside renderScene in main.js)
     // ------------------------------------------------------------------------
     render(ctx, currentScene, assets, sceneScale = 0.55) {
-      const now = performance.now();
-
       this.npcs.forEach(npc => {
-        // Only render if NPC is in current scene
-        if (npc.scene !== currentScene) return;
+        if (npc.scene === currentScene) {
+          this.renderSingleNPC(ctx, npc, assets, sceneScale);
+        }
+      });
+    }
 
-        const posX = Math.round(npc.x);
-        const posY = Math.round(npc.y);
-        ctx.save();
+    renderSingleNPC(ctx, npc, assets, sceneScale = 0.55) {
+      const now = performance.now();
+      const posX = Math.round(npc.x);
+      const posY = Math.round(npc.y);
+      ctx.save();
 
-        if (npc.isSitting) {
-          // Render seated at desk
-          const seatedImg = assets[`${npc.id}Seated`] || assets.char1SeatedDesk;
-          if (seatedImg && seatedImg.complete && seatedImg.width > 0) {
-            const isMulti = seatedImg.width >= 200;
-            const fw = isMulti ? Math.round(seatedImg.width / 4) : seatedImg.width;
-            const fh = seatedImg.height;
-            const anim = isMulti ? (Math.floor(now / 140) % 4) : 0;
-            const dw = Math.round(fw * sceneScale);
-            const dh = Math.round(fh * sceneScale);
-            const dx = Math.round(posX - dw / 2);
-            const dy = Math.round(posY - dh - 5);
+      if (npc.isSitting) {
+        // Render seated at desk
+        const seatedImg = assets[`${npc.id}Seated`] || assets.char1SeatedDesk;
+        if (seatedImg && seatedImg.complete && seatedImg.width > 0) {
+          const isMulti = seatedImg.width >= 200;
+          const fw = isMulti ? Math.round(seatedImg.width / 4) : seatedImg.width;
+          const fh = seatedImg.height;
+          const anim = isMulti ? (Math.floor(now / 140) % 4) : 0;
+          const dw = Math.round(fw * sceneScale);
+          const dh = Math.round(fh * sceneScale);
+          const dx = Math.round(posX - dw / 2);
+          const dy = Math.round(posY - dh - 5);
 
-            ctx.drawImage(seatedImg, anim * fw, 0, fw, fh, dx, dy, dw, dh);
+          ctx.drawImage(seatedImg, anim * fw, 0, fw, fh, dx, dy, dw, dh);
 
-            // Typing sparks from computer
-            if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.18) {
-              window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);
-            }
-          }
-        } else {
-          // Standing / Walking
-          const pw = Math.round(74 * sceneScale);
-          const ph = Math.round(157 * sceneScale);
-          const px = Math.round(posX - pw / 2);
-          const py = Math.round(posY - ph);
-
-          // Feet Shadow
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-          ctx.beginPath();
-          ctx.ellipse(posX, posY - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Spritesheet
-          const sheet = assets[`${npc.id}Spritesheet`] || assets.char1Spritesheet;
-          if (sheet && sheet.complete && sheet.width > 0) {
-            const frameW = 74;
-            const frameH = 157;
-            let row = 0;
-            let isFlipped = false;
-
-            if (npc.direction === 'down') row = 0;
-            else if (npc.direction === 'up') row = 2;
-            else if (npc.direction === 'right') row = 1;
-            else if (npc.direction === 'left') {
-              row = 1;
-              isFlipped = true;
-            }
-
-            const col = npc.isMoving ? (npc.animFrame % 4) : 0;
-            const sx = col * frameW;
-            const sy = row * frameH;
-
-            if (isFlipped) {
-              ctx.save();
-              ctx.translate(px + pw, py);
-              ctx.scale(-1, 1);
-              ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
-              ctx.restore();
-            } else {
-              ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
-            }
+          // Typing sparks from computer
+          if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.18) {
+            window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);
           }
         }
+      } else {
+        // Standing / Walking
+        const pw = Math.round(74 * sceneScale);
+        const ph = Math.round(157 * sceneScale);
+        const px = Math.round(posX - pw / 2);
+        const py = Math.round(posY - ph);
 
-        // Floating Status & Thought Badge above NPC
-        this.renderNPCBadge(ctx, npc, posX, posY, sceneScale);
-        ctx.restore();
-      });
+        // Feet Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(posX, posY - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Spritesheet
+        const sheet = assets[`${npc.id}Spritesheet`] || assets.char1Spritesheet;
+        if (sheet && sheet.complete && sheet.width > 0) {
+          const frameW = 74;
+          const frameH = 157;
+          let row = 0;
+          let isFlipped = false;
+
+          if (npc.direction === 'down') row = 0;
+          else if (npc.direction === 'up') row = 2;
+          else if (npc.direction === 'right') row = 1;
+          else if (npc.direction === 'left') {
+            row = 1;
+            isFlipped = true;
+          }
+
+          const col = npc.isMoving ? (npc.animFrame % 4) : 0;
+          const sx = col * frameW;
+          const sy = row * frameH;
+
+          if (isFlipped) {
+            ctx.save();
+            ctx.translate(px + pw, py);
+            ctx.scale(-1, 1);
+            ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
+            ctx.restore();
+          } else {
+            ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+          }
+        }
+      }
+
+      // Floating Status & Thought Badge above NPC
+      this.renderNPCBadge(ctx, npc, posX, posY, sceneScale);
+      ctx.restore();
     }
 
     renderNPCBadge(ctx, npc, posX, posY, sceneScale) {
