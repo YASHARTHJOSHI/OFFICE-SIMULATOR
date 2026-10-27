@@ -859,14 +859,20 @@ Each object must have these exact keys:
       if (typeof window.showToast === 'function') {
         if (task.completed) {
           window.showToast(`⭐ +${task.xp} XP: Completed "${task.title}"!`);
-          // Update game score/XP if player state exists
+          // Update game score/XP and corporate funds if player state exists
           if (window.state && window.state.player) {
             window.state.player.score = (window.state.player.score || 0) + task.xp;
             const scoreEl = document.getElementById('stat-score');
             if (scoreEl) scoreEl.textContent = window.state.player.score;
           }
+          if (typeof window.addCorporateFunds === 'function') {
+            window.addCorporateFunds(task.xp * 2);
+          }
         } else {
           window.showToast(`↩️ Marked "${task.title}" as pending.`);
+          if (typeof window.addCorporateFunds === 'function') {
+            window.addCorporateFunds(-(task.xp * 2));
+          }
         }
       }
 

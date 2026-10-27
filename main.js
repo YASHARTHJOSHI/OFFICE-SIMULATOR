@@ -215,6 +215,7 @@ const state = {
     width: 40,
     height: 85,
     charId: 'char1',
+    money: 2500,
     isSitting: false,
     // Hitbox relative to (x, y) bottom-center (feet only for smooth navigation)
     hitbox: { w: 16, h: 8 }
@@ -3832,9 +3833,44 @@ function setupQuestEventListeners() {
     });
   }
 
+  // Money HUD Badge Interactions
+  const moneyBadge = document.getElementById('hud-money-badge');
+  if (moneyBadge) {
+    moneyBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (window.soundManager) {
+        window.soundManager.unlock();
+        window.soundManager.playSuccess();
+      }
+      window.addCorporateFunds(100);
+      if (typeof showToast === 'function') {
+        showToast(`💵 +$100 Stipend collected! Corporate Funds: $${(state.player.money || 2500).toLocaleString()}`);
+      }
+    });
+  }
+
   // Initial HUD update
   setTimeout(updateHUDQuestTracker, 500);
 }
+
+// Global Corporate Funds Handler
+window.addCorporateFunds = function(amount = 100) {
+  if (!state || !state.player) return;
+  state.player.money = (state.player.money || 2500) + amount;
+  const valEl = document.getElementById('hud-money-val');
+  if (valEl) {
+    valEl.textContent = '$' + state.player.money.toLocaleString();
+  }
+
+  const badge = document.getElementById('hud-money-badge');
+  if (badge) {
+    const floatEl = document.createElement('span');
+    floatEl.className = 'hud-money-float';
+    floatEl.textContent = `+$${amount}`;
+    badge.appendChild(floatEl);
+    setTimeout(() => floatEl.remove(), 750);
+  }
+};
 
 function setupStartMenuAndLobby() {
   const startModal = document.getElementById('start-menu-modal');
