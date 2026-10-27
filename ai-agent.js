@@ -121,7 +121,7 @@
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Water Cooler Break' },
         { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Espresso Break in Cafeteria' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '👥 Architecture Review in Conference Room' },
-        { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch Break with Dev Team' }
+        { scene: 'CAFETERIA', x: 680, y: 370, sit: false, label: '🥪 Lunch Break with Dev Team' }
       ],
       systemPrompt: 'You are Rahul, a Senior Tech Lead at a fast-growing tech company. You are direct, experienced, highly technical, and value clean code, clear architecture, and thorough PR descriptions. You mentor junior engineers constructively but hold high standards. Speak in friendly English/Hinglish as appropriate.'
     },
@@ -148,7 +148,7 @@
         { scene: 'OFFICE_HALL', x: 560, y: 552, sit: true, label: '📋 Roadmap & Sprint Priorities' },
         { scene: 'CORNER_OFFICE', x: 600, y: 490, sit: false, label: '☕ Whiteboard & Spec Review' },
         { scene: 'CORNER_OFFICE', x: 750, y: 490, sit: false, label: '📁 Consulting HR Records' },
-        { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch in Cafeteria' },
+        { scene: 'CAFETERIA', x: 680, y: 370, sit: false, label: '☕ Coffee Break in Cafeteria' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Grabbing Ice Cold Water' }
       ],
       systemPrompt: 'You are Priya, a sharp and energetic Product Manager. You care deeply about user impact, clarifying ambiguous bug tickets, and setting clear stakeholder expectations. You hate assumptions and love structured problem-solving.'
@@ -232,7 +232,7 @@
         { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Brewing Fresh Espresso' },
         { scene: 'CAFETERIA', x: 595, y: 260, sit: false, label: '🥤 Restocking Vending Machine' },
         { scene: 'CAFETERIA', x: 700, y: 260, sit: false, label: '🍲 Cleaning Microwave Station' },
-        { scene: 'CAFETERIA', x: 55, y: 430, sit: true, label: '🛋️ Taking Lounge Break' },
+        { scene: 'CAFETERIA', x: 200, y: 340, sit: false, label: '💬 Checking in with Visitors' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Refilling Water Cooler' }
       ],
       systemPrompt: 'You are Alex, an energetic Cafeteria Barista and Workplace Operations Lead. You know all the office dynamics and teach colleagues how to send polite, firm follow-up nudges ("The Gentle Nudge") without passive-aggressive phrasing.'
@@ -716,8 +716,8 @@ You MUST respond strictly in valid JSON format with this exact structure:
           npc.isMoving = false;
         }
 
-        // In CORNER_OFFICE (Green Room), NPCs must never sit under any circumstances
-        if (npc.scene === 'CORNER_OFFICE') {
+        // In CORNER_OFFICE and CAFETERIA, NPCs must never sit under any circumstances
+        if (npc.scene === 'CORNER_OFFICE' || npc.scene === 'CAFETERIA') {
           npc.isSitting = false;
         }
 
@@ -773,8 +773,8 @@ You MUST respond strictly in valid JSON format with this exact structure:
               npc.isMoving = false;
               const wp = npc.targetWP;
 
-              // NPCs never sit in CORNER_OFFICE
-              if (wp && wp.sit && npc.scene !== 'CORNER_OFFICE') {
+              // NPCs never sit in CORNER_OFFICE or CAFETERIA
+              if (wp && wp.sit && npc.scene !== 'CORNER_OFFICE' && npc.scene !== 'CAFETERIA') {
                 npc.isSitting = true;
                 npc.direction = 'up';
                 npc.scheduleState = 'DESK_WORK';
@@ -830,7 +830,7 @@ You MUST respond strictly in valid JSON format with this exact structure:
       const posY = Math.round(npc.y);
       ctx.save();
 
-      if (npc.isSitting && npc.scene !== 'CORNER_OFFICE') {
+      if (npc.isSitting && npc.scene !== 'CORNER_OFFICE' && npc.scene !== 'CAFETERIA') {
         // Render seated at desk (facing computer / up)
         const seatedImg = assets[`${npc.id}Seated`] || assets[`${npc.id}Back`] || assets.char1SeatedDesk;
         if (seatedImg && seatedImg.complete && seatedImg.width > 0) {
@@ -913,7 +913,7 @@ You MUST respond strictly in valid JSON format with this exact structure:
     }
 
     renderNPCBadge(ctx, npc, posX, posY, sceneScale) {
-      const isSeated = npc.isSitting && npc.scene !== 'CORNER_OFFICE';
+      const isSeated = npc.isSitting && npc.scene !== 'CORNER_OFFICE' && npc.scene !== 'CAFETERIA';
       const headY = isSeated ? (posY - Math.round(95 * sceneScale) - 10) : (posY - Math.round(157 * sceneScale) - 10);
       
       // Floating name + task badge

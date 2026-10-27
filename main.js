@@ -714,75 +714,7 @@ const SCENES = {
           showToast('🧑‍🍳 Alex: "Hey! Tip of the day: don\'t reply-all to the CEO\'s email!"');
         }
       },
-      // 7. Lounge Velvet Sofa Sitting
-      {
-        id: 'sit_lounge_sofa',
-        x: 15, y: 360, w: 80, h: 140,
-        prompt: 'Sit on Velvet Sofa [E / C]',
-        promptPos: { x: 55, y: 345 },
-        action: () => toggleSitInChair(55, 430, 'right', 90, 430)
-      },
-      // 8. Dining Table 1 Sitting (Top-Left Dining Set)
-      {
-        id: 'sit_dining_table_1',
-        x: 590, y: 315, w: 180, h: 110,
-        prompt: 'Sit at Dining Table [E / C]',
-        promptPos: { x: 680, y: 300 },
-        action: () => {
-          const isRight = state.player.x > 680;
-          if (isRight) {
-            toggleSitInChair(740, 425, 'left', 775, 400);
-          } else {
-            toggleSitInChair(620, 425, 'right', 585, 400);
-          }
-        }
-      },
-      // 9. Dining Table 2 Sitting (Top-Right Dining Set)
-      {
-        id: 'sit_dining_table_2',
-        x: 800, y: 315, w: 180, h: 110,
-        prompt: 'Sit at Dining Table [E / C]',
-        promptPos: { x: 890, y: 300 },
-        action: () => {
-          const isRight = state.player.x > 890;
-          if (isRight) {
-            toggleSitInChair(950, 425, 'left', 985, 400);
-          } else {
-            toggleSitInChair(830, 425, 'right', 795, 400);
-          }
-        }
-      },
-      // 10. Dining Table 3 Sitting (Bottom-Left Dining Set)
-      {
-        id: 'sit_dining_table_3',
-        x: 590, y: 450, w: 180, h: 110,
-        prompt: 'Sit at Dining Table [E / C]',
-        promptPos: { x: 680, y: 435 },
-        action: () => {
-          const isRight = state.player.x > 680;
-          if (isRight) {
-            toggleSitInChair(740, 560, 'left', 775, 535);
-          } else {
-            toggleSitInChair(620, 560, 'right', 585, 535);
-          }
-        }
-      },
-      // 11. Dining Table 4 Sitting (Bottom-Right Dining Set)
-      {
-        id: 'sit_dining_table_4',
-        x: 800, y: 450, w: 180, h: 110,
-        prompt: 'Sit at Dining Table [E / C]',
-        promptPos: { x: 890, y: 435 },
-        action: () => {
-          const isRight = state.player.x > 890;
-          if (isRight) {
-            toggleSitInChair(950, 560, 'left', 985, 535);
-          } else {
-            toggleSitInChair(830, 560, 'right', 795, 535);
-          }
-        }
-      },
-      // 12. Doorway to Big Workplace Hub (connected after Cafeteria)
+      // 7. Doorway to Big Workplace Hub (connected after Cafeteria)
       {
         id: 'door_to_big_workplace',
         x: 900, y: 310, w: 110, h: 120,
@@ -1271,6 +1203,16 @@ function toggleHelpModal() {
 // ==========================================
 function toggleSitInChair(chairX, chairY, sitDir = 'up', standX, standY) {
   const p = state.player;
+
+  // Sitting feature is completely disabled in the Cafeteria for both player and NPCs
+  if (state.currentScene === 'CAFETERIA') {
+    if (p.isSitting) {
+      p.isSitting = false;
+      showToast('🚶 Stood up.');
+    }
+    return;
+  }
+
   p.isSitting = !p.isSitting;
 
   if (p.isSitting) {
@@ -1561,6 +1503,11 @@ function startPartnerDialogue() {
 function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   state.currentScene = sceneKey;
   const scene = SCENES[sceneKey];
+
+  // In Cafeteria, sitting is completely disabled for all entities
+  if (sceneKey === 'CAFETERIA') {
+    state.player.isSitting = false;
+  }
 
   // Update HUD
   document.getElementById('location-name').textContent = scene.badge;
@@ -2511,42 +2458,13 @@ function renderPlayer() {
 
   ctx.save();
 
+  // In Cafeteria, sitting is completely disabled
+  if (state.currentScene === 'CAFETERIA') {
+    p.isSitting = false;
+  }
+
   // If sitting in chair, render character naturally!
   if (p.isSitting) {
-    if (state.currentScene === 'CAFETERIA') {
-      const cafeKey = p.charId + 'DiningSitting';
-      const sitImg = assets[cafeKey] || assets.char1DiningSitting;
-      if (sitImg && sitImg.complete && sitImg.width > 0) {
-        const frameW = 60;
-        const frameH = 110;
-        const animFrame = Math.floor(performance.now() / 450) % 2;
-        const sx = animFrame * frameW;
-        const sy = 0;
-        const dw = 60;
-        const dh = 110;
-        const breath = Math.sin(performance.now() * 0.003) * 1.0;
-        const dy = Math.round(p.y - dh + breath);
-
-        ctx.save();
-        if (p.direction === 'left') {
-          ctx.translate(p.x, dy + dh / 2);
-          ctx.scale(-1, 1);
-          ctx.drawImage(sitImg, sx, sy, frameW, frameH, -dw / 2, -dh / 2, dw, dh);
-        } else {
-          ctx.drawImage(sitImg, sx, sy, frameW, frameH, Math.round(p.x - dw / 2), dy, dw, dh);
-        }
-        ctx.restore();
-
-        // Pixel JS coffee steam puffs rising from dining table
-        if (window.pixelEngine && window.pixelEngine.particles) {
-          const steamX = p.direction === 'left' ? p.x - 45 : p.x + 45;
-          window.pixelEngine.particles.spawnCoffeeSteam(steamX, p.y - 45);
-        }
-      }
-      ctx.restore();
-      return;
-    }
-
     let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
     if (p.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
       sitImg = assets.char4SeatedDesk;
@@ -2678,38 +2596,8 @@ function renderSingleRemotePlayer(peer) {
   ctx.save();
 
   try {
-    if (peer.isSitting) {
-      if (currentScene === 'CAFETERIA') {
-        const cafeKey = peer.charId + 'DiningSitting';
-        const sitImg = assets[cafeKey] || assets.char1DiningSitting;
-        if (sitImg && sitImg.complete && sitImg.width > 0) {
-          const frameW = 60;
-          const frameH = 110;
-          const animFrame = Math.floor((performance.now() + (peer.animFrame || 0) * 100) / 450) % 2;
-          const sx = animFrame * frameW;
-          const sy = 0;
-          const dw = 60;
-          const dh = 110;
-          const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.003) * 1.0;
-          const dy = Math.round(posY - dh + breath);
-
-          ctx.save();
-          if (peer.direction === 'left') {
-            ctx.translate(posX, dy + dh / 2);
-            ctx.scale(-1, 1);
-            ctx.drawImage(sitImg, sx, sy, frameW, frameH, -dw / 2, -dh / 2, dw, dh);
-          } else {
-            ctx.drawImage(sitImg, sx, sy, frameW, frameH, Math.round(posX - dw / 2), dy, dw, dh);
-          }
-          ctx.restore();
-
-          if (window.pixelEngine && window.pixelEngine.particles) {
-            const steamX = peer.direction === 'left' ? posX - 45 : posX + 45;
-            window.pixelEngine.particles.spawnCoffeeSteam(steamX, posY - 45);
-          }
-        }
-      } else {
-        let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
+    if (peer.isSitting && currentScene !== 'CAFETERIA') {
+      let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
         if (peer.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
           sitImg = assets.char4SeatedDesk;
         } else if (peer.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
@@ -2742,7 +2630,6 @@ function renderSingleRemotePlayer(peer) {
             window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);
           }
         }
-      }
     } else {
       // 1. Soft Shadow
       ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
