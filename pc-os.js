@@ -313,6 +313,9 @@
     const rect = win.el.getBoundingClientRect();
     PC_STATE.dragOffset.x = e.clientX - rect.left;
     PC_STATE.dragOffset.y = e.clientY - rect.top;
+    if (overlay) {
+      overlay.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none');
+    }
   }
 
   function onWindowDrag(e) {
@@ -331,6 +334,9 @@
 
   function onWindowDragEnd() {
     PC_STATE.draggedWin = null;
+    if (overlay) {
+      overlay.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'auto');
+    }
   }
 
   function minimizeWindow(id) {
@@ -1009,49 +1015,238 @@ git add . && git commit -m "another day another feature"`;
     resetGame();
   }
 
-  // --- 5. BROWSER / INTRANET APP ---
+  // --- 5. BROWSER (REAL INTERNET, GOOGLE & INTRANET) ---
   function initBrowserApp() {
+    const defaultUrl = 'https://www.google.com?igu=1';
     const html = `
       <div class="pc-browser-wrap">
-        <div class="pc-browser-toolbar">
-          <button class="pc-nav-btn">◀</button>
-          <button class="pc-nav-btn">▶</button>
-          <button class="pc-nav-btn">🔄</button>
-          <div class="pc-url-bar">
-            🔒 <span class="url-text">http://intranet.omnicorp.local/portal</span>
+        <!-- Browser Tabs -->
+        <div class="pc-browser-tabs">
+          <div class="pc-b-tab active" id="tab-web" data-target="web">
+            <span class="pc-tab-icon">🌐</span>
+            <span class="pc-tab-title" id="pc-tab-title">Google Search</span>
+          </div>
+          <div class="pc-b-tab" id="tab-intranet" data-target="intranet">
+            <span class="pc-tab-icon">🏢</span>
+            <span class="pc-tab-title">OmniCorp Portal</span>
           </div>
         </div>
-        <div class="pc-browser-body">
-          <div class="intranet-header">
-            <h2>🏢 OmniCorp Global Intranet</h2>
-            <p>Welcome to Workstation #1 • Empowering innovation through endless coffee.</p>
+
+        <!-- Navigation Toolbar -->
+        <div class="pc-browser-toolbar">
+          <button class="pc-nav-btn" id="pc-btn-back" title="Back">◀</button>
+          <button class="pc-nav-btn" id="pc-btn-fwd" title="Forward">▶</button>
+          <button class="pc-nav-btn" id="pc-btn-reload" title="Refresh">🔄</button>
+          <button class="pc-nav-btn" id="pc-btn-home" title="Google Home">🏠</button>
+          
+          <div class="pc-url-bar-wrap">
+            <span class="pc-url-lock" id="pc-url-lock">🔒</span>
+            <input type="text" class="pc-url-input" id="pc-url-input" value="${defaultUrl}" placeholder="Search Google or enter web address..." autocomplete="off" spellcheck="false" />
+            <button class="pc-btn-go" id="pc-btn-go">Search / Go</button>
           </div>
-          <div class="intranet-grid">
-            <div class="intranet-card">
-              <h3>⭐ Employee of the Month</h3>
-              <p><strong>Yasharth Joshi</strong></p>
-              <p class="intranet-sub">"Shipped multiplayer, fixed sitting bugs, and drank 14 espressos in a single shift."</p>
+
+          <button class="pc-btn-popout" id="pc-btn-popout" title="Open in External Browser Window">
+            <span>↗</span> Popout
+          </button>
+        </div>
+
+        <!-- Bookmarks Bar -->
+        <div class="pc-browser-bookmarks">
+          <span style="color: #64748b; font-size: 0.7rem; font-weight: 600;">Favorites:</span>
+          <div class="pc-bookmark-chip" data-url="https://www.google.com?igu=1">🔍 Google</div>
+          <div class="pc-bookmark-chip" data-url="intranet://portal">🏢 Intranet Portal</div>
+          <div class="pc-bookmark-chip" data-url="https://en.wikipedia.org/wiki/Special:Search">📖 Wikipedia</div>
+          <div class="pc-bookmark-chip" data-url="https://playdosgames.com">🕹️ DOS Games</div>
+          <div class="pc-bookmark-chip" data-url="https://news.ycombinator.com">📰 Hacker News</div>
+          <div class="pc-bookmark-chip" data-url="https://github.com">💻 GitHub</div>
+        </div>
+
+        <!-- Browser Body Viewport -->
+        <div class="pc-browser-body" id="pc-browser-body">
+          <!-- Real Internet Iframe View (Active by default with Google) -->
+          <iframe 
+            class="pc-browser-iframe" 
+            id="pc-browser-iframe" 
+            src="${defaultUrl}" 
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+            allow="fullscreen"
+          ></iframe>
+
+          <!-- Intranet Portal View (Hidden when browsing real internet) -->
+          <div class="pc-intranet-view hidden" id="pc-intranet-view">
+            <div class="intranet-header">
+              <h2>🏢 OmniCorp Global Intranet</h2>
+              <p>Welcome to Workstation #1 • Empowering innovation through endless coffee.</p>
             </div>
-            <div class="intranet-card">
-              <h3>☕ Cafeteria Daily Menu</h3>
-              <ul>
-                <li>• Triple Shot Dark Roast: <strong>Free</strong></li>
-                <li>• Enterprise Artisan Bagel: <strong>$1.50</strong></li>
-                <li>• Mystery Tech Burrito: <strong>$2.00</strong></li>
-              </ul>
-            </div>
-            <div class="intranet-card">
-              <h3>📋 HR Policy Highlights</h3>
-              <p>• "Ask Without Apology": Don't suffer in silence when debugging.</p>
-              <p>• "Meeting Echo": 15-minute meetings max with crisp action items.</p>
-              <p>• Friday Deployments strictly monitored by Anakin Skywalker.</p>
+            <div class="intranet-grid">
+              <div class="intranet-card">
+                <h3>⭐ Employee of the Month</h3>
+                <p><strong>Yasharth Joshi</strong></p>
+                <p class="intranet-sub">"Shipped multiplayer, fixed sitting bugs, and drank 14 espressos in a single shift."</p>
+              </div>
+              <div class="intranet-card">
+                <h3>☕ Cafeteria Daily Menu</h3>
+                <ul>
+                  <li>• Triple Shot Dark Roast: <strong>Free</strong></li>
+                  <li>• Enterprise Artisan Bagel: <strong>$1.50</strong></li>
+                  <li>• Mystery Tech Burrito: <strong>$2.00</strong></li>
+                </ul>
+              </div>
+              <div class="intranet-card">
+                <h3>📋 HR Policy Highlights</h3>
+                <p>• "Ask Without Apology": Don't suffer in silence when debugging.</p>
+                <p>• "Meeting Echo": 15-minute meetings max with crisp action items.</p>
+                <p>• Friday Deployments strictly monitored by Anakin Skywalker.</p>
+              </div>
+              <div class="intranet-card">
+                <h3>🌐 Real World Internet</h3>
+                <p>Access the real internet via the URL bar above:</p>
+                <p style="margin-top: 6px;">Search anything on <strong>Google</strong> or click bookmarks!</p>
+              </div>
             </div>
           </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="pc-browser-statusbar">
+          <span id="pc-browser-status-msg">🔒 Connected to World Wide Web</span>
+          <span>Tip: Click [↗ Popout] if any website restricts embedded frames</span>
         </div>
       </div>
     `;
 
-    registerWindow('browser', 'OmniCorp Intranet - Internet Explorer', '🌐', html, 620, 420);
+    const winEl = registerWindow('browser', 'Office Browser - Google & Intranet', '🌐', html, 800, 520);
+
+    const iframe = winEl.querySelector('#pc-browser-iframe');
+    const intranetView = winEl.querySelector('#pc-intranet-view');
+    const urlInput = winEl.querySelector('#pc-url-input');
+    const btnGo = winEl.querySelector('#pc-btn-go');
+    const btnBack = winEl.querySelector('#pc-btn-back');
+    const btnFwd = winEl.querySelector('#pc-btn-fwd');
+    const btnReload = winEl.querySelector('#pc-btn-reload');
+    const btnHome = winEl.querySelector('#pc-btn-home');
+    const btnPopout = winEl.querySelector('#pc-btn-popout');
+    const tabWeb = winEl.querySelector('#tab-web');
+    const tabIntranet = winEl.querySelector('#tab-intranet');
+    const tabTitle = winEl.querySelector('#pc-tab-title');
+    const statusMsg = winEl.querySelector('#pc-browser-status-msg');
+
+    let historyStack = [defaultUrl];
+    let historyIdx = 0;
+
+    function navigate(inputVal, addToHistory = true) {
+      inputVal = (inputVal || '').trim();
+      if (!inputVal) return;
+
+      if (inputVal === 'intranet://portal' || inputVal.toLowerCase() === 'intranet' || inputVal.toLowerCase() === 'portal') {
+        iframe.classList.add('hidden');
+        intranetView.classList.remove('hidden');
+        tabIntranet.classList.add('active');
+        tabWeb.classList.remove('active');
+        urlInput.value = 'intranet://portal';
+        if (statusMsg) statusMsg.textContent = '🏢 OmniCorp Local Intranet (Port 3000)';
+        return;
+      }
+
+      // Real Internet Navigation
+      iframe.classList.remove('hidden');
+      intranetView.classList.add('hidden');
+      tabWeb.classList.add('active');
+      tabIntranet.classList.remove('active');
+
+      let targetUrl = inputVal;
+
+      // Detect if user typed a search query vs actual URL
+      const isUrl = /^https?:\/\//i.test(targetUrl) || 
+                    (/^[\w-]+\.[a-z]{2,}/i.test(targetUrl) && !targetUrl.includes(' '));
+
+      if (!isUrl) {
+        // Query Google Search with igu=1 (Iframe Google Universal)
+        targetUrl = `https://www.google.com/search?igu=1&q=${encodeURIComponent(inputVal)}`;
+        if (tabTitle) tabTitle.textContent = `Search: ${inputVal}`;
+      } else {
+        if (!/^https?:\/\//i.test(targetUrl)) {
+          targetUrl = 'https://' + targetUrl;
+        }
+        // If navigating to Google domain, ensure igu=1 is preserved so Google iframe doesn't block
+        if (/google\.[a-z.]+(\/|$)/i.test(targetUrl) && !targetUrl.includes('igu=1')) {
+          targetUrl += (targetUrl.includes('?') ? '&' : '?') + 'igu=1';
+        }
+        try {
+          const u = new URL(targetUrl);
+          if (tabTitle) tabTitle.textContent = u.hostname;
+        } catch(e) {
+          if (tabTitle) tabTitle.textContent = 'Web Browser';
+        }
+      }
+
+      urlInput.value = targetUrl;
+      iframe.src = targetUrl;
+      if (statusMsg) statusMsg.textContent = `🌐 Navigating to ${targetUrl}...`;
+
+      if (addToHistory) {
+        historyStack = historyStack.slice(0, historyIdx + 1);
+        historyStack.push(targetUrl);
+        historyIdx = historyStack.length - 1;
+      }
+    }
+
+    btnGo.addEventListener('click', () => navigate(urlInput.value));
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        navigate(urlInput.value);
+      }
+    });
+
+    btnHome.addEventListener('click', () => navigate('https://www.google.com?igu=1'));
+    btnReload.addEventListener('click', () => {
+      if (!iframe.classList.contains('hidden')) {
+        iframe.src = iframe.src;
+      }
+    });
+
+    btnBack.addEventListener('click', () => {
+      if (historyIdx > 0) {
+        historyIdx--;
+        navigate(historyStack[historyIdx], false);
+      }
+    });
+
+    btnFwd.addEventListener('click', () => {
+      if (historyIdx < historyStack.length - 1) {
+        historyIdx++;
+        navigate(historyStack[historyIdx], false);
+      }
+    });
+
+    btnPopout.addEventListener('click', () => {
+      const u = urlInput.value;
+      if (u && !u.startsWith('intranet://')) {
+        window.open(u.replace(/([?&])igu=1&?/g, '$1').replace(/[?&]$/, ''), '_blank');
+      } else {
+        window.open('https://www.google.com', '_blank');
+      }
+    });
+
+    tabWeb.addEventListener('click', () => {
+      if (urlInput.value === 'intranet://portal') {
+        navigate('https://www.google.com?igu=1');
+      } else {
+        navigate(urlInput.value || 'https://www.google.com?igu=1');
+      }
+    });
+
+    tabIntranet.addEventListener('click', () => {
+      navigate('intranet://portal');
+    });
+
+    // Bookmarks
+    winEl.querySelectorAll('.pc-bookmark-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const url = chip.getAttribute('data-url');
+        if (url) navigate(url);
+      });
+    });
   }
 
   // --- 6. FILE EXPLORER APP ---

@@ -3938,7 +3938,7 @@ kbd {
 .ms-cell.n4 { color: #000080; }
 .ms-cell.n5 { color: #800000; }
 
-/* App: Browser */
+/* App: Browser (Real Internet & Intranet) */
 .pc-browser-wrap {
   display: flex;
   flex-direction: column;
@@ -3947,41 +3947,230 @@ kbd {
   color: #0f172a;
 }
 
+/* Tabs bar on top of browser */
+.pc-browser-tabs {
+  height: 32px;
+  background: #cbd5e1;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 8px;
+  gap: 4px;
+  border-bottom: 1px solid #94a3b8;
+  flex-shrink: 0;
+}
+
+.pc-b-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #94a3b8;
+  color: #1e293b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  max-width: 220px;
+  transition: all 0.15s ease;
+  user-select: none;
+  border: 1px solid #64748b;
+  border-bottom: none;
+}
+
+.pc-b-tab.active {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+  border-top: 2px solid #2563eb;
+  padding-bottom: 6px;
+}
+
+.pc-b-tab:hover:not(.active) {
+  background: #aab9cb;
+}
+
+.pc-tab-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+/* Navigation Toolbar */
 .pc-browser-toolbar {
-  height: 36px;
-  background: #e2e8f0;
+  min-height: 40px;
+  background: #f1f5f9;
   border-bottom: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
+  gap: 6px;
+  padding: 4px 10px;
+  flex-shrink: 0;
 }
 
 .pc-nav-btn {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.85rem;
   cursor: pointer;
   color: #475569;
+  transition: all 0.15s;
 }
 
-.pc-url-bar {
+.pc-nav-btn:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.pc-url-bar-wrap {
   flex: 1;
+  display: flex;
+  align-items: center;
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 14px;
-  padding: 3px 12px;
-  font-size: 0.78rem;
+  border-radius: 6px;
+  padding: 2px 8px;
+  gap: 6px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pc-url-bar-wrap:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.pc-url-lock {
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.pc-url-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  color: #0f172a;
+  padding: 4px 0;
+}
+
+.pc-btn-go {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pc-btn-go:hover {
+  background: #1d4ed8;
+}
+
+.pc-btn-popout {
+  background: #ffffff;
   color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.pc-btn-popout:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* Quick Bookmarks Row */
+.pc-browser-bookmarks {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 4px 10px;
+  background: #e2e8f0;
+  border-bottom: 1px solid #cbd5e1;
+  overflow-x: auto;
+  font-size: 0.72rem;
+  flex-shrink: 0;
 }
 
+.pc-bookmark-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  color: #334155;
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.pc-bookmark-chip:hover {
+  background: #f0f9ff;
+  border-color: #38bdf8;
+  color: #0369a1;
+}
+
+/* Browser Body Viewports */
 .pc-browser-body {
   flex: 1;
-  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-browser-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #ffffff;
+  display: block;
+}
+
+.pc-intranet-view {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
   overflow-y: auto;
+  background: #f8fafc;
+}
+
+/* Status Bar */
+.pc-browser-statusbar {
+  height: 24px;
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 0.7rem;
+  color: #64748b;
+  flex-shrink: 0;
 }
 
 .intranet-header {
