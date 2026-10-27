@@ -260,10 +260,11 @@ const SCENES = {
       // Water cooler top-right
       { x: 944, y: 190, w: 60, h: 42, label: 'Water Cooler' },
 
-      // Left desk area (top desk)
-      { x: 10, y: 300, w: 158, h: 125, label: 'Desk' },
-      // Left desk area (bottom desk & trash can)
-      { x: 50, y: 440, w: 160, h: 72, label: 'Desk Bottom-Left' },
+      // Left upper L-desk surfaces (tabletop only, leaving chair at x: 95, y: 395 walkable)
+      { x: 0, y: 250, w: 60, h: 165, label: 'Desk Left Arm' },
+      { x: 60, y: 250, w: 105, h: 75, label: 'Desk Surface Top' },
+      // Left lower desk monitor & table surface (leaving chair at x: 100, y: 495 walkable)
+      { x: 50, y: 420, w: 155, h: 42, label: 'Desk Bottom Monitor Surface' },
       { x: 10, y: 440, w: 38, h: 55, label: 'Trash Can' },
 
       // Center desk cluster (4 separate desks so all aisles and horizontal walkways are open!)
@@ -304,6 +305,22 @@ const SCENES = {
           window.soundManager.playWater();
           showToast('💧 Gulp, gulp... Refreshing! Stamina restored to 100%.');
         }
+      },
+      // Left Upper Desk (Laptop & Red Mug)
+      {
+        id: 'workstation_upper_left',
+        x: 65, y: 345, w: 85, h: 75,
+        prompt: 'Sit & Work at Laptop Desk [E / C]',
+        promptPos: { x: 95, y: 340 },
+        action: () => toggleSitInChair(95, 395, 'up', 145, 395)
+      },
+      // Left Lower Desk (Code Monitor & Keyboard)
+      {
+        id: 'workstation_lower_left',
+        x: 65, y: 445, w: 85, h: 75,
+        prompt: 'Sit & Work at Dev Workstation [E / C]',
+        promptPos: { x: 100, y: 440 },
+        action: () => toggleSitInChair(100, 495, 'up', 100, 525)
       },
       {
         id: 'workstation_bottom_left',
