@@ -1054,6 +1054,10 @@ function setupEventListeners() {
         togglePagerModal();
         matched = true;
       }
+      if (k === 'p' || c === 'KeyP') {
+        if (window.phoneDevice) window.phoneDevice.toggle();
+        matched = true;
+      }
       if (k === 'm' || c === 'KeyM') toggleSound();
       if (k === 'h' || c === 'KeyH') toggleHelpModal();
       if (k === 'f' || c === 'KeyF') toggleFullscreen();
