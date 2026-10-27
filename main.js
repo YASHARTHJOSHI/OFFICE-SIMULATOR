@@ -47,7 +47,9 @@ const assets = {
   npc_amitSeated: new Image(),
   npc_nehaSpritesheet: new Image(),
   npc_nehaPortrait: new Image(),
-  npc_nehaSeated: new Image()
+  npc_nehaSeated: new Image(),
+  cafeteriaRoom: new Image(),
+  cafeteriaDoor: new Image()
 };
 
 let isGameInitialized = false;
@@ -134,6 +136,9 @@ registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png');
 registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png');
 registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png');
 
+// Cafeteria & Lounge Assets
+registerAsset('cafeteriaRoom', 'assets/cafeteria_room.png');
+registerAsset('cafeteriaDoor', 'assets/cafeteria_door.png');
 
 // ==========================================
 // GAME STATE & CONSTANTS
@@ -335,6 +340,13 @@ const SCENES = {
           window.soundManager.playInteract();
           showToast('🌿 A thriving corporate ficus. Employee of the Month 3 times running.');
         }
+      },
+      {
+        id: 'door_to_cafeteria',
+        x: 900, y: 320, w: 105, h: 130,
+        prompt: 'Enter Cafeteria ☕ [E / Space]',
+        promptPos: { x: 955, y: 300 },
+        action: () => enterCafeteria()
       }
     ]
   },
@@ -518,6 +530,135 @@ const SCENES = {
           window.soundManager.playInteract();
           showToast('📚 Leatherbound corporate statutes and encrypted audit ledgers.');
         }
+      }
+    ]
+  },
+
+  CAFETERIA: {
+    name: 'Office Cafeteria & Lounge',
+    badge: 'Cafeteria',
+    objective: 'Grab a hot espresso, buy snacks from vending machine, or relax on the lounge sofa',
+    bg: () => assets.cafeteriaRoom,
+    playerScale: 0.58,
+    playerWidth: 42,
+    playerHeight: 90,
+    spawn: { x: 100, y: 285, dir: 'right' },
+    // Boundaries & Obstacles for clean open movement
+    obstacles: [
+      // Top wall barrier (above counters & exit door)
+      { x: 0, y: 0, w: CANVAS_WIDTH, h: 260, label: 'Wall' },
+      // Bottom barrier
+      { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom' },
+      // Left boundary wall
+      { x: 0, y: 0, w: 15, h: CANVAS_HEIGHT, label: 'Wall' },
+      // Right boundary wall
+      { x: 1010, y: 0, w: 15, h: CANVAS_HEIGHT, label: 'Wall' },
+
+      // Back Counter & Kitchen Island (Y <= 270)
+      { x: 290, y: 220, w: 715, h: 65, label: 'Cafeteria Counter' },
+
+      // Left Lounge Velvet Sofa & Table
+      { x: 5, y: 350, w: 90, h: 180, label: 'Velvet Sofa' },
+      { x: 110, y: 410, w: 85, h: 75, label: 'Coffee Table' },
+      { x: 175, y: 330, w: 95, h: 80, label: 'Armchair Top' },
+      { x: 175, y: 470, w: 95, h: 80, label: 'Armchair Bottom' },
+
+      // Center Dining Table with 2 colleagues chatting
+      { x: 410, y: 400, w: 175, h: 90, label: 'Center Dining Table' },
+
+      // Right Dining Tables
+      { x: 600, y: 325, w: 155, h: 80, label: 'Dining Table 1' },
+      { x: 815, y: 325, w: 155, h: 80, label: 'Dining Table 2' },
+      { x: 600, y: 460, w: 155, h: 80, label: 'Dining Table 3' },
+      { x: 815, y: 460, w: 155, h: 80, label: 'Dining Table 4' }
+    ],
+
+    triggers: [
+      // 1. Exit Door back to Main Office Hall
+      {
+        id: 'exit_cafeteria_to_hall',
+        x: 50, y: 225, w: 90, h: 85,
+        prompt: 'Exit to Main Office Hall',
+        promptPos: { x: 95, y: 210 },
+        action: () => exitCafeteriaToMainHall()
+      },
+      // 2. Professional Espresso Machine
+      {
+        id: 'cafe_espresso_machine',
+        x: 310, y: 245, w: 130, h: 60,
+        prompt: 'Brew Fresh Espresso ☕',
+        promptPos: { x: 375, y: 225 },
+        action: () => {
+          window.soundManager.playWater();
+          showToast('☕ *Psssshh* Rich dark espresso brewed! Energy boosted to 100%! ⚡');
+        }
+      },
+      // 3. Glowing Vending Machine
+      {
+        id: 'cafe_vending_machine',
+        x: 540, y: 245, w: 110, h: 60,
+        prompt: 'Buy Snack / Energy Drink 🥤',
+        promptPos: { x: 595, y: 225 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🥤 *Clatter* Can of Spark Energy dispensed! "0 sugar, 500% productivity."');
+        }
+      },
+      // 4. Microwave Station
+      {
+        id: 'cafe_microwave',
+        x: 660, y: 245, w: 85, h: 60,
+        prompt: 'Heat Lunch in Microwave 🍲',
+        promptPos: { x: 700, y: 225 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🍲 *Beep beep* Lunch heated! Smells delicious.');
+        }
+      },
+      // 5. Office Refrigerator
+      {
+        id: 'cafe_refrigerator',
+        x: 910, y: 245, w: 90, h: 60,
+        prompt: 'Check Fridge ❄️',
+        promptPos: { x: 955, y: 225 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('❄️ Fridge note: "Please label your tupperware or HR will compost it on Friday."');
+        }
+      },
+      // 6. Barista Intern (Alex)
+      {
+        id: 'talk_to_barista',
+        x: 470, y: 250, w: 80, h: 65,
+        prompt: 'Chat with Alex (Barista Intern)',
+        promptPos: { x: 510, y: 230 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🧑‍🍳 Alex: "Hey! Tip of the day: don\'t reply-all to the CEO\'s email!"');
+        }
+      },
+      // 7. Lounge Velvet Sofa Sitting
+      {
+        id: 'sit_lounge_sofa',
+        x: 15, y: 360, w: 80, h: 140,
+        prompt: 'Sit on Velvet Sofa [E / C]',
+        promptPos: { x: 55, y: 345 },
+        action: () => toggleSitInChair(55, 430)
+      },
+      // 8. Dining Table Sitting
+      {
+        id: 'sit_dining_table_1',
+        x: 640, y: 340, w: 80, h: 60,
+        prompt: 'Sit at Table [E / C]',
+        promptPos: { x: 680, y: 325 },
+        action: () => toggleSitInChair(680, 370)
+      },
+      {
+        id: 'sit_dining_table_2',
+        x: 850, y: 340, w: 80, h: 60,
+        prompt: 'Sit at Table [E / C]',
+        promptPos: { x: 890, y: 325 },
+        action: () => toggleSitInChair(890, 370)
       }
     ]
   }
@@ -1145,6 +1286,57 @@ function exitCornerOfficeToMainHall() {
   }, 350);
 }
 
+function enterCafeteria() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.unlock();
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    switchScene('CAFETERIA', 110, 290, 'right');
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('☕ Welcome to the Office Cafeteria & Lounge!');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
+function exitCafeteriaToMainHall() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.unlock();
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    // Return right beside the cafeteria door above the plant on the right wall
+    switchScene('OFFICE_HALL', 915, 410, 'left');
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('🏢 Back in the Main Office Hall.');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
 // ==========================================
 // COLLISION DETECTION & PHYSICS
 // ==========================================
@@ -1296,6 +1488,18 @@ function update(dt) {
     return;
   }
 
+  // Check Entrance to Cafeteria in Office Hall (walking into right wall above plant)
+  if (state.currentScene === 'OFFICE_HALL' && p.x >= 970 && p.y >= 330 && p.y <= 445) {
+    enterCafeteria();
+    return;
+  }
+
+  // Check Exit Door in Cafeteria (walking into left exit door)
+  if (state.currentScene === 'CAFETERIA' && p.x <= 95 && p.y >= 230 && p.y <= 325) {
+    exitCafeteriaToMainHall();
+    return;
+  }
+
   // Trigger Zone Detection
   updateTriggers();
 
@@ -1390,6 +1594,8 @@ function render() {
     renderDoorGlow();
   } else if (state.currentScene === 'CORNER_OFFICE') {
     renderCornerOffice();
+  } else if (state.currentScene === 'CAFETERIA') {
+    renderCafeteriaDetails();
   }
 
   // 3. Draw Autonomous AI NPCs (Rahul, Priya, Amit, Neha)
@@ -1488,6 +1694,31 @@ function renderDoorGlow() {
 
   // Floating Golden Triangle indicator pointing to the slightly opened door
   drawGoldenTriangle(26, 405);
+
+  // 3. Cafeteria Entrance Door on right wall above the plant (x: 935, y: 315)
+  if (assets.cafeteriaDoor && assets.cafeteriaDoor.complete) {
+    ctx.drawImage(assets.cafeteriaDoor, 935, 315, 80, 125);
+  }
+  // Floating Golden Triangle indicator pointing to cafeteria door
+  drawGoldenTriangle(975, 300);
+}
+
+function renderCafeteriaDetails() {
+  // Floating Golden Triangle pointing to Exit Door on left wall (x: 95, y: 210)
+  drawGoldenTriangle(95, 210);
+
+  // Subtle animated coffee steam over espresso machine
+  const time = performance.now() * 0.003;
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+  for (let i = 0; i < 3; i++) {
+    const steamY = 250 - ((time * 25 + i * 15) % 35);
+    const steamX = 355 + Math.sin(time * 3 + i) * 4;
+    ctx.beginPath();
+    ctx.arc(steamX, steamY, 2 + i, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function renderBossInCabinet() {

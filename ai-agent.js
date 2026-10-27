@@ -100,6 +100,7 @@
         { scene: 'BOSS_CABINET', x: 450, y: 460, sit: false, label: '🗣️ Discussing with Anakin' },
         { scene: 'BOSS_CABINET', x: 620, y: 460, sit: false, label: '📦 Checking Release Builds' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Water Cooler Break' },
+        { scene: 'CAFETERIA', x: 375, y: 285, sit: false, label: '☕ Espresso Break in Cafeteria' },
         { scene: 'OFFICE_HALL', x: 410, y: 340, sit: true, label: '💻 Pair Programming at Desk' }
       ],
       systemPrompt: 'You are Rahul, a Senior Tech Lead at a fast-growing tech company. You are direct, experienced, highly technical, and value clean code, clear architecture, and thorough PR descriptions. You mentor junior engineers constructively but hold high standards. Speak in friendly English/Hinglish as appropriate.'
@@ -127,6 +128,7 @@
         { scene: 'CORNER_OFFICE', x: 280, y: 480, sit: true, label: '📋 Roadmap & Sprint Priorities' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '☕ Espresso & Spec Review' },
         { scene: 'CORNER_OFFICE', x: 800, y: 480, sit: false, label: '📁 Filing Customer Feedback' },
+        { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch & Spec Review in Cafeteria' },
         { scene: 'OFFICE_HALL', x: 562, y: 515, sit: true, label: '📝 Ticket Grooming at Desk' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Grabbing Ice Cold Water' }
       ],
