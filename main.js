@@ -58,6 +58,9 @@ const assets = {
   npc_nehaBack: new Image(),
   cafeteriaRoom: new Image(),
   cafeteriaDoor: new Image(),
+  fgComputerCodeMonitor: new Image(),
+  fgComputerRightMonitor: new Image(),
+  fgComputerCrtMonitor: new Image(),
   bigWorkplace: new Image()
 };
 
@@ -138,7 +141,10 @@ registerAsset('char2DiningSitting', 'assets/char2_dining_sitting.png?v=4');
 registerAsset('char3DiningSitting', 'assets/char3_dining_sitting.png?v=4');
 registerAsset('char4DiningSitting', 'assets/char4_dining_sitting.png?v=7');
 
-// Foreground occlusion props (for monitor & desk depth sorting)
+// Foreground occlusion props (for computer monitors & depth sorting)
+registerAsset('fgComputerCodeMonitor', 'assets/fg_computer_code_monitor.png?v=1');
+registerAsset('fgComputerRightMonitor', 'assets/fg_computer_right_monitor.png?v=1');
+registerAsset('fgComputerCrtMonitor', 'assets/fg_computer_crt_monitor.png?v=1');
 registerAsset('fgCornerDesk', 'assets/fg_corner_desk.png?v=3');
 registerAsset('bossDeskFg', 'assets/boss_desk_fg.png?v=3');
 registerAsset('fgHallDeskTopLeft', 'assets/fg_hall_desk_top_left.png?v=3');
@@ -258,8 +264,63 @@ const SCENES = {
     playerWidth: 40,
     playerHeight: 86,
     spawn: { x: 512, y: 245, dir: 'down' },
-    // Foreground occlusion props
-    foregroundProps: [],
+    // Foreground occlusion props (Applicable ONLY for computers so characters move cleanly behind computers)
+    foregroundProps: [
+      {
+        id: 'comp_mon_bot_left',
+        img: () => assets.fgComputerCodeMonitor,
+        x: 370,
+        y: 386,
+        w: 64,
+        h: 58,
+        sortY: 444
+      },
+      {
+        id: 'comp_mon_bot_right',
+        img: () => assets.fgComputerCodeMonitor,
+        x: 514,
+        y: 386,
+        w: 64,
+        h: 58,
+        sortY: 444
+      },
+      {
+        id: 'comp_mon_top_left',
+        img: () => assets.fgComputerCodeMonitor,
+        x: 366,
+        y: 210,
+        w: 64,
+        h: 58,
+        sortY: 268
+      },
+      {
+        id: 'comp_mon_top_right',
+        img: () => assets.fgComputerCodeMonitor,
+        x: 510,
+        y: 210,
+        w: 64,
+        h: 58,
+        sortY: 268
+      },
+      {
+        id: 'comp_mon_dev_left',
+        img: () => assets.fgComputerCodeMonitor,
+        x: 60,
+        y: 344,
+        w: 64,
+        h: 58,
+        sortY: 402
+      },
+      {
+        id: 'comp_mon_right_desk',
+        img: () => assets.fgComputerRightMonitor,
+        x: 864,
+        y: 248,
+        w: 66,
+        h: 70,
+        sortY: 318
+      }
+    ],
     // AABB Obstacles - localized to object feet so walkways remain completely open!
     obstacles: [
       // Top wall (leaving wide door corridor open from x: 462 to 560, y <= 214)
@@ -734,7 +795,35 @@ const SCENES = {
     playerWidth: 42,
     playerHeight: 90,
     spawn: { x: 80, y: 380, dir: 'right' },
-    foregroundProps: [],
+    foregroundProps: [
+      {
+        id: 'comp_pod1',
+        img: () => assets.fgComputerCrtMonitor,
+        x: 105,
+        y: 365,
+        w: 55,
+        h: 62,
+        sortY: 427
+      },
+      {
+        id: 'comp_pod2',
+        img: () => assets.fgComputerCrtMonitor,
+        x: 309,
+        y: 365,
+        w: 55,
+        h: 62,
+        sortY: 427
+      },
+      {
+        id: 'comp_pod3',
+        img: () => assets.fgComputerCrtMonitor,
+        x: 513,
+        y: 365,
+        w: 55,
+        h: 62,
+        sortY: 427
+      }
+    ],
     obstacles: [
       // Top panoramic glass window wall & back developer desks barrier
       { x: 0, y: 0, w: CANVAS_WIDTH, h: 140, label: 'Panoramic Windows & Back Desks' },
