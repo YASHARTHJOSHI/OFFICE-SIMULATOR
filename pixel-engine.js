@@ -96,6 +96,26 @@ class PixelParticleEngine {
     });
   }
 
+  /**
+   * Spawn warm white coffee/food steam puffs rising from dining table
+   */
+  spawnCoffeeSteam(x, y) {
+    if (Math.random() > 0.4) return;
+    if (this.particles.length >= this.maxParticles) {
+      this.particles.shift();
+    }
+    this.particles.push({
+      x: Math.round(x + (Math.random() - 0.5) * 10),
+      y: Math.round(y + (Math.random() - 0.5) * 4),
+      vx: (Math.random() - 0.5) * 6,
+      vy: -14 - Math.random() * 10,
+      size: Math.random() > 0.5 ? 3 : 2,
+      colorPrefix: 'rgba(255, 255, 255,',
+      alpha: 0.85,
+      decay: 0.9 + Math.random() * 0.4
+    });
+  }
+
   update(dt) {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];

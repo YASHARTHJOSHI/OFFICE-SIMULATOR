@@ -124,6 +124,10 @@ registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=3');
 registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=3');
 registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=3');
 registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=3');
+registerAsset('char1DiningSitting', 'assets/char1_dining_sitting.png?v=4');
+registerAsset('char2DiningSitting', 'assets/char2_dining_sitting.png?v=4');
+registerAsset('char3DiningSitting', 'assets/char3_dining_sitting.png?v=4');
+registerAsset('char4DiningSitting', 'assets/char4_dining_sitting.png?v=4');
 
 // Foreground occlusion props (for monitor & desk depth sorting)
 registerAsset('fgCornerDesk', 'assets/fg_corner_desk.png?v=3');
@@ -679,60 +683,60 @@ const SCENES = {
       // 8. Dining Table 1 Sitting (Top-Left Dining Set)
       {
         id: 'sit_dining_table_1',
-        x: 600, y: 320, w: 160, h: 80,
-        prompt: 'Sit at Table Chair [E / C]',
+        x: 590, y: 315, w: 180, h: 110,
+        prompt: 'Sit at Dining Table [E / C]',
         promptPos: { x: 680, y: 300 },
         action: () => {
           const isRight = state.player.x > 680;
           if (isRight) {
-            toggleSitInChair(755, 360, 'left', 755, 395);
+            toggleSitInChair(740, 425, 'left', 775, 400);
           } else {
-            toggleSitInChair(620, 360, 'right', 620, 395);
+            toggleSitInChair(620, 425, 'right', 585, 400);
           }
         }
       },
       // 9. Dining Table 2 Sitting (Top-Right Dining Set)
       {
         id: 'sit_dining_table_2',
-        x: 810, y: 320, w: 160, h: 80,
-        prompt: 'Sit at Table Chair [E / C]',
+        x: 800, y: 315, w: 180, h: 110,
+        prompt: 'Sit at Dining Table [E / C]',
         promptPos: { x: 890, y: 300 },
         action: () => {
           const isRight = state.player.x > 890;
           if (isRight) {
-            toggleSitInChair(965, 360, 'left', 965, 395);
+            toggleSitInChair(950, 425, 'left', 985, 400);
           } else {
-            toggleSitInChair(830, 360, 'right', 830, 395);
+            toggleSitInChair(830, 425, 'right', 795, 400);
           }
         }
       },
       // 10. Dining Table 3 Sitting (Bottom-Left Dining Set)
       {
         id: 'sit_dining_table_3',
-        x: 600, y: 450, w: 160, h: 80,
-        prompt: 'Sit at Table Chair [E / C]',
+        x: 590, y: 450, w: 180, h: 110,
+        prompt: 'Sit at Dining Table [E / C]',
         promptPos: { x: 680, y: 435 },
         action: () => {
           const isRight = state.player.x > 680;
           if (isRight) {
-            toggleSitInChair(755, 495, 'left', 755, 530);
+            toggleSitInChair(740, 560, 'left', 775, 535);
           } else {
-            toggleSitInChair(620, 495, 'right', 620, 530);
+            toggleSitInChair(620, 560, 'right', 585, 535);
           }
         }
       },
       // 11. Dining Table 4 Sitting (Bottom-Right Dining Set)
       {
         id: 'sit_dining_table_4',
-        x: 810, y: 450, w: 160, h: 80,
-        prompt: 'Sit at Table Chair [E / C]',
+        x: 800, y: 450, w: 180, h: 110,
+        prompt: 'Sit at Dining Table [E / C]',
         promptPos: { x: 890, y: 435 },
         action: () => {
           const isRight = state.player.x > 890;
           if (isRight) {
-            toggleSitInChair(965, 495, 'left', 965, 530);
+            toggleSitInChair(950, 560, 'left', 985, 535);
           } else {
-            toggleSitInChair(830, 495, 'right', 830, 530);
+            toggleSitInChair(830, 560, 'right', 795, 535);
           }
         }
       }
@@ -1917,8 +1921,42 @@ function renderPlayer() {
 
   ctx.save();
 
-  // If sitting in chair, render character naturally inside the existing in-scene chair!
+  // If sitting in chair, render character naturally!
   if (p.isSitting) {
+    if (state.currentScene === 'CAFETERIA') {
+      const cafeKey = p.charId + 'DiningSitting';
+      const sitImg = assets[cafeKey] || assets.char1DiningSitting;
+      if (sitImg && sitImg.complete && sitImg.width > 0) {
+        const frameW = 60;
+        const frameH = 110;
+        const animFrame = Math.floor(performance.now() / 450) % 2;
+        const sx = animFrame * frameW;
+        const sy = 0;
+        const dw = 60;
+        const dh = 110;
+        const breath = Math.sin(performance.now() * 0.003) * 1.0;
+        const dy = Math.round(p.y - dh + breath);
+
+        ctx.save();
+        if (p.direction === 'left') {
+          ctx.translate(p.x, dy + dh / 2);
+          ctx.scale(-1, 1);
+          ctx.drawImage(sitImg, sx, sy, frameW, frameH, -dw / 2, -dh / 2, dw, dh);
+        } else {
+          ctx.drawImage(sitImg, sx, sy, frameW, frameH, Math.round(p.x - dw / 2), dy, dw, dh);
+        }
+        ctx.restore();
+
+        // Pixel JS coffee steam puffs rising from dining table
+        if (window.pixelEngine && window.pixelEngine.particles) {
+          const steamX = p.direction === 'left' ? p.x - 45 : p.x + 45;
+          window.pixelEngine.particles.spawnCoffeeSteam(steamX, p.y - 45);
+        }
+      }
+      ctx.restore();
+      return;
+    }
+
     let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
     if (p.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
       sitImg = assets.char4SeatedDesk;
@@ -1943,7 +1981,6 @@ function renderPlayer() {
       const isMultiFrame = sitImg.width >= 200;
       const frameW = isMultiFrame ? Math.round(sitImg.width / 4) : sitImg.width;
       const frameH = sitImg.height;
-      // 4-frame dynamic typing animation
       const animFrame = isMultiFrame ? (Math.floor(performance.now() / 140) % 4) : 0;
       const sx = animFrame * frameW;
       const sy = 0;
@@ -1951,11 +1988,9 @@ function renderPlayer() {
       const dw = Math.round(frameW * scale);
       const dh = Math.round(frameH * scale);
       const dx = Math.round(p.x - dw / 2);
-      // Gentle typing breath / arm rhythm
       const breath = Math.sin(performance.now() * 0.005) * 1.0;
       const dy = Math.round(p.y - dh - 5 + breath);
 
-      // Render character seated naturally!
       ctx.save();
       if (p.direction === 'left') {
         ctx.translate(p.x, dy + dh / 2);
@@ -1966,8 +2001,7 @@ function renderPlayer() {
       }
       ctx.restore();
 
-      // Pixel typing particle sparks directly off the keyboard terminal (only in office, not in cafeteria!)
-      if (state.currentScene !== 'CAFETERIA' && window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.28) {
+      if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.28) {
         window.pixelEngine.particles.spawnTypingParticles(p.x, p.y - 45);
       }
     }
@@ -2062,44 +2096,75 @@ function renderSingleRemotePlayer(peer) {
 
   try {
     if (peer.isSitting) {
-      let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
-      if (peer.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
-        sitImg = assets.char4SeatedDesk;
-      } else if (peer.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
-        sitImg = assets.char3SeatedDesk;
-      } else if (peer.charId === 'char2' && assets.char2SeatedDesk && assets.char2SeatedDesk.complete && assets.char2SeatedDesk.width > 0) {
-        sitImg = assets.char2SeatedDesk;
-      } else if (assets.char1SeatedDesk && assets.char1SeatedDesk.complete && assets.char1SeatedDesk.width > 0) {
-        sitImg = assets.char1SeatedDesk;
-      } else if (peer.charId === 'char4' && assets.char4Sitting && assets.char4Sitting.complete && assets.char4Sitting.width > 0) {
-        sitImg = assets.char4Sitting;
-      } else if (peer.charId === 'char3' && assets.char3Sitting && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
-        sitImg = assets.char3Sitting;
-      } else if (peer.charId === 'char2' && assets.char2Sitting && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
-        sitImg = assets.char2Sitting;
-      } else if (assets.char1Sitting && assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
-        sitImg = assets.char1Sitting;
-      }
+      if (currentScene === 'CAFETERIA') {
+        const cafeKey = peer.charId + 'DiningSitting';
+        const sitImg = assets[cafeKey] || assets.char1DiningSitting;
+        if (sitImg && sitImg.complete && sitImg.width > 0) {
+          const frameW = 60;
+          const frameH = 110;
+          const animFrame = Math.floor((performance.now() + (peer.animFrame || 0) * 100) / 450) % 2;
+          const sx = animFrame * frameW;
+          const sy = 0;
+          const dw = 60;
+          const dh = 110;
+          const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.003) * 1.0;
+          const dy = Math.round(posY - dh + breath);
 
-      if (sitImg && sitImg.complete && sitImg.width > 0) {
-        const scale = scene.playerScale || 0.55;
-        const isMultiFrame = sitImg.width >= 200;
-        const frameW = isMultiFrame ? Math.round(sitImg.width / 4) : sitImg.width;
-        const frameH = sitImg.height;
-        const animFrame = isMultiFrame ? (Math.floor((performance.now() + (peer.animFrame || 0) * 100) / 140) % 4) : 0;
-        const sx = animFrame * frameW;
-        const sy = 0;
+          ctx.save();
+          if (peer.direction === 'left') {
+            ctx.translate(posX, dy + dh / 2);
+            ctx.scale(-1, 1);
+            ctx.drawImage(sitImg, sx, sy, frameW, frameH, -dw / 2, -dh / 2, dw, dh);
+          } else {
+            ctx.drawImage(sitImg, sx, sy, frameW, frameH, Math.round(posX - dw / 2), dy, dw, dh);
+          }
+          ctx.restore();
 
-        const dw = Math.round(frameW * scale);
-        const dh = Math.round(frameH * scale);
-        const dx = Math.round(posX - dw / 2);
-        const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.005) * 1.0;
-        const dy = Math.round(posY - dh - 5 + breath);
+          if (window.pixelEngine && window.pixelEngine.particles) {
+            const steamX = peer.direction === 'left' ? posX - 45 : posX + 45;
+            window.pixelEngine.particles.spawnCoffeeSteam(steamX, posY - 45);
+          }
+        }
+      } else {
+        let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
+        if (peer.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
+          sitImg = assets.char4SeatedDesk;
+        } else if (peer.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
+          sitImg = assets.char3SeatedDesk;
+        } else if (peer.charId === 'char2' && assets.char2SeatedDesk && assets.char2SeatedDesk.complete && assets.char2SeatedDesk.width > 0) {
+          sitImg = assets.char2SeatedDesk;
+        } else if (assets.char1SeatedDesk && assets.char1SeatedDesk.complete && assets.char1SeatedDesk.width > 0) {
+          sitImg = assets.char1SeatedDesk;
+        } else if (peer.charId === 'char4' && assets.char4Sitting && assets.char4Sitting.complete && assets.char4Sitting.width > 0) {
+          sitImg = assets.char4Sitting;
+        } else if (peer.charId === 'char3' && assets.char3Sitting && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
+          sitImg = assets.char3Sitting;
+        } else if (peer.charId === 'char2' && assets.char2Sitting && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
+          sitImg = assets.char2Sitting;
+        } else if (assets.char1Sitting && assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
+          sitImg = assets.char1Sitting;
+        }
 
-        ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
+        if (sitImg && sitImg.complete && sitImg.width > 0) {
+          const scale = scene.playerScale || 0.55;
+          const isMultiFrame = sitImg.width >= 200;
+          const frameW = isMultiFrame ? Math.round(sitImg.width / 4) : sitImg.width;
+          const frameH = sitImg.height;
+          const animFrame = isMultiFrame ? (Math.floor((performance.now() + (peer.animFrame || 0) * 100) / 140) % 4) : 0;
+          const sx = animFrame * frameW;
+          const sy = 0;
 
-        if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.2) {
-          window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);
+          const dw = Math.round(frameW * scale);
+          const dh = Math.round(frameH * scale);
+          const dx = Math.round(posX - dw / 2);
+          const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.005) * 1.0;
+          const dy = Math.round(posY - dh - 5 + breath);
+
+          ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
+
+          if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.2) {
+            window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);
+          }
         }
       }
     } else {
