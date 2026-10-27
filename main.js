@@ -918,10 +918,41 @@ function setupEventListeners() {
     const targetX = (e.clientX - rect.left) * scaleX;
     const targetY = (e.clientY - rect.top) * scaleY;
 
-    // Direct click on Cafeteria Button in Office Hall
-    if (state.currentScene === 'OFFICE_HALL' && targetX >= 910 && targetX <= 1025 && targetY >= 330 && targetY <= 425) {
-      enterCafeteria();
-      return;
+    // Direct click on room portal badges
+    if (state.currentScene === 'OFFICE_HALL') {
+      // Top: Boss Suite badge (cx: 512, cy: 165)
+      if (Math.abs(targetX - 512) <= 85 && Math.abs(targetY - 165) <= 22) {
+        enterBossCabinet();
+        return;
+      }
+      // Bottom-left: Corner Office badge (cx: 70, cy: 460)
+      if (Math.abs(targetX - 70) <= 80 && Math.abs(targetY - 460) <= 22) {
+        enterCornerOffice();
+        return;
+      }
+      // Right: Cafeteria badge (cx: 945, cy: 360)
+      if (Math.abs(targetX - 945) <= 75 && Math.abs(targetY - 360) <= 22) {
+        enterCafeteria();
+        return;
+      }
+    } else if (state.currentScene === 'BOSS_CABINET') {
+      // Right: Main Hall badge (cx: 945, cy: 470)
+      if (Math.abs(targetX - 945) <= 75 && Math.abs(targetY - 470) <= 22) {
+        exitToMainHall();
+        return;
+      }
+    } else if (state.currentScene === 'CORNER_OFFICE') {
+      // Right: Main Hall badge (cx: 945, cy: 470)
+      if (Math.abs(targetX - 945) <= 75 && Math.abs(targetY - 470) <= 22) {
+        exitCornerOfficeToMainHall();
+        return;
+      }
+    } else if (state.currentScene === 'CAFETERIA') {
+      // Left: Main Hall badge (cx: 115, cy: 235)
+      if (Math.abs(targetX - 115) <= 75 && Math.abs(targetY - 235) <= 22) {
+        exitCafeteriaToMainHall();
+        return;
+      }
     }
 
     state.clickTarget = { x: targetX, y: targetY };
@@ -1313,16 +1344,6 @@ function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   // Broadcast scene transition immediately in multiplayer
   if (window.multiplayerEngine && window.multiplayerEngine.active) {
     window.multiplayerEngine.broadcastPosition(state.player, sceneKey);
-  }
-
-  // Update in-game portal buttons visibility
-  const btnCafeteria = document.getElementById('btn-portal-cafeteria');
-  const btnHall = document.getElementById('btn-portal-hall');
-  if (btnCafeteria) {
-    btnCafeteria.classList.toggle('hidden', sceneKey !== 'OFFICE_HALL');
-  }
-  if (btnHall) {
-    btnHall.classList.toggle('hidden', sceneKey !== 'CAFETERIA');
   }
 }
 
@@ -1815,8 +1836,16 @@ function render() {
     ctx.restore();
   }
 
-  // 6. Draw Floating Golden Triangle Indicator above any active interactable object
-  if (state.activePrompt && state.activePrompt.promptPos && state.activePrompt.id !== 'door_to_boss' && state.activePrompt.id !== 'corner_office_entrance') {
+  // 6. Draw Floating Golden Triangle Indicator above any active interactable object (excluding room doorways)
+  const isPortalTrigger = state.activePrompt && (
+    state.activePrompt.id === 'door_to_boss' || 
+    state.activePrompt.id === 'corner_office_entrance' ||
+    state.activePrompt.id === 'door_to_cafeteria' ||
+    state.activePrompt.id === 'door_back_to_hall' ||
+    state.activePrompt.id === 'exit_corner_to_hall' ||
+    state.activePrompt.id === 'exit_cafeteria_to_hall'
+  );
+  if (state.activePrompt && state.activePrompt.promptPos && !isPortalTrigger) {
     if (state.activePrompt.id === 'talk_to_boss') {
       drawGoldenTriangle(450, 320);
     } else if (state.activePrompt.id === 'talk_to_partner') {
@@ -1909,93 +1938,141 @@ function drawGoldenTriangle(x, y) {
   ctx.restore();
 }
 
-function drawCafeteriaWallButton(x, y, w, h) {
+// ----------------------------------------------------
+// PIXEL ROOM PORTAL BADGES (Replaces all static doors)
+// ----------------------------------------------------
+function drawPixelBuildingIcon(x, y) {
+  // Building frame (14px wide, 14px high)
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(x, y + 1, 14, 13);
+  // Roof trim
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(x + 1, y, 12, 2);
+
+  // Cyan windows (glass grid)
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(x + 2, y + 3, 10, 6);
+
+  // Window mullions / dividers
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(x + 6, y + 3, 2, 6);
+  ctx.fillRect(x + 2, y + 5, 10, 1);
+
+  // Dark archway entrance at bottom
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(x + 5, y + 9, 4, 5);
+}
+
+function drawPixelArrow(x, y, dir, color) {
+  ctx.fillStyle = color;
+  if (dir === 'right') {
+    ctx.fillRect(x, y - 2, 6, 4);
+    ctx.fillRect(x + 6, y - 4, 2, 8);
+    ctx.fillRect(x + 8, y - 3, 2, 6);
+    ctx.fillRect(x + 10, y - 2, 2, 4);
+    ctx.fillRect(x + 12, y - 1, 1, 2);
+  } else if (dir === 'left') {
+    ctx.fillRect(x + 7, y - 2, 6, 4);
+    ctx.fillRect(x + 5, y - 4, 2, 8);
+    ctx.fillRect(x + 3, y - 3, 2, 6);
+    ctx.fillRect(x + 1, y - 2, 2, 4);
+    ctx.fillRect(x, y - 1, 1, 2);
+  } else if (dir === 'up') {
+    ctx.fillRect(x + 4, y, 4, 6);
+    ctx.fillRect(x, y - 2, 12, 2);
+    ctx.fillRect(x + 2, y - 4, 8, 2);
+    ctx.fillRect(x + 4, y - 6, 4, 2);
+    ctx.fillRect(x + 5, y - 8, 2, 2);
+  } else if (dir === 'down') {
+    ctx.fillRect(x + 4, y - 6, 4, 6);
+    ctx.fillRect(x, y, 12, 2);
+    ctx.fillRect(x + 2, y + 2, 8, 2);
+    ctx.fillRect(x + 4, y + 4, 4, 2);
+    ctx.fillRect(x + 5, y + 6, 2, 2);
+  }
+}
+
+function drawRoomPortalBadge(x, y, label, arrowDir, isNear) {
   ctx.save();
   const time = performance.now() * 0.003;
-  const isPlayerNear = state.currentScene === 'OFFICE_HALL' && 
-                       Math.hypot(state.player.x - (x + w / 2), state.player.y - (y + h / 2)) < 120;
+  const bobY = y + Math.sin(time * 2.2) * 2.5;
 
-  // Outer shadow & glow
-  ctx.shadowColor = isPlayerNear ? 'rgba(16, 185, 129, 0.95)' : 'rgba(16, 185, 129, 0.45)';
-  ctx.shadowBlur = isPlayerNear ? 16 : 8;
+  ctx.font = '8px "Press Start 2P", monospace, sans-serif';
+  const textWidth = ctx.measureText(label).width;
 
-  // Dark slate base frame
-  ctx.fillStyle = '#064e3b';
-  ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+  const padX = 10;
+  const iconW = 14;
+  const arrowW = 13;
+  const gap = 8;
+  const badgeW = padX * 2 + iconW + gap + textWidth + gap + arrowW;
+  const badgeH = 26;
+  const badgeX = Math.round(x - badgeW / 2);
+  const badgeY = Math.round(bobY - badgeH / 2);
 
-  // Gradient Face
-  const grad = ctx.createLinearGradient(x, y, x, y + h);
-  if (isPlayerNear) {
-    grad.addColorStop(0, '#34d399');
-    grad.addColorStop(1, '#059669');
-  } else {
-    grad.addColorStop(0, '#10b981');
-    grad.addColorStop(1, '#047857');
-  }
-  ctx.fillStyle = grad;
-  ctx.fillRect(x, y, w, h);
+  // Outer Neon Purple Glow
+  ctx.shadowColor = isNear ? 'rgba(192, 132, 252, 0.95)' : 'rgba(168, 85, 247, 0.55)';
+  ctx.shadowBlur = isNear ? 16 : 8;
 
-  // Bevel Top & Left highlights
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-  ctx.fillRect(x, y, w, 2);
-  ctx.fillRect(x, y, 2, h);
-
-  // Bevel Bottom & Right shadow
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-  ctx.fillRect(x, y + h - 2, w, 2);
-  ctx.fillRect(x + w - 2, y, 2, h);
-
-  // Button text & coffee icon
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 9px var(--font-retro), monospace';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('☕ CAFETERIA', x + w / 2, y + h / 2);
-
-  // Subtle pulsing corner indicator dot
-  const pulseAlpha = 0.5 + Math.sin(time * 5) * 0.5;
-  ctx.fillStyle = `rgba(255, 255, 255, ${pulseAlpha})`;
+  // Dark Navy Rounded Pill Background
+  ctx.fillStyle = '#121124';
   ctx.beginPath();
-  ctx.arc(x + w - 7, y + 7, 2.5, 0, Math.PI * 2);
+  if (ctx.roundRect) {
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 7);
+  } else {
+    ctx.rect(badgeX, badgeY, badgeW, badgeH);
+  }
   ctx.fill();
+
+  // Vibrant Neon Purple 2px Border
+  ctx.strokeStyle = isNear ? '#c084fc' : '#a855f7';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Reset shadow for crisp pixel elements
+  ctx.shadowBlur = 0;
+
+  // 1. Pixel Building Icon
+  const iconX = badgeX + padX;
+  const iconY = Math.round(badgeY + (badgeH - 14) / 2);
+  drawPixelBuildingIcon(iconX, iconY);
+
+  // 2. Pixel Text
+  ctx.fillStyle = isNear ? '#f3e8ff' : '#d8b4fe';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  const textX = iconX + iconW + gap;
+  ctx.fillText(label, textX, Math.round(badgeY + badgeH / 2 + 1));
+
+  // 3. Directional Pixel Arrow
+  const arrowX = textX + textWidth + gap;
+  const arrowY = Math.round(badgeY + badgeH / 2);
+  drawPixelArrow(arrowX, arrowY, arrowDir, isNear ? '#f3e8ff' : '#c084fc');
 
   ctx.restore();
 }
 
 function renderDoorGlow() {
-  const time = performance.now() * 0.003;
-  const pulse = (Math.sin(time) + 1) * 0.5;
+  const p = state.player;
+  const isNearBoss = p && Math.hypot(p.x - 512, p.y - 195) < 95;
+  const isNearCorner = p && Math.hypot(p.x - 50, p.y - 460) < 95;
+  const isNearCafe = p && Math.hypot(p.x - 930, p.y - 360) < 105;
 
-  // 1. Top Boss Door Animated Glow Highlight
-  ctx.save();
-  ctx.strokeStyle = `rgba(245, 158, 11, ${0.25 + pulse * 0.45})`;
-  ctx.lineWidth = 3;
-  ctx.shadowColor = '#f59e0b';
-  ctx.shadowBlur = 10 + pulse * 8;
-  ctx.strokeRect(462, 36, 100, 175);
-  ctx.restore();
+  // 1. Top Boss Suite Room Portal Badge
+  drawRoomPortalBadge(512, 165, 'BOSS SUITE', 'up', isNearBoss);
 
-  // Floating Arrow indicator pointing to Boss's door
-  drawGoldenTriangle(512, 32);
+  // 2. Corner Office Room Portal Badge in bottom-left opening
+  drawRoomPortalBadge(70, 460, 'CORNER OFFICE', 'left', isNearCorner);
 
-  // 2. Frameless Slightly Opened Door in bottom-left corner (flush at x=0, no gaps, no green part)
-  if (assets.doorSlightlyOpen && assets.doorSlightlyOpen.complete) {
-    ctx.drawImage(assets.doorSlightlyOpen, 0, 430);
-  }
-
-  // Floating Golden Triangle indicator pointing to the slightly opened door
-  drawGoldenTriangle(26, 405);
-
-  // 3. Cafeteria Entrance Button on right wall above the plant (Door replaced with button)
-  drawCafeteriaWallButton(925, 355, 95, 42);
-  // Floating Golden Triangle indicator pointing to cafeteria button
-  drawGoldenTriangle(972, 335);
+  // 3. Cafeteria Room Portal Badge on right wall
+  drawRoomPortalBadge(945, 360, 'CAFETERIA', 'right', isNearCafe);
 }
 
 function renderCafeteriaDetails() {
-  // Floating Golden Triangle pointing to Exit Door on left wall (x: 115, y: 220)
-  drawGoldenTriangle(115, 220);
+  const p = state.player;
+  const isNearHall = p && Math.hypot(p.x - 110, p.y - 250) < 95;
+
+  // Room Portal Badge pointing back to Main Hall
+  drawRoomPortalBadge(115, 235, 'MAIN HALL', 'left', isNearHall);
 
   // Subtle animated coffee steam over espresso machine
   const time = performance.now() * 0.003;
@@ -2030,8 +2107,10 @@ function renderBossInCabinet() {
     ctx.drawImage(assets.bossCharacter, bossX - bossW / 2, bossY - bossH + breath, bossW, bossH);
   }
 
-  // Floating Golden Triangle indicator pointing to right exit doorway
-  drawGoldenTriangle(965, 415);
+  // Room Portal Badge pointing to right exit doorway
+  const p = state.player;
+  const isNearHall = p && Math.hypot(p.x - 945, p.y - 485) < 95;
+  drawRoomPortalBadge(945, 470, 'MAIN HALL', 'right', isNearHall);
 }
 
 function renderCornerOffice() {
@@ -2053,8 +2132,10 @@ function renderCornerOffice() {
     ctx.drawImage(assets.partnerCharacter, partnerX - partnerW / 2, partnerY - partnerH + breath, partnerW, partnerH);
   }
 
-  // Floating Golden Triangle indicator pointing to right exit doorway
-  drawGoldenTriangle(965, 415);
+  // Room Portal Badge pointing to right exit doorway
+  const p = state.player;
+  const isNearHall = p && Math.hypot(p.x - 945, p.y - 485) < 95;
+  drawRoomPortalBadge(945, 470, 'MAIN HALL', 'right', isNearHall);
 }
 
 function renderPlayer() {
