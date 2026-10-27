@@ -852,8 +852,6 @@ function update(dt) {
 function updateTriggers() {
   const scene = SCENES[state.currentScene];
   const p = state.player;
-  const promptEl = document.getElementById('interaction-prompt');
-  const promptTextEl = document.getElementById('prompt-text');
 
   let foundTrigger = null;
 
@@ -870,22 +868,6 @@ function updateTriggers() {
   }
 
   state.activePrompt = foundTrigger;
-
-  if (foundTrigger && !state.isDialogueOpen && !state.isTransitioning) {
-    promptTextEl.textContent = foundTrigger.prompt;
-    promptEl.classList.remove('hidden');
-
-    // Position prompt near target object or player
-    const scaleX = canvas.clientWidth / CANVAS_WIDTH;
-    const scaleY = canvas.clientHeight / CANVAS_HEIGHT;
-    const px = (foundTrigger.promptPos ? foundTrigger.promptPos.x : p.x) * scaleX;
-    const py = (foundTrigger.promptPos ? foundTrigger.promptPos.y - 40 : p.y - p.height - 25) * scaleY;
-
-    promptEl.style.left = `${px}px`;
-    promptEl.style.top = `${py}px`;
-  } else {
-    promptEl.classList.add('hidden');
-  }
 }
 
 // ==========================================
@@ -932,22 +914,29 @@ function render() {
 
   // 6. Draw Floating Golden Triangle Indicator above any active interactable object
   if (state.activePrompt && state.activePrompt.promptPos && state.activePrompt.id !== 'door_to_boss') {
-    const time = performance.now() * 0.003;
-    const targetX = state.activePrompt.promptPos.x;
-    const targetY = state.activePrompt.promptPos.y - 8 + Math.sin(time * 2) * 4;
-
-    ctx.save();
-    ctx.fillStyle = '#f59e0b';
-    ctx.shadowColor = '#f59e0b';
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.moveTo(targetX, targetY + 12);
-    ctx.lineTo(targetX - 8, targetY);
-    ctx.lineTo(targetX + 8, targetY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+    if (state.activePrompt.id === 'talk_to_boss') {
+      drawGoldenTriangle(450, 320);
+    } else {
+      drawGoldenTriangle(state.activePrompt.promptPos.x, state.activePrompt.promptPos.y - 20);
+    }
   }
+}
+
+// Floating Golden Triangle Indicator (exact same style as above the door)
+function drawGoldenTriangle(x, y) {
+  const time = performance.now() * 0.003;
+  const arrowY = y + Math.sin(time * 1.5) * 4;
+  ctx.save();
+  ctx.fillStyle = '#f59e0b';
+  ctx.shadowColor = '#f59e0b';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.moveTo(x, arrowY + 12);
+  ctx.lineTo(x - 8, arrowY);
+  ctx.lineTo(x + 8, arrowY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 }
 
 function renderDoorGlow() {
@@ -961,17 +950,10 @@ function renderDoorGlow() {
   ctx.shadowColor = '#f59e0b';
   ctx.shadowBlur = 10 + pulse * 8;
   ctx.strokeRect(462, 36, 100, 175);
+  ctx.restore();
 
   // Floating Arrow indicator pointing to door
-  const arrowY = 32 + Math.sin(time * 1.5) * 4;
-  ctx.fillStyle = '#f59e0b';
-  ctx.beginPath();
-  ctx.moveTo(512, arrowY + 12);
-  ctx.lineTo(504, arrowY);
-  ctx.lineTo(520, arrowY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+  drawGoldenTriangle(512, 32);
 }
 
 function renderBossInCabinet() {
@@ -993,14 +975,8 @@ function renderBossInCabinet() {
     ctx.drawImage(assets.bossCharacter, bossX - bossW / 2, bossY - bossH + breath, bossW, bossH);
   }
 
-  // Animated exit arrow on the right doorway
-  const time = performance.now() * 0.003;
-  const arrowX = 935 + Math.sin(time * 2) * 4;
-  ctx.save();
-  ctx.fillStyle = '#f59e0b';
-  ctx.font = '10px "Press Start 2P", monospace';
-  ctx.fillText('EXIT ▶', arrowX, 435);
-  ctx.restore();
+  // Floating Golden Triangle indicator pointing to right exit doorway
+  drawGoldenTriangle(965, 415);
 }
 
 function renderPlayer() {
