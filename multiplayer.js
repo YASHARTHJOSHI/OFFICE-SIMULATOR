@@ -691,7 +691,8 @@ class MultiplayerEngine {
   }
 }
 
-// Global Singleton
+// Global Singleton & Class Export
+window.MultiplayerEngine = MultiplayerEngine;
 window.multiplayerEngine = new MultiplayerEngine();
 
 // Clean disconnect on tab close / reload

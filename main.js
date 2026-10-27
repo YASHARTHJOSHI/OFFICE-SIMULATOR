@@ -32,22 +32,42 @@ const assets = {
   char3Spritesheet: new Image(),
   char3Avatar: new Image(),
   char3Idle: new Image(),
-  char3Sitting: new Image()
+  char3Sitting: new Image(),
+  char1SeatedDesk: new Image(),
+  char2SeatedDesk: new Image(),
+  char3SeatedDesk: new Image(),
+  npc_rahulSpritesheet: new Image(),
+  npc_rahulPortrait: new Image(),
+  npc_rahulSeated: new Image(),
+  npc_priyaSpritesheet: new Image(),
+  npc_priyaPortrait: new Image(),
+  npc_priyaSeated: new Image(),
+  npc_amitSpritesheet: new Image(),
+  npc_amitPortrait: new Image(),
+  npc_amitSeated: new Image(),
+  npc_nehaSpritesheet: new Image(),
+  npc_nehaPortrait: new Image(),
+  npc_nehaSeated: new Image()
 };
 
 let isGameInitialized = false;
+let isScriptReady = false;
 const loadedAssets = new Set();
-const totalAssets = Object.keys(assets).length;
+let totalRegisteredAssets = 0;
 
 function checkAllAssetsLoaded() {
-  if (isGameInitialized) return;
-  if (loadedAssets.size >= totalAssets) {
+  if (isGameInitialized || !isScriptReady) return;
+  if (totalRegisteredAssets > 0 && loadedAssets.size >= totalRegisteredAssets) {
     console.log('All game assets loaded successfully!');
     initGame();
   }
 }
 
 function registerAsset(key, src) {
+  totalRegisteredAssets++;
+  if (!assets[key]) {
+    assets[key] = new Image();
+  }
   const img = assets[key];
   img.onload = () => {
     loadedAssets.add(key);
@@ -59,7 +79,7 @@ function registerAsset(key, src) {
     checkAllAssetsLoaded();
   };
   img.src = src;
-  if (img.complete) {
+  if (img.complete && img.naturalWidth !== 0) {
     loadedAssets.add(key);
   }
 }
@@ -111,16 +131,6 @@ registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png');
 registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png');
 registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png');
 
-// Check if all cached already
-checkAllAssetsLoaded();
-
-// Safety fallback timeout: launch game within 1.5s even if an image takes long
-setTimeout(() => {
-  if (!isGameInitialized) {
-    console.log('Asset loading safety timeout reached, initializing game...');
-    initGame();
-  }
-}, 1500);
 
 // ==========================================
 // GAME STATE & CONSTANTS
@@ -2206,16 +2216,24 @@ function setupStartMenuAndLobby() {
   const btnLeaveRoom = document.getElementById('btn-leave-room');
 
   let isHosting = true;
-  let currentRoomCode = MultiplayerEngine.generateRoomCode();
+  let currentRoomCode = (window.MultiplayerEngine ? window.MultiplayerEngine.generateRoomCode() : Math.random().toString(36).substring(2, 6).toUpperCase());
   if (inputRoomCode) inputRoomCode.value = currentRoomCode;
 
-  // Step 1: Initial "START GAME" button reveals the "Online" and "Offline" options
+  // Step 1: Initial "START GAME" button starts the game immediately!
   if (btnInitialStart) {
     btnInitialStart.onclick = () => {
+      window.startGameOffline();
+    };
+  }
+
+  const btnInitialOnline = document.getElementById('btn-initial-online');
+  if (btnInitialOnline) {
+    btnInitialOnline.onclick = () => {
       window.soundManager.unlock();
       window.soundManager.playInteract();
-      startStepInitial.classList.add('hidden');
-      startStepModes.classList.remove('hidden');
+      startModal.classList.add('hidden');
+      mpModal.classList.remove('hidden');
+      joinOrHostCurrentRoom();
     };
   }
 
@@ -2511,3 +2529,37 @@ function gameLoop(now) {
 
   requestAnimationFrame(gameLoop);
 }
+
+// ==========================================
+// GLOBAL START HELPER & KICKOFF
+// ==========================================
+window.startGameOffline = function() {
+  const modal = document.getElementById('start-menu-modal');
+  if (modal) modal.classList.add('hidden');
+  if (typeof state !== 'undefined' && state.player) {
+    state.player.charId = state.player.charId || 'char1';
+  }
+  if (window.soundManager) {
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+  }
+  if (typeof showToast === 'function') {
+    showToast('🏢 Welcome to Office Simulator! Single-Player Mode.');
+  }
+  if (!isGameInitialized && typeof initGame === 'function') {
+    initGame();
+  }
+};
+
+// Script Ready & Initialization Kickoff
+isScriptReady = true;
+checkAllAssetsLoaded();
+
+// Safety fallback timeout: launch game within 1.2s even if asset load callbacks were delayed
+setTimeout(() => {
+  if (!isGameInitialized) {
+    console.log('Asset loading safety timeout reached, initializing game...');
+    initGame();
+  }
+}, 1200);
+

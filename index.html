@@ -190,9 +190,14 @@
         
         <!-- Step 1: Initial Start Game Button -->
         <div id="start-step-initial" class="start-step">
-          <button id="btn-initial-start" class="btn-pixel-primary">
+          <button id="btn-initial-start" class="btn-pixel-primary" onclick="if(window.startGameOffline) window.startGameOffline(); else document.getElementById('start-menu-modal').classList.add('hidden');">
             <span class="btn-icon-start">▶</span> START GAME
           </button>
+          <div class="start-sub-actions">
+            <button id="btn-initial-online" class="btn-subtle" style="font-size: 0.82rem; color: #38bdf8; padding: 6px 12px; background: rgba(56, 189, 248, 0.08); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25); cursor: pointer;">
+              🌐 Online Multiplayer Lobby
+            </button>
+          </div>
         </div>
 
         <!-- Step 2: Mode Selection (Revealed upon clicking Start Game) -->
