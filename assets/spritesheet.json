@@ -1,0 +1,10 @@
+{
+  "frameWidth": 74,
+  "frameHeight": 157,
+  "rows": {
+    "down": 0,
+    "right": 1,
+    "up": 2
+  },
+  "framesPerRow": 4
+}

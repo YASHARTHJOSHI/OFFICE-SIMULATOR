@@ -1,0 +1,11 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp
+*.log
+scratch/
+test_*.png
+door_crop.png
+char_idle.png

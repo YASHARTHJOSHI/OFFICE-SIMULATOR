@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Corporate Ladder - 2D Office Simulator</title>
+  <meta name="description" content="Explore the office, interact with coworkers and furniture, and enter the Boss's Cabinet through the executive door.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-app">
+    <!-- Top Header Bar -->
+    <header id="game-header">
+      <div class="header-left">
+        <span class="game-logo">🏢 OFFICE SIM</span>
+        <div class="location-badge" id="location-badge">
+          <span class="loc-dot"></span>
+          <span id="location-name">Main Office Hall</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="objective-tracker" id="objective-tracker">
+          <span class="obj-icon">🎯</span>
+          <span id="objective-text">Walk to the wooden door at the top to enter the Boss's Cabinet</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btn-sound" class="btn-icon" title="Toggle Sound (M)" aria-label="Toggle Sound">
+          <span id="sound-icon">🔊</span>
+        </button>
+        <button id="btn-fullscreen" class="btn-icon" title="Toggle Fullscreen (F)" aria-label="Toggle Fullscreen">
+          <span>⛶</span>
+        </button>
+        <button id="btn-help" class="btn-icon" title="Controls & Help (H)" aria-label="Controls and Help">
+          <span>❓</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Game Viewport Wrapper -->
+    <main id="game-container">
+      <div id="canvas-wrapper">
+        <canvas id="game-canvas" width="1024" height="576" tabindex="0"></canvas>
+
+        <!-- Dynamic Context Prompt (e.g. [E] Enter Boss's Cabinet) -->
+        <div id="interaction-prompt" class="hidden">
+          <span class="key-badge">E</span>
+          <span id="prompt-text">Enter Boss's Cabinet</span>
+        </div>
+
+        <!-- Door Transition Overlay -->
+        <div id="transition-overlay" class="hidden"></div>
+      </div>
+
+      <!-- Dialogue Modal Box -->
+      <div id="dialogue-box" class="hidden">
+        <div class="dialogue-inner">
+          <div class="dialogue-avatar-wrap">
+            <img id="dialogue-avatar" src="assets/player_portrait.png" alt="Speaker Portrait">
+            <span id="dialogue-speaker" class="speaker-tag">Boss</span>
+          </div>
+          <div class="dialogue-content">
+            <div id="dialogue-text" class="dialogue-typing"></div>
+            <div id="dialogue-choices" class="dialogue-choices-wrap"></div>
+            <div class="dialogue-footer">
+              <span class="dialogue-hint">Press [E] or [Space] to continue ▼</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Inspect / Popup Toast -->
+      <div id="toast-message" class="hidden">
+        <span id="toast-icon">💡</span>
+        <span id="toast-text"></span>
+      </div>
+
+      <!-- On-Screen Touch / Mouse Controls (for mobile & touch devices) -->
+      <div id="touch-controls" class="touch-controls">
+        <div class="dpad">
+          <button class="dpad-btn up" data-dir="up">▲</button>
+          <div class="dpad-mid">
+            <button class="dpad-btn left" data-dir="left">◀</button>
+            <div class="dpad-center"></div>
+            <button class="dpad-btn right" data-dir="right">▶</button>
+          </div>
+          <button class="dpad-btn down" data-dir="down">▼</button>
+        </div>
+        <div class="action-buttons">
+          <button id="touch-action-btn" class="action-circle-btn">
+            <span>E</span>
+            <small>ACT</small>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Controls & Hotkeys Guide -->
+    <footer id="game-footer">
+      <div class="controls-guide">
+        <span class="guide-item"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Arrows</kbd> Move</span>
+        <span class="guide-item"><kbd>E</kbd> or <kbd>Space</kbd> Interact / Open Door</span>
+        <span class="guide-item"><kbd>Shift</kbd> Run</span>
+        <span class="guide-item"><kbd>M</kbd> Mute</span>
+      </div>
+      <div class="status-clock" id="status-clock">09:41 AM</div>
+    </footer>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🎮 How to Play</h3>
+          <button id="btn-close-help" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Goal:</strong> Explore the office! Guide your employee to the wooden door at the top of the main hall to enter the <strong>Boss's Cabinet</strong>.</p>
+          <div class="help-grid">
+            <div class="help-row">
+              <span class="key-combo"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span>
+              <span>Move character freely around rooms</span>
+            </div>
+            <div class="help-row">
+              <span class="key-combo"><kbd>E</kbd> or <kbd>Space</kbd></span>
+              <span>Open doors, talk to boss, inspect computers & water cooler</span>
+            </div>
+            <div class="help-row">
+              <span class="key-combo"><kbd>Shift</kbd></span>
+              <span>Sprint / Walk faster</span>
+            </div>
+            <div class="help-row">
+              <span class="key-combo">Touch / Mouse</span>
+              <span>Use the on-screen D-Pad or click buttons</span>
+            </div>
+          </div>
+          <p class="help-tip">💡 <em>Tip: In the Boss's Cabinet, walk to the right door archway to return back to the Main Office Hall anytime!</em></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
