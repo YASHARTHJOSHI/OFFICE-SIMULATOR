@@ -38,7 +38,7 @@ function loadAsset(img, src) {
   };
 }
 
-assets.officeHall.src = 'assets/office_hall.png';
+assets.officeHall.src = 'assets/office_hall.png?v=5';
 assets.bossCabinet.src = 'assets/boss_cabinet.png';
 assets.spritesheet.src = 'assets/spritesheet.png';
 assets.charIdle.src = 'assets/character_idle.png';
@@ -48,7 +48,7 @@ assets.playerPortrait.src = 'assets/player_portrait.png?v=3';
 assets.bossStanding.src = 'assets/boss_standing.png?v=3';
 assets.bossCharacter.src = 'assets/boss_character.png?v=3';
 assets.cornerOffice.src = 'assets/corner_office.png';
-assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=4';
+assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=5';
 assets.doorLightSpill.src = 'assets/door_light_spill.png?v=3';
 
 // Setup load listeners
