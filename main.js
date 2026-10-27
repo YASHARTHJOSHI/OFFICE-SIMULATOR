@@ -15,7 +15,8 @@ const assets = {
   bossPortrait: new Image(),
   playerPortrait: new Image(),
   bossStanding: new Image(),
-  bossCharacter: new Image()
+  bossCharacter: new Image(),
+  cornerOffice: new Image()
 };
 
 let assetsLoadedCount = 0;
@@ -44,6 +45,7 @@ assets.bossPortrait.src = 'assets/boss_portrait.png?v=3';
 assets.playerPortrait.src = 'assets/player_portrait.png?v=3';
 assets.bossStanding.src = 'assets/boss_standing.png?v=3';
 assets.bossCharacter.src = 'assets/boss_character.png?v=3';
+assets.cornerOffice.src = 'assets/corner_office.png';
 
 // Setup load listeners
 Object.keys(assets).forEach(key => {
@@ -162,8 +164,9 @@ const SCENES = {
 
       // Left desk area (top desk)
       { x: 10, y: 300, w: 158, h: 125, label: 'Desk' },
-      // Left desk area (bottom desk)
-      { x: 50, y: 475, w: 158, h: 70, label: 'Desk' },
+      // Left desk area (bottom desk & trash can)
+      { x: 50, y: 440, w: 160, h: 72, label: 'Desk Bottom-Left' },
+      { x: 10, y: 440, w: 38, h: 55, label: 'Trash Can' },
 
       // Center desk cluster (4 separate desks so all aisles and horizontal walkways are open!)
       { x: 350, y: 275, w: 88, h: 55, label: 'Desk Top-Left' },
@@ -186,6 +189,13 @@ const SCENES = {
         prompt: 'Enter Boss\'s Cabinet',
         promptPos: { x: 512, y: 170 },
         action: () => enterBossCabinet()
+      },
+      {
+        id: 'corner_office_entrance',
+        x: 10, y: 510, w: 55, h: 55,
+        prompt: 'Enter Corner Office',
+        promptPos: { x: 38, y: 510 },
+        action: () => enterCornerOffice()
       },
       {
         id: 'hall_water_cooler',
@@ -302,6 +312,97 @@ const SCENES = {
         action: () => {
           window.soundManager.playInteract();
           showToast('🗄️ Found: "Projected 500% profits, employee bonus pool: $0.00"');
+        }
+      }
+    ]
+  },
+
+  CORNER_OFFICE: {
+    name: 'Executive Corner Suite',
+    badge: 'Corner Office',
+    objective: 'Explore the study, or exit through the right door',
+    bg: () => assets.cornerOffice,
+    playerScale: 0.95,
+    playerWidth: 68,
+    playerHeight: 145,
+    spawn: { x: 930, y: 495, dir: 'left' },
+    // Walkable floor band (y: 475 to 535)
+    obstacles: [
+      // Top wall barrier
+      { x: 0, y: 0, w: CANVAS_WIDTH, h: 468, label: 'Wall' },
+      // Bottom barrier
+      { x: 0, y: 535, w: CANVAS_WIDTH, h: 50, label: 'Bottom' },
+      // Left wall barrier (solid)
+      { x: 0, y: 0, w: 35, h: CANVAS_HEIGHT, label: 'Wall' },
+      // Right boundary wall
+      { x: 995, y: 0, w: 30, h: CANVAS_HEIGHT, label: 'Wall' },
+
+      // Back-wall furniture bases (y <= 472 so foreground floor is 100% open and walkable!)
+      { x: 35, y: 440, w: 60, h: 30, label: 'Coat Rack' },
+      { x: 175, y: 440, w: 220, h: 30, label: 'Mahogany Desk' },
+      { x: 530, y: 440, w: 180, h: 30, label: 'Coffee Table' },
+      { x: 715, y: 440, w: 65, h: 30, label: 'Ficus Plant' },
+      { x: 795, y: 440, w: 85, h: 30, label: 'Filing Cabinet' },
+      { x: 900, y: 440, w: 90, h: 30, label: 'Bookcase' }
+    ],
+
+    // Interactive Trigger Zones
+    triggers: [
+      {
+        id: 'exit_corner_to_hall',
+        x: 925, y: 450, w: 70, h: 80,
+        prompt: 'Exit to Main Hall',
+        promptPos: { x: 955, y: 435 },
+        action: () => exitCornerOfficeToMainHall()
+      },
+      {
+        id: 'corner_coat_rack',
+        x: 35, y: 450, w: 65, h: 90,
+        prompt: 'Inspect Detective Coat',
+        promptPos: { x: 65, y: 420 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🧥 A classic detective trench coat and fedora. Smells of rain and mystery.');
+        }
+      },
+      {
+        id: 'corner_desk_crt',
+        x: 210, y: 450, w: 140, h: 90,
+        prompt: 'Inspect CRT Terminal',
+        promptPos: { x: 280, y: 410 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🖥️ CRT screen glows: "CASE FILE #802: Corporate Intrigue - CLASSIFIED"');
+        }
+      },
+      {
+        id: 'corner_tea_table',
+        x: 550, y: 450, w: 140, h: 90,
+        prompt: 'Sip Jasmine Green Tea',
+        promptPos: { x: 620, y: 420 },
+        action: () => {
+          window.soundManager.playWater();
+          showToast('🍵 Freshly brewed hot jasmine tea. The aroma is deeply calming.');
+        }
+      },
+      {
+        id: 'corner_scanner',
+        x: 795, y: 450, w: 85, h: 90,
+        prompt: 'Check Laser Scanner',
+        promptPos: { x: 840, y: 420 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🖨️ High-speed scanner: "Ready. 45 confidential dossiers safely archived."');
+        }
+      },
+      {
+        id: 'corner_bookcase',
+        x: 900, y: 450, w: 85, h: 90,
+        prompt: 'Browse Legal Archives',
+        promptPos: { x: 940, y: 420 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('📚 Leatherbound corporate statutes and encrypted audit ledgers.');
         }
       }
     ]
@@ -660,8 +761,8 @@ function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   state.player.width = scene.playerWidth;
   state.player.height = scene.playerHeight;
   state.player.hitbox = {
-    w: sceneKey === 'BOSS_CABINET' ? 22 : 16,
-    h: sceneKey === 'BOSS_CABINET' ? 10 : 8
+    w: (sceneKey === 'BOSS_CABINET' || sceneKey === 'CORNER_OFFICE') ? 22 : 16,
+    h: (sceneKey === 'BOSS_CABINET' || sceneKey === 'CORNER_OFFICE') ? 10 : 8
   };
 
   // Place player
@@ -709,6 +810,56 @@ function exitToMainHall() {
   setTimeout(() => {
     // Return to hall directly in front of the door
     switchScene('OFFICE_HALL', 512, 245, 'down');
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('🏢 Back in the Main Office Hall.');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
+function enterCornerOffice() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    // Enter from the right side just like in boss's room!
+    switchScene('CORNER_OFFICE', 930, 495, 'left');
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('🚪 Entered the Executive Corner Office.');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
+function exitCornerOfficeToMainHall() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    // Return to Main Hall directly beside the bottom-left doorway facing into the hall
+    switchScene('OFFICE_HALL', 65, 525, 'right');
     window.soundManager.playDoorClose();
 
     setTimeout(() => {
@@ -833,15 +984,27 @@ function update(dt) {
     p.animFrame = 0;
   }
 
-  // Check Door Auto-Entry in Office Hall (walking straight into door)
+  // Check Door Auto-Entry in Office Hall (walking straight into top door)
   if (state.currentScene === 'OFFICE_HALL' && p.y <= 218 && p.x >= 465 && p.x <= 555) {
     enterBossCabinet();
+    return;
+  }
+
+  // Check Entrance to Corner Office in Office Hall (exact bottom-left place shown in picture)
+  if (state.currentScene === 'OFFICE_HALL' && p.x <= 55 && p.y >= 520) {
+    enterCornerOffice();
     return;
   }
 
   // Check Exit Door in Boss Cabinet (walking into right doorway)
   if (state.currentScene === 'BOSS_CABINET' && p.x >= 975 && p.y >= 450) {
     exitToMainHall();
+    return;
+  }
+
+  // Check Exit Door in Corner Office (walking into right doorway)
+  if (state.currentScene === 'CORNER_OFFICE' && p.x >= 975 && p.y >= 450) {
+    exitCornerOfficeToMainHall();
     return;
   }
 
@@ -889,6 +1052,8 @@ function render() {
     renderBossInCabinet();
   } else if (state.currentScene === 'OFFICE_HALL') {
     renderDoorGlow();
+  } else if (state.currentScene === 'CORNER_OFFICE') {
+    renderCornerOffice();
   }
 
   // 3. Draw Player Character
@@ -913,7 +1078,7 @@ function render() {
   }
 
   // 6. Draw Floating Golden Triangle Indicator above any active interactable object
-  if (state.activePrompt && state.activePrompt.promptPos && state.activePrompt.id !== 'door_to_boss') {
+  if (state.activePrompt && state.activePrompt.promptPos && state.activePrompt.id !== 'door_to_boss' && state.activePrompt.id !== 'corner_office_entrance') {
     if (state.activePrompt.id === 'talk_to_boss') {
       drawGoldenTriangle(450, 320);
     } else {
@@ -952,8 +1117,11 @@ function renderDoorGlow() {
   ctx.strokeRect(462, 36, 100, 175);
   ctx.restore();
 
-  // Floating Arrow indicator pointing to door
+  // Floating Arrow indicator pointing to Boss's door
   drawGoldenTriangle(512, 32);
+
+  // Floating Golden Triangle indicator pointing to the Corner Office entrance in bottom-left
+  drawGoldenTriangle(38, 495);
 }
 
 function renderBossInCabinet() {
@@ -975,6 +1143,11 @@ function renderBossInCabinet() {
     ctx.drawImage(assets.bossCharacter, bossX - bossW / 2, bossY - bossH + breath, bossW, bossH);
   }
 
+  // Floating Golden Triangle indicator pointing to right exit doorway
+  drawGoldenTriangle(965, 415);
+}
+
+function renderCornerOffice() {
   // Floating Golden Triangle indicator pointing to right exit doorway
   drawGoldenTriangle(965, 415);
 }
