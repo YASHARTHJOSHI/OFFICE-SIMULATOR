@@ -176,7 +176,7 @@ registerAsset('npc_nehaBack', 'assets/npc_neha_back.png?v=12');
 // Cafeteria & Lounge Assets
 registerAsset('cafeteriaRoom', 'assets/cafeteria_room.png');
 registerAsset('cafeteriaDoor', 'assets/cafeteria_door.png');
-registerAsset('bigWorkplace', 'assets/big_workplace.png?v=4');
+registerAsset('bigWorkplace', 'assets/big_workplace.png?v=35');
 
 // ==========================================
 // GAME STATE & CONSTANTS
@@ -805,44 +805,49 @@ const SCENES = {
     foregroundProps: [],
     obstacles: [
       // Top panoramic glass window wall & back developer desks barrier
-      { x: 0, y: 0, w: CANVAS_WIDTH, h: 200, label: 'Panoramic Window Wall & Back Desks' },
+      { x: 0, y: 0, w: CANVAS_WIDTH, h: 140, label: 'Panoramic Windows & Back Desks' },
       // Bottom room boundary
       { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom Boundary' },
-      // Left boundary (leaving corridor open at y: 330-430 for Cafeteria entrance)
-      { x: 0, y: 0, w: 20, h: 330, label: 'Left Wall Upper' },
-      { x: 0, y: 430, w: 20, h: 150, label: 'Left Wall Lower' },
+      // Left boundary (leaving corridor open at y: 300-420 for Cafeteria entrance)
+      { x: 0, y: 0, w: 20, h: 300, label: 'Left Wall Upper' },
+      { x: 0, y: 420, w: 20, h: 160, label: 'Left Wall Lower' },
       // Right boundary wall
       { x: 1008, y: 0, w: 16, h: CANVAS_HEIGHT, label: 'Right Wall' },
 
-      // Central Rolling Whiteboards Partition & Collaborating Team
-      { x: 60, y: 220, w: 580, h: 110, label: 'Whiteboards & Architecture Partition' },
+      // Central Rolling Whiteboards Partition
+      { x: 60, y: 140, w: 580, h: 125, label: 'Whiteboards & Architecture Partition' },
 
       // Foreground Developer Workstation Pods
-      { x: 40, y: 440, w: 190, h: 80, label: 'Dev Pod 1 (Frontend & Systems)' },
-      { x: 245, y: 440, w: 190, h: 80, label: 'Dev Pod 2 (Core AI & Engine)' },
-      { x: 450, y: 440, w: 185, h: 80, label: 'Dev Pod 3 (Telemetry & Cloud)' },
+      { x: 40, y: 440, w: 195, h: 80, label: 'Dev Pod 1 (Frontend & Systems)' },
+      { x: 245, y: 440, w: 195, h: 80, label: 'Dev Pod 2 (Core AI & Engine)' },
+      { x: 450, y: 440, w: 195, h: 80, label: 'Dev Pod 3 (Telemetry & Cloud)' },
+
+      // Break Counter & Credenza
+      { x: 745, y: 70, w: 165, h: 75, label: 'Coffee Credenza' },
+      // Vending Machine
+      { x: 915, y: 50, w: 95, h: 100, label: 'Vending Machine' },
 
       // Right Raised Stage Presentation Area
-      { x: 740, y: 220, w: 260, h: 180, label: 'Stage Keynote Screen' },
-      { x: 690, y: 350, w: 35, h: 65, label: 'Water Cooler' },
-      { x: 915, y: 470, w: 75, h: 75, label: 'Stage Lectern' }
+      { x: 775, y: 200, w: 240, h: 120, label: 'Stage Keynote Screen' },
+      { x: 720, y: 350, w: 40, h: 65, label: 'Water Cooler' },
+      { x: 925, y: 470, w: 65, h: 70, label: 'Stage Lectern' }
     ],
 
     triggers: [
       // Exit Doorway back to Cafeteria
       {
         id: 'door_back_to_cafe',
-        x: 0, y: 330, w: 75, h: 100,
+        x: 0, y: 310, w: 80, h: 100,
         prompt: 'Return to Cafeteria [E / Space]',
-        promptPos: { x: 60, y: 380 },
+        promptPos: { x: 60, y: 360 },
         action: () => exitBigWorkplaceToCafeteria()
       },
-      // 1. Architecture Flowchart Whiteboard (Interactive Paper.js Studio trigger)
+      // 1. Architecture Flowchart Whiteboard
       {
         id: 'board_architecture',
-        x: 70, y: 270, w: 175, h: 70,
+        x: 65, y: 240, w: 185, h: 65,
         prompt: '📐 Inspect Architecture Flowchart [E]',
-        promptPos: { x: 155, y: 270 },
+        promptPos: { x: 155, y: 250 },
         action: () => {
           window.soundManager.playInteract();
           if (window.workplacePaper) window.workplacePaper.openStudio();
@@ -852,9 +857,9 @@ const SCENES = {
       // 2. Microservices Code Whiteboard
       {
         id: 'board_code',
-        x: 265, y: 270, w: 140, h: 70,
+        x: 265, y: 240, w: 145, h: 65,
         prompt: '💻 Inspect Microservices Engine Spec [E]',
-        promptPos: { x: 335, y: 270 },
+        promptPos: { x: 335, y: 250 },
         action: () => {
           window.soundManager.playInteract();
           showToast('💻 <EXTENDS:CODE>: Latency down to 0.8ms. Zero packet loss on high-throughput queue!');
@@ -863,87 +868,113 @@ const SCENES = {
       // 3. Sprint Planning Whiteboard
       {
         id: 'board_sprint',
-        x: 415, y: 270, w: 140, h: 70,
+        x: 425, y: 240, w: 155, h: 65,
         prompt: '📋 Review All-Hands Sprint Roadmap [E]',
-        promptPos: { x: 485, y: 270 },
+        promptPos: { x: 500, y: 250 },
         action: () => {
           window.soundManager.playInteract();
           showToast('📋 Sprint Board: 94% telemetry tasks resolved! Release candidate approved.');
         }
       },
-      // 4. ACME Metrics Stage Presentation
+      // 4. Whiteboard Standup Team Discussion
+      {
+        id: 'standup_team',
+        x: 390, y: 290, w: 170, h: 75,
+        prompt: '👥 Join Whiteboard Standup Sync [E]',
+        promptPos: { x: 470, y: 295 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('👥 Dev Standup: "We migrated the event dispatcher to WebSockets. The telemetry feed is blazing fast!"');
+        }
+      },
+      // 5. ACME Metrics Stage Presentation
       {
         id: 'stage_presentation',
-        x: 770, y: 260, w: 220, h: 150,
+        x: 790, y: 320, w: 190, h: 80,
         prompt: '📊 Attend ACME Keynote Presentation [E]',
-        promptPos: { x: 880, y: 290 },
+        promptPos: { x: 885, y: 330 },
         action: () => {
           window.soundManager.playInteract();
-          showToast('📊 Keynote: "Telemetry throughput reached 3.4M req/sec at 99.999% uptime!"');
+          if (window.pixelEngine && window.pixelEngine.particles) {
+            window.pixelEngine.particles.spawnEmbers(885, 330);
+          }
+          showToast('📊 Keynote: "Global Telemetry throughput reached 3.4M req/sec at 99.999% uptime!"');
         }
       },
-      // 5. Water Cooler Station
+      // 6. Lead Presenter Kavita on Stage
+      {
+        id: 'speaker_kavita',
+        x: 925, y: 330, w: 75, h: 90,
+        prompt: '🎤 Talk to Keynote Lead Kavita [E]',
+        promptPos: { x: 955, y: 330 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🎤 Kavita: "Welcome to Acme Mega-Hub! Review the architecture whiteboard or test your code at Dev Pod 1."');
+        }
+      },
+      // 7. Water Cooler Station
       {
         id: 'water_cooler',
-        x: 690, y: 350, w: 50, h: 75,
-        prompt: '💧 Chat at Water Cooler [E]',
-        promptPos: { x: 715, y: 345 },
+        x: 710, y: 345, w: 55, h: 80,
+        prompt: '💧 Hydrate at Water Cooler [E]',
+        promptPos: { x: 735, y: 350 },
         action: () => {
           window.soundManager.playInteract();
           if (window.pixelEngine && window.pixelEngine.particles) {
-            window.pixelEngine.particles.spawnWaterSparkles(715, 360);
+            window.pixelEngine.particles.spawnWaterSparkles(735, 360);
           }
-          showToast('💧 Intern: "Did you catch that telemetry curve? The team crushed Q3 goals!"');
+          showToast('💧 Refreshing ice-cold water! "Did you see that telemetry curve on stage? Incredible work!"');
         }
       },
-      // 6. Espresso & Coffee Bar
+      // 8. Espresso & Coffee Bar
       {
         id: 'coffee_bar',
-        x: 730, y: 145, w: 90, h: 55,
+        x: 755, y: 135, w: 110, h: 60,
         prompt: '☕ Brew R&D Espresso [E]',
-        promptPos: { x: 775, y: 145 },
+        promptPos: { x: 810, y: 140 },
         action: () => {
           window.soundManager.playInteract();
           if (window.pixelEngine && window.pixelEngine.particles) {
-            window.pixelEngine.particles.spawnCoffeeSteam(775, 145);
+            window.pixelEngine.particles.spawnCoffeeSteam(790, 85);
+            window.pixelEngine.particles.spawnCoffeeSteam(830, 85);
           }
           showToast('☕ Double shot espresso pulled! Developer focus accelerated.');
         }
       },
-      // 7. Snack Vending Machine
+      // 9. Snack Vending Machine
       {
         id: 'vending_machine',
-        x: 870, y: 145, w: 75, h: 55,
+        x: 915, y: 130, w: 90, h: 60,
         prompt: '🍫 Buy Brain Fuel Snack [E]',
-        promptPos: { x: 905, y: 145 },
+        promptPos: { x: 960, y: 135 },
         action: () => {
           window.soundManager.playInteract();
-          showToast('🍫 Dispensed Nitro Crunch Protein Bar!');
+          showToast('🍫 Dispensed Nitro Crunch Protein Bar! Developer energy restored.');
         }
       },
-      // 8. Dev Pod 1 Sitting Trigger
+      // 10. Dev Pod 1 Sitting Trigger
       {
         id: 'dev_pod_1',
-        x: 90, y: 480, w: 90, h: 70,
-        prompt: 'Sit at Dev Pod 1 [E / C]',
-        promptPos: { x: 135, y: 470 },
-        action: () => toggleSitInChair(135, 500, 'up', 135, 540)
+        x: 90, y: 460, w: 95, h: 75,
+        prompt: 'Sit at Dev Pod 1 (Frontend & Systems) [E / C]',
+        promptPos: { x: 138, y: 465 },
+        action: () => toggleSitInChair(138, 490, 'up', 138, 540)
       },
-      // 9. Dev Pod 2 Sitting Trigger
+      // 11. Dev Pod 2 Sitting Trigger
       {
         id: 'dev_pod_2',
-        x: 295, y: 480, w: 90, h: 70,
-        prompt: 'Sit at Dev Pod 2 [E / C]',
-        promptPos: { x: 340, y: 470 },
-        action: () => toggleSitInChair(340, 500, 'up', 340, 540)
+        x: 295, y: 460, w: 95, h: 75,
+        prompt: 'Sit at Dev Pod 2 (Core AI & Engine) [E / C]',
+        promptPos: { x: 342, y: 465 },
+        action: () => toggleSitInChair(342, 490, 'up', 342, 540)
       },
-      // 10. Dev Pod 3 Sitting Trigger
+      // 12. Dev Pod 3 Sitting Trigger
       {
         id: 'dev_pod_3',
-        x: 500, y: 480, w: 90, h: 70,
-        prompt: 'Sit at Dev Pod 3 [E / C]',
-        promptPos: { x: 545, y: 470 },
-        action: () => toggleSitInChair(545, 500, 'up', 545, 540)
+        x: 500, y: 460, w: 95, h: 75,
+        prompt: 'Sit at Dev Pod 3 (Cloud Telemetry) [E / C]',
+        promptPos: { x: 546, y: 465 },
+        action: () => toggleSitInChair(546, 490, 'up', 546, 540)
       }
     ]
   }
@@ -2353,38 +2384,15 @@ function renderCafeteriaDetails() {
 
 function renderBigWorkplaceDetails() {
   const p = state.player;
-  const isNearCafe = p && Math.hypot(p.x - 60, p.y - 380) < 100;
+  const isNearCafe = p && Math.hypot(p.x - 60, p.y - 360) < 100;
 
   // Room Portal Badge pointing back to Cafeteria
-  drawRoomPortalBadge(60, 380, 'CAFETERIA', 'left', isNearCafe);
+  drawRoomPortalBadge(60, 360, 'CAFETERIA', 'left', isNearCafe);
 
-  // PixelEngine Dynamic Particle Effects
-  if (window.pixelEngine && window.pixelEngine.particles) {
-    // Warm espresso steam
-    if (Math.random() < 0.22) {
-      window.pixelEngine.particles.spawnCoffeeSteam(775, 140);
-    }
-    // Water cooler droplets
-    if (Math.random() < 0.12) {
-      window.pixelEngine.particles.spawnWaterSparkles(715, 360);
-    }
+  // PixelEngine Dynamic Particle, CRT Screen Glows & Ambient Office Lighting
+  if (window.pixelEngine) {
+    window.pixelEngine.renderBigWorkplacePixelEffects(ctx, p && p.sitting, p ? p.x : 0, p ? p.y : 0);
   }
-
-  // Subtle pulsing glow on CRT monitors & stage screen
-  const now = performance.now();
-  const pulse = (Math.sin(now * 0.0035) + 1) * 0.5;
-
-  ctx.save();
-  // Green terminal glow on foreground CRT monitors
-  ctx.fillStyle = `rgba(16, 185, 129, ${0.05 + pulse * 0.04})`;
-  ctx.fillRect(105, 445, 42, 32);
-  ctx.fillRect(310, 445, 42, 32);
-  ctx.fillRect(515, 445, 42, 32);
-
-  // Soft cyan stage presentation glow
-  ctx.fillStyle = `rgba(6, 182, 212, ${0.04 + pulse * 0.03})`;
-  ctx.fillRect(780, 220, 215, 195);
-  ctx.restore();
 }
 
 function renderBossInCabinet() {

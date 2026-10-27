@@ -116,6 +116,26 @@ class PixelParticleEngine {
     });
   }
 
+  /**
+   * Spawn microscopic sunbeam dust motes drifting in window daylight
+   */
+  spawnSunbeamDust() {
+    if (Math.random() > 0.3) return;
+    if (this.particles.length >= this.maxParticles) {
+      this.particles.shift();
+    }
+    this.particles.push({
+      x: Math.round(40 + Math.random() * 660),
+      y: Math.round(8 + Math.random() * 95),
+      vx: 4 + Math.random() * 8,
+      vy: 2 + Math.random() * 4,
+      size: 1,
+      colorPrefix: 'rgba(255, 255, 255,',
+      alpha: 0.65,
+      decay: 0.45 + Math.random() * 0.35
+    });
+  }
+
   update(dt) {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
@@ -183,6 +203,92 @@ class PixelEngine {
       bossGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = bossGlow;
       ctx.fillRect(0, 0, width, height);
+    } else if (currentScene === 'BIG_WORKPLACE') {
+      // 1. Natural daylight bleed from top panoramic skyscraper windows
+      const daylight = ctx.createLinearGradient(0, 0, 0, 180);
+      daylight.addColorStop(0, 'rgba(186, 230, 253, 0.09)');
+      daylight.addColorStop(0.6, 'rgba(224, 242, 254, 0.04)');
+      daylight.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = daylight;
+      ctx.fillRect(0, 0, width, 180);
+
+      // 2. Stage presentation spotlight & keynote focus
+      const stageSpotlight = ctx.createRadialGradient(880, 290, 50, 880, 310, 220);
+      stageSpotlight.addColorStop(0, 'rgba(56, 189, 248, 0.08)');
+      stageSpotlight.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = stageSpotlight;
+      ctx.fillRect(740, 180, 284, 396);
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Render authentic CRT terminal phosphor glows, desk lamp cones, and particle routines for Big Workplace
+   */
+  renderBigWorkplacePixelEffects(ctx, isPlayerSitting, playerX, playerY) {
+    const now = performance.now();
+    const pulse = (Math.sin(now * 0.0035) + 1) * 0.5;
+
+    ctx.save();
+
+    // 1. CRT Green Phosphor Terminal Screen Glows (Dev Pods)
+    ctx.fillStyle = `rgba(16, 185, 129, ${0.08 + pulse * 0.05})`;
+    ctx.fillRect(108, 442, 42, 30);
+    ctx.fillRect(312, 442, 42, 30);
+    ctx.fillRect(516, 442, 42, 30);
+
+    // CRT Back Window Row Screens
+    ctx.fillStyle = `rgba(16, 185, 129, ${0.05 + pulse * 0.03})`;
+    ctx.fillRect(168, 77, 28, 20);
+    ctx.fillRect(324, 77, 28, 20);
+    ctx.fillRect(434, 77, 28, 20);
+    ctx.fillRect(590, 77, 28, 20);
+
+    // 2. Desk Lamp Warm Incandescent Cones on Dev Pods
+    const lampGlow1 = ctx.createRadialGradient(88, 445, 4, 88, 445, 55);
+    lampGlow1.addColorStop(0, 'rgba(253, 230, 138, 0.12)');
+    lampGlow1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = lampGlow1;
+    ctx.fillRect(35, 395, 110, 100);
+
+    const lampGlow2 = ctx.createRadialGradient(292, 445, 4, 292, 445, 55);
+    lampGlow2.addColorStop(0, 'rgba(253, 230, 138, 0.12)');
+    lampGlow2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = lampGlow2;
+    ctx.fillRect(240, 395, 110, 100);
+
+    const lampGlow3 = ctx.createRadialGradient(496, 445, 4, 496, 445, 55);
+    lampGlow3.addColorStop(0, 'rgba(253, 230, 138, 0.12)');
+    lampGlow3.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = lampGlow3;
+    ctx.fillRect(445, 395, 110, 100);
+
+    // 3. Stage Keynote Projector Glow
+    ctx.fillStyle = `rgba(6, 182, 212, ${0.06 + pulse * 0.04})`;
+    ctx.fillRect(787, 222, 235, 155);
+
+    // 4. Espresso Machines Dual Steam
+    if (Math.random() < 0.28) {
+      this.particles.spawnCoffeeSteam(790, 85);
+    }
+    if (Math.random() < 0.28) {
+      this.particles.spawnCoffeeSteam(830, 85);
+    }
+
+    // 5. Water Cooler Sparkling Droplets
+    if (Math.random() < 0.15) {
+      this.particles.spawnWaterSparkles(738, 365);
+    }
+
+    // 6. Microscopic Sunbeam Dust Motes across Panoramic Windows
+    if (Math.random() < 0.35) {
+      this.particles.spawnSunbeamDust();
+    }
+
+    // 7. Developer Typing Code Sparks when sitting at Pod
+    if (isPlayerSitting && playerY > 400 && Math.random() < 0.45) {
+      this.particles.spawnTypingParticles(playerX, playerY - 14);
     }
 
     ctx.restore();
