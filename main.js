@@ -16,7 +16,9 @@ const assets = {
   playerPortrait: new Image(),
   bossStanding: new Image(),
   bossCharacter: new Image(),
-  cornerOffice: new Image()
+  cornerOffice: new Image(),
+  doorSlightlyOpen: new Image(),
+  doorLightSpill: new Image()
 };
 
 let assetsLoadedCount = 0;
@@ -46,6 +48,8 @@ assets.playerPortrait.src = 'assets/player_portrait.png?v=3';
 assets.bossStanding.src = 'assets/boss_standing.png?v=3';
 assets.bossCharacter.src = 'assets/boss_character.png?v=3';
 assets.cornerOffice.src = 'assets/corner_office.png';
+assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png';
+assets.doorLightSpill.src = 'assets/door_light_spill.png';
 
 // Setup load listeners
 Object.keys(assets).forEach(key => {
@@ -192,9 +196,9 @@ const SCENES = {
       },
       {
         id: 'corner_office_entrance',
-        x: 10, y: 510, w: 55, h: 55,
+        x: 2, y: 430, w: 50, h: 130,
         prompt: 'Enter Corner Office',
-        promptPos: { x: 38, y: 510 },
+        promptPos: { x: 26, y: 410 },
         action: () => enterCornerOffice()
       },
       {
@@ -1105,10 +1109,10 @@ function drawGoldenTriangle(x, y) {
 }
 
 function renderDoorGlow() {
-  // Animated glow highlight around the boss's door
   const time = performance.now() * 0.003;
   const pulse = (Math.sin(time) + 1) * 0.5;
 
+  // 1. Top Boss Door Animated Glow Highlight
   ctx.save();
   ctx.strokeStyle = `rgba(245, 158, 11, ${0.25 + pulse * 0.45})`;
   ctx.lineWidth = 3;
@@ -1120,8 +1124,30 @@ function renderDoorGlow() {
   // Floating Arrow indicator pointing to Boss's door
   drawGoldenTriangle(512, 32);
 
-  // Floating Golden Triangle indicator pointing to the Corner Office entrance in bottom-left
-  drawGoldenTriangle(38, 495);
+  // 2. Slightly Opened Door in bottom-left corner (where character stands)
+  if (assets.doorSlightlyOpen && assets.doorSlightlyOpen.complete) {
+    ctx.drawImage(assets.doorSlightlyOpen, 2, 430);
+  }
+  if (assets.doorLightSpill && assets.doorLightSpill.complete) {
+    // Gentle ambient light pulsing from the doorway crack onto the floor
+    const lightPulse = 0.82 + Math.sin(time * 2) * 0.18;
+    ctx.save();
+    ctx.globalAlpha = lightPulse;
+    ctx.drawImage(assets.doorLightSpill, 2, 556);
+    ctx.restore();
+  }
+
+  // Soft golden glow around the slightly opened door
+  ctx.save();
+  ctx.strokeStyle = `rgba(245, 158, 11, ${0.2 + pulse * 0.35})`;
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#f59e0b';
+  ctx.shadowBlur = 8 + pulse * 6;
+  ctx.strokeRect(2, 430, 48, 130);
+  ctx.restore();
+
+  // Floating Golden Triangle indicator pointing to the slightly opened door
+  drawGoldenTriangle(26, 405);
 }
 
 function renderBossInCabinet() {
