@@ -817,6 +817,10 @@
                       <div class="app-icon-squircle icon-chat">💬</div>
                       <span class="app-label">Chat</span>
                     </button>
+                    <button class="phone-app-btn" id="app-btn-mail" title="Workstation OmniMail (PC Directives & Tasks)">
+                      <div class="app-icon-squircle icon-mail">✉️</div>
+                      <span class="app-label">Mail</span>
+                    </button>
                     <button class="phone-app-btn" id="app-btn-quest" title="Quests & Rubrics">
                       <div class="app-icon-squircle icon-quests">📜</div>
                       <span class="app-label">Quests</span>
@@ -1043,6 +1047,18 @@
           this.close();
           if (typeof window.togglePagerModal === 'function') {
             window.togglePagerModal();
+          }
+        };
+      }
+
+      const mailBtn = document.getElementById('app-btn-mail');
+      if (mailBtn) {
+        mailBtn.onclick = () => {
+          this.close();
+          if (window.pcOS && typeof window.pcOS.openMail === 'function') {
+            window.pcOS.openMail();
+          } else if (typeof window.openWorkstationPC === 'function') {
+            window.openWorkstationPC();
           }
         };
       }

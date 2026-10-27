@@ -413,6 +413,9 @@
     }
 
     switch (appId) {
+      case 'mail':
+        initMailApp();
+        break;
       case 'terminal':
         initTerminalApp();
         break;
@@ -1776,6 +1779,777 @@ git add . && git commit -m "another day another feature"`;
     });
   }
 
+  // --- 8. OMNIMAIL APP (Corporate Tasks & Directives) ---
+  function initMailApp() {
+    const html = `
+      <div class="pc-mail-app">
+        <!-- 1. Left Folder Sidebar -->
+        <div class="pc-mail-sidebar">
+          <button class="pc-mail-compose-btn" id="mail-btn-compose">
+            <span>✏️</span> New Email
+          </button>
+          <div class="pc-mail-folder-list">
+            <div class="pc-mail-folder-item active" data-folder="inbox">
+              <div class="folder-left"><span>📥</span> Inbox</div>
+              <span class="pc-mail-badge" id="mail-badge-inbox">5</span>
+            </div>
+            <div class="pc-mail-folder-item" data-folder="tasks">
+              <div class="folder-left"><span>⚡</span> Directives & Tasks</div>
+              <span class="pc-mail-badge alert" id="mail-badge-tasks">5</span>
+            </div>
+            <div class="pc-mail-folder-item" data-folder="sent">
+              <div class="folder-left"><span>📤</span> Sent Items</div>
+              <span class="pc-mail-badge" id="mail-badge-sent">0</span>
+            </div>
+            <div class="pc-mail-folder-item" data-folder="drafts">
+              <div class="folder-left"><span>📋</span> Drafts</div>
+            </div>
+            <div class="pc-mail-folder-item" data-folder="trash">
+              <div class="folder-left"><span>🗑️</span> Trash</div>
+            </div>
+          </div>
+          <div class="pc-mail-user-card">
+            <span style="font-size:0.68rem; color:#94a3b8;">LOGGED IN AS:</span>
+            <span class="pc-mail-user-email" id="mail-user-email">vikram.lead@omnicorp.internal</span>
+            <span class="pc-mail-user-status">● Connected (OmniMail Server)</span>
+          </div>
+        </div>
+
+        <!-- 2. Middle List Pane -->
+        <div class="pc-mail-list-pane">
+          <div class="pc-mail-search-bar">
+            <input type="text" class="pc-mail-search-input" id="mail-search-input" placeholder="🔍 Search directives, senders, tasks..." />
+          </div>
+          <div class="pc-mail-filter-tabs">
+            <button class="pc-mail-tab-btn active" data-filter="all">All</button>
+            <button class="pc-mail-tab-btn" data-filter="tasks">⚡ Tasks Only</button>
+            <button class="pc-mail-tab-btn" data-filter="unread">Unread</button>
+          </div>
+          <div class="pc-mail-threads-scroll" id="mail-threads-list">
+            <!-- Dynamically populated threads -->
+          </div>
+        </div>
+
+        <!-- 3. Right Reading Pane & Composer -->
+        <div class="pc-mail-read-pane" id="mail-read-pane">
+          <!-- Selected email detail rendered here -->
+        </div>
+
+        <!-- Modal Compose Dialog -->
+        <div class="pc-mail-compose-dialog" id="mail-compose-dialog" style="display: none;">
+          <div class="compose-dialog-header">
+            <span>✉️ New Message — OmniMail</span>
+            <button class="pc-win-btn" id="compose-dialog-close">✕</button>
+          </div>
+          <div class="compose-dialog-body">
+            <div class="compose-input-row">
+              <span class="compose-label">To:</span>
+              <select class="compose-select" id="compose-to-select">
+                <option value="amit.sharma@omnicorp.internal">Amit Sharma (HR & Engineering Manager)</option>
+                <option value="m.sterling@acmecorp.com">Mark Sterling (VP of Tech & Enterprise)</option>
+                <option value="sre-incident-bot@omnicorp.internal">SRE Incident Command Team</option>
+                <option value="neha.patel@omnicorp.internal">Neha Patel (Planning & InfoSec Lead)</option>
+                <option value="deploy-bot@omnicorp.internal">DevOps Automation Cluster</option>
+                <option value="rahul.lead@omnicorp.internal">Rahul (Tech Lead)</option>
+                <option value="priya.pm@omnicorp.internal">Priya (Product PM)</option>
+              </select>
+            </div>
+            <div class="compose-input-row">
+              <span class="compose-label">Subject:</span>
+              <input type="text" class="compose-input" id="compose-subject-input" placeholder="e.g. Q4 Sprint Deliverable Sign-off" />
+            </div>
+            <div class="pc-mail-template-pills">
+              <span style="font-size:0.72rem; color:#94a3b8; font-weight:700;">Quick Fill:</span>
+              <button class="mail-pill-btn" data-fill="retro">Sprint Retro</button>
+              <button class="mail-pill-btn" data-fill="status">Status Update</button>
+              <button class="mail-pill-btn" data-fill="rca">Incident RCA</button>
+              <button class="mail-pill-btn" data-fill="canary">Canary Sign-off</button>
+            </div>
+            <textarea class="compose-textarea" id="compose-body-textarea" placeholder="Type your email message..."></textarea>
+          </div>
+          <div class="compose-dialog-footer">
+            <span style="font-size:0.72rem; color:#94a3b8;">Sending via Workstation #1 Intranet</span>
+            <div style="display:flex; gap:8px;">
+              <button class="pc-win-btn" id="compose-btn-cancel" style="padding:6px 14px; border-radius:6px;">Discard</button>
+              <button class="pc-mail-send-btn" id="compose-btn-send">
+                <span>🚀</span> Send Email
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const winEl = registerWindow('mail', 'OmniMail - Corporate Directives & Outlook', '✉️', html, 880, 560);
+
+    // Initial Mail Database
+    const defaultMails = [
+      {
+        id: 'mail_task_retro',
+        isTask: true,
+        isCompleted: false,
+        isRead: false,
+        folder: 'inbox',
+        senderName: 'Amit Sharma',
+        senderDept: 'Head of Engineering & HR',
+        senderEmail: 'amit.sharma@omnicorp.internal',
+        senderAvatar: 'assets/npc_amit_portrait.png',
+        senderGlyph: '👔',
+        subject: '[ACTION REQUIRED] Q4 Engineering Sprint Retrospective & OKR Sign-off',
+        date: 'Today, 10:15 AM',
+        category: 'HR DIRECTIVE',
+        priority: 'High',
+        taskTitle: 'Submit Sprint Retrospective to HR Manager Amit',
+        xpReward: 180,
+        fundsReward: 360,
+        body: `Hi team,<br><br>As part of our continuous engineering excellence initiative, please reply to this directive thread with your completed sprint summary, technical challenges encountered (e.g. Redis socket connection pooling, database query benchmarks), and key takeaways.<br><br>Once submitted, this will be formally logged into our Q4 engineering performance audit and OKR evaluation.<br><br>Best regards,<br><strong>Amit Sharma</strong><br>Head of Engineering & HR Operations`,
+        suggestedReply: `Hi Amit,\n\nHere is my Q4 Engineering Sprint summary:\n- Resolved Redis ingestion connection leak and stabilized socket recycling.\n- Added idempotency key verification to payment webhook listeners.\n- Benchmarked PostgreSQL telemetry logs and optimized index coverage.\n- Completed cross-functional triage with product and design teams.\n\nAll deliverables deployed and verified on staging!\n\nBest,\nLead Engineer`,
+        replies: []
+      },
+      {
+        id: 'mail_task_rca',
+        isTask: true,
+        isCompleted: false,
+        isRead: false,
+        folder: 'inbox',
+        senderName: 'SRE Incident Command',
+        senderDept: 'Site Reliability Engineering',
+        senderEmail: 'sre-incident-bot@omnicorp.internal',
+        senderAvatar: '',
+        senderGlyph: '⚡',
+        subject: 'INCIDENT-4091 [P0]: Root Cause Analysis (RCA) Sign-off for Payment Gateway',
+        date: 'Today, 09:42 AM',
+        category: 'INCIDENT P0',
+        priority: 'Urgent',
+        taskTitle: 'Submit Post-Mortem RCA Sign-off to SRE Team',
+        xpReward: 200,
+        fundsReward: 400,
+        body: `<strong>[INCIDENT-4091: SEVERITY 1 - RESOLVED]</strong><br><br>The upstream checkout gateway experienced a 4-minute packet drop anomaly during peak load. SRE on-call has mitigated the traffic spike.<br><br><strong>Directive:</strong> The assigned backend engineer must submit a signed Root Cause Analysis (RCA) and mitigation plan to close this incident ticket.<br><br>SRE Escalation Command`,
+        suggestedReply: `SRE Team,\n\nRoot Cause Analysis (RCA) for INCIDENT-4091:\n1. Root Cause: TCP connection pool reached maximum backlog during ingress burst due to aggressive retry policy.\n2. Remediation: Implemented exponential backoff with jitter and increased socket recycling threshold.\n3. Long-term fix: Distributed circuit-breaker pattern deployed across microservice mesh.\n\nSigned-off for ticket closure.`,
+        replies: []
+      },
+      {
+        id: 'mail_task_client',
+        isTask: true,
+        isCompleted: false,
+        isRead: false,
+        folder: 'inbox',
+        senderName: 'Mark Sterling',
+        senderDept: 'VP of Technology & Enterprise',
+        senderEmail: 'm.sterling@acmecorp.com',
+        senderAvatar: '',
+        senderGlyph: '👔',
+        subject: 'Executive Query: Production Microservice SLA & Latency Telemetry Report',
+        date: 'Today, 08:30 AM',
+        category: 'EXECUTIVE',
+        priority: 'High',
+        taskTitle: 'Send Enterprise Telemetry Report to VP Mark Sterling',
+        xpReward: 170,
+        fundsReward: 340,
+        body: `Engineering Team,<br><br>Before our executive board review at 2 PM, I need official confirmation on our enterprise telemetry numbers—specifically 99.99% uptime compliance and sub-millisecond ingestion latency figures.<br><br>Please confirm before noon.<br><br>Mark Sterling<br>VP of Technology & Enterprise Infrastructure`,
+        suggestedReply: `Mark,\n\nConfirming our production SLA figures:\n- Cluster uptime: 99.994% across all 4 operational pods.\n- Telemetry ingestion latency: 0.82ms average (P99 at 4.1ms).\n- Queue backlog: 0 messages.\n\nAll metrics verified against production Grafana dashboards.`,
+        replies: []
+      },
+      {
+        id: 'mail_task_security',
+        isTask: true,
+        isCompleted: false,
+        isRead: false,
+        folder: 'inbox',
+        senderName: 'Neha Patel',
+        senderDept: 'Strategic Planning & InfoSec Lead',
+        senderEmail: 'neha.patel@omnicorp.internal',
+        senderAvatar: 'assets/npc_priya_portrait.png',
+        senderGlyph: '🛡️',
+        subject: 'Security Notice: Zero-Trust mTLS & Secret Key Rotation Sign-off',
+        date: 'Yesterday, 04:15 PM',
+        category: 'SECURITY AUDIT',
+        priority: 'Normal',
+        taskTitle: 'Send mTLS Security Sign-off to InfoSec Lead Neha',
+        xpReward: 150,
+        fundsReward: 300,
+        body: `Hi,<br><br>Our quarterly SOC2 Type II compliance audit is closing today. I need your formal sign-off confirming all workload certificate authorities and service mesh secrets have been rotated to 12-hour automated cycles.<br><br>Thanks,<br>Neha Patel`,
+        suggestedReply: `Hi Neha,\n\nConfirming security compliance:\n- Workload mTLS certificates now auto-rotate via SPIFFE/SPIRE every 12 hours.\n- Vault secrets verified with zero plaintext keys in repositories.\n- Branch protection and signed commits enforced across all repos.\n\nSign-off approved.`,
+        replies: []
+      },
+      {
+        id: 'mail_task_canary',
+        isTask: true,
+        isCompleted: false,
+        isRead: false,
+        folder: 'inbox',
+        senderName: 'DevOps Automation Cluster',
+        senderDept: 'CI/CD Pipeline Engine',
+        senderEmail: 'deploy-bot@omnicorp.internal',
+        senderAvatar: '',
+        senderGlyph: '🤖',
+        subject: 'Deployment Gate: Production Canary Approval for Kafka Consumer v2.4',
+        date: 'Yesterday, 02:10 PM',
+        category: 'DEVOPS',
+        priority: 'Normal',
+        taskTitle: 'Submit Deployment Approval Token to DevOps Cluster',
+        xpReward: 160,
+        fundsReward: 320,
+        body: `Canary v2.4 passed automated synthetic health probes (p99 latency 1.1ms, 0 error rate over 10,000 requests).<br><br><strong>Action:</strong> Lead engineer sign-off required to promote canary to 100% fleet traffic.<br><br>Reply with approval token: <code>ACK_DEPLOY_PROD_CANARY</code>.`,
+        suggestedReply: `ACK_DEPLOY_PROD_CANARY\n\nVerified canary telemetry logs. Error rate is 0.00%. Approved for 100% production rollout.`,
+        replies: []
+      }
+    ];
+
+    // Load or initialize state
+    let mails = defaultMails;
+    let sentMails = [];
+    try {
+      const stored = localStorage.getItem('pc_omnimail_state_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.mails && parsed.mails.length) mails = parsed.mails;
+        if (parsed.sentMails) sentMails = parsed.sentMails;
+      }
+    } catch (e) {}
+
+    const saveMailState = () => {
+      try {
+        localStorage.setItem('pc_omnimail_state_v1', JSON.stringify({ mails, sentMails }));
+      } catch (e) {}
+    };
+
+    // State
+    let currentFolder = 'inbox';
+    let currentFilter = 'all';
+    let selectedMailId = mails[0] ? mails[0].id : null;
+    let searchQuery = '';
+
+    // Elements
+    const folderItems = winEl.querySelectorAll('.pc-mail-folder-item');
+    const badgeInbox = winEl.querySelector('#mail-badge-inbox');
+    const badgeTasks = winEl.querySelector('#mail-badge-tasks');
+    const badgeSent = winEl.querySelector('#mail-badge-sent');
+    const threadsList = winEl.querySelector('#mail-threads-list');
+    const readPane = winEl.querySelector('#mail-read-pane');
+    const searchInput = winEl.querySelector('#mail-search-input');
+    const tabBtns = winEl.querySelectorAll('.pc-mail-tab-btn');
+    const userEmailEl = winEl.querySelector('#mail-user-email');
+
+    // Compose elements
+    const composeBtn = winEl.querySelector('#mail-btn-compose');
+    const composeDialog = winEl.querySelector('#mail-compose-dialog');
+    const composeClose = winEl.querySelector('#compose-dialog-close');
+    const composeCancel = winEl.querySelector('#compose-btn-cancel');
+    const composeSend = winEl.querySelector('#compose-btn-send');
+    const composeTo = winEl.querySelector('#compose-to-select');
+    const composeSub = winEl.querySelector('#compose-subject-input');
+    const composeBody = winEl.querySelector('#compose-body-textarea');
+
+    // Dynamic player user email
+    if (window.state && window.state.player && userEmailEl) {
+      const charId = window.state.player.charId || 'char1';
+      const emailMap = {
+        char1: 'vikram.techlead@omnicorp.internal',
+        char2: 'neha.planner@omnicorp.internal',
+        char3: 'kabir.research@omnicorp.internal',
+        char4: 'josh.architect@omnicorp.internal'
+      };
+      userEmailEl.textContent = emailMap[charId] || 'yasharth.dev@omnicorp.internal';
+    }
+
+    // Update Badges
+    const updateBadges = () => {
+      const unreadCount = mails.filter(m => !m.isRead).length;
+      const pendingTaskCount = mails.filter(m => m.isTask && !m.isCompleted).length;
+      if (badgeInbox) {
+        badgeInbox.textContent = unreadCount;
+        badgeInbox.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+      }
+      if (badgeTasks) {
+        badgeTasks.textContent = pendingTaskCount;
+        badgeTasks.className = `pc-mail-badge ${pendingTaskCount > 0 ? 'alert' : 'success'}`;
+        badgeTasks.textContent = pendingTaskCount > 0 ? pendingTaskCount : '✓';
+      }
+      if (badgeSent) {
+        badgeSent.textContent = sentMails.length;
+      }
+    };
+
+    // Render Threads List
+    const renderThreadsList = () => {
+      let list = [];
+      if (currentFolder === 'sent') {
+        list = sentMails;
+      } else {
+        list = mails;
+        if (currentFolder === 'tasks') {
+          list = list.filter(m => m.isTask);
+        }
+      }
+
+      // Apply Filter Tabs
+      if (currentFolder !== 'sent') {
+        if (currentFilter === 'tasks') {
+          list = list.filter(m => m.isTask && !m.isCompleted);
+        } else if (currentFilter === 'unread') {
+          list = list.filter(m => !m.isRead);
+        }
+      }
+
+      // Apply Search
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter(m => 
+          (m.subject && m.subject.toLowerCase().includes(q)) ||
+          (m.senderName && m.senderName.toLowerCase().includes(q)) ||
+          (m.category && m.category.toLowerCase().includes(q)) ||
+          (m.body && m.body.toLowerCase().includes(q))
+        );
+      }
+
+      if (list.length === 0) {
+        threadsList.innerHTML = `
+          <div style="padding: 2.5rem 1.5rem; text-align: center; color: #64748b; font-size: 0.8rem;">
+            <span>📭</span><br>No messages found in this view.
+          </div>
+        `;
+        return;
+      }
+
+      threadsList.innerHTML = list.map(m => {
+        const isSelected = m.id === selectedMailId;
+        const unreadClass = !m.isRead ? 'unread' : '';
+        const selectedClass = isSelected ? 'selected' : '';
+
+        let tagHtml = '';
+        if (m.isTask) {
+          tagHtml = m.isCompleted
+            ? `<span class="mail-status-tag tag-task-completed">✓ TASK COMPLETED</span>`
+            : `<span class="mail-status-tag tag-task-pending">⚡ TASK PENDING</span>`;
+        }
+
+        const previewSnippet = m.replies && m.replies.length > 0 
+          ? `You: ${m.replies[m.replies.length - 1].text}` 
+          : (m.body ? m.body.replace(/<[^>]*>?/gm, '') : '');
+
+        return `
+          <div class="pc-mail-item ${selectedClass} ${unreadClass}" data-id="${m.id}">
+            <div class="pc-mail-item-header">
+              <span class="pc-mail-item-sender">
+                <span>${m.senderGlyph || '✉️'}</span> ${escapeHtml(m.senderName)}
+              </span>
+              <span class="pc-mail-item-time">${m.date || ''}</span>
+            </div>
+            <div class="pc-mail-item-subject">${escapeHtml(m.subject)}</div>
+            <div class="pc-mail-item-preview">${escapeHtml(previewSnippet)}</div>
+            <div class="pc-mail-tag-row">
+              ${tagHtml}
+              <span class="mail-status-tag tag-category">${m.category || 'Direct'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Click binding
+      threadsList.querySelectorAll('.pc-mail-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-id');
+          selectEmail(id);
+        });
+      });
+    };
+
+    // Select Email and Render Detail
+    const selectEmail = (id) => {
+      selectedMailId = id;
+      const allList = currentFolder === 'sent' ? sentMails : mails;
+      const email = allList.find(m => m.id === id);
+      if (!email) {
+        readPane.innerHTML = `<div style="padding: 3rem; text-align:center; color:#64748b;">Select an email to view.</div>`;
+        return;
+      }
+
+      email.isRead = true;
+      saveMailState();
+      updateBadges();
+      renderThreadsList();
+
+      // Render Task Banner
+      let bannerHtml = '';
+      if (email.isTask) {
+        if (!email.isCompleted) {
+          bannerHtml = `
+            <div class="pc-mail-task-banner pending">
+              <div class="task-banner-text">
+                <div class="task-banner-heading">⚡ Active Simulation Task Directive</div>
+                <div class="task-banner-desc">Reply to this email with the requested engineering deliverables to complete this task.</div>
+              </div>
+              <div class="task-reward-pill">+${email.xpReward} XP &amp; +$${email.fundsReward}</div>
+            </div>
+          `;
+        } else {
+          bannerHtml = `
+            <div class="pc-mail-task-banner completed">
+              <div class="task-banner-text">
+                <div class="task-banner-heading">✓ Task Completed &amp; Verified by Leadership</div>
+                <div class="task-banner-desc">Deliverable logged in Q4 Sprint audit. Milestone reward credited to your account.</div>
+              </div>
+              <div class="task-reward-pill">✓ +${email.xpReward} XP Awarded</div>
+            </div>
+          `;
+        }
+      }
+
+      // Render Thread Replies
+      let threadHistoryHtml = '';
+      if (email.replies && email.replies.length > 0) {
+        threadHistoryHtml = `
+          <div class="pc-mail-thread-history">
+            <span style="font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">Thread Activity (${email.replies.length}):</span>
+            ${email.replies.map(r => `
+              <div class="pc-mail-reply-bubble">
+                <div class="reply-bubble-meta">
+                  <span>${r.sender === 'me' ? '📤 You (Sent Reply)' : '📥 ' + escapeHtml(r.sender)}</span>
+                  <span>${r.time}</span>
+                </div>
+                <div class="reply-bubble-text">${escapeHtml(r.text)}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      // Avatar
+      const avatarContent = email.senderAvatar 
+        ? `<img src="${email.senderAvatar}" alt="${escapeHtml(email.senderName)}" onerror="this.style.display='none'; this.parentElement.textContent='${email.senderGlyph || '✉️'}';" />`
+        : `<span>${email.senderGlyph || '✉️'}</span>`;
+
+      // Reply Box UI
+      let replyDrawerHtml = '';
+      if (currentFolder !== 'sent') {
+        const defaultBoxVal = (!email.isCompleted && email.suggestedReply) ? email.suggestedReply : '';
+        const btnLabel = email.isCompleted ? 'Send Follow-up Email' : '🚀 Send Email & Complete Task';
+
+        replyDrawerHtml = `
+          <div class="pc-mail-reply-drawer">
+            <div class="pc-mail-template-pills">
+              <span style="font-size:0.72rem; color:#94a3b8; font-weight:700;">Template Fill:</span>
+              <button class="mail-pill-btn" id="btn-use-suggested">Suggested Answer</button>
+              <button class="mail-pill-btn" id="btn-use-status">Status Report</button>
+              <button class="mail-pill-btn" id="btn-use-clear">Clear</button>
+            </div>
+            <textarea class="pc-mail-reply-box" id="mail-reply-input" placeholder="Type your formal engineering response or sign-off...">${escapeHtml(defaultBoxVal)}</textarea>
+            <div class="pc-mail-reply-actions">
+              <span style="font-size:0.72rem; color:#64748b;">Press [Send Email] to complete directive in simulation</span>
+              <button class="pc-mail-send-btn" id="mail-btn-send-reply">
+                <span>✉️</span> ${btnLabel}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      readPane.innerHTML = `
+        <div class="pc-mail-detail-header">
+          <div class="pc-mail-detail-title">${escapeHtml(email.subject)}</div>
+          <div class="pc-mail-sender-row">
+            <div class="pc-mail-sender-info">
+              <div class="pc-mail-sender-avatar">${avatarContent}</div>
+              <div class="pc-mail-sender-meta">
+                <span class="pc-mail-sender-name">${escapeHtml(email.senderName)}</span>
+                <span class="pc-mail-sender-sub">${escapeHtml(email.senderDept)} &bull; &lt;${escapeHtml(email.senderEmail)}&gt;</span>
+              </div>
+            </div>
+            <span style="font-size: 0.75rem; color: #94a3b8;">${email.date}</span>
+          </div>
+        </div>
+
+        ${bannerHtml}
+
+        <div class="pc-mail-body-content">
+          ${email.body}
+        </div>
+
+        ${threadHistoryHtml}
+
+        ${replyDrawerHtml}
+      `;
+
+      // Bind Reply Actions
+      const replyBtn = readPane.querySelector('#mail-btn-send-reply');
+      const replyInput = readPane.querySelector('#mail-reply-input');
+      const btnSuggested = readPane.querySelector('#btn-use-suggested');
+      const btnStatus = readPane.querySelector('#btn-use-status');
+      const btnClear = readPane.querySelector('#btn-use-clear');
+
+      if (btnSuggested && replyInput) {
+        btnSuggested.onclick = () => {
+          replyInput.value = email.suggestedReply || 'Acknowledged and approved for production.';
+          playSound('click');
+        };
+      }
+      if (btnStatus && replyInput) {
+        btnStatus.onclick = () => {
+          replyInput.value = 'Status Update: Systems running smoothly at 99.99% uptime. Latency steady under 1ms. All tests passing.';
+          playSound('click');
+        };
+      }
+      if (btnClear && replyInput) {
+        btnClear.onclick = () => {
+          replyInput.value = '';
+          playSound('click');
+        };
+      }
+
+      if (replyBtn && replyInput) {
+        replyBtn.onclick = () => {
+          const text = replyInput.value.trim();
+          if (!text) {
+            if (window.showToast) window.showToast('⚠️ Please enter an email response before sending!');
+            playSound('error');
+            return;
+          }
+          sendReplyToEmail(email, text);
+        };
+      }
+    };
+
+    // Send Reply & Complete Task Logic
+    const sendReplyToEmail = (email, text) => {
+      if (!email.replies) email.replies = [];
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      email.replies.push({
+        sender: 'me',
+        text: text,
+        time: `Today, ${nowStr}`
+      });
+
+      // Add to sent folder
+      sentMails.unshift({
+        id: `sent_${Date.now()}`,
+        isTask: false,
+        isCompleted: true,
+        isRead: true,
+        folder: 'sent',
+        senderName: 'You (Lead Dev)',
+        senderDept: 'Assigned Workstation #1',
+        senderEmail: userEmailEl ? userEmailEl.textContent : 'yasharth@omnicorp.internal',
+        subject: `Re: ${email.subject}`,
+        date: `Today, ${nowStr}`,
+        category: 'SENT',
+        priority: 'Normal',
+        body: text.replace(/\n/g, '<br>'),
+        replies: []
+      });
+
+      const wasPending = email.isTask && !email.isCompleted;
+      if (wasPending) {
+        email.isCompleted = true;
+
+        // Award XP and Funds
+        const xp = email.xpReward || 150;
+        const funds = email.fundsReward || 300;
+
+        if (window.state && window.state.player) {
+          window.state.player.score = (window.state.player.score || 0) + xp;
+          const scoreEl = document.getElementById('stat-score');
+          if (scoreEl) scoreEl.textContent = window.state.player.score;
+        }
+        if (typeof window.addCorporateFunds === 'function') {
+          window.addCorporateFunds(funds);
+        }
+
+        // Play smartphone pop & success chime
+        if (window.soundManager) {
+          if (typeof window.soundManager.playPhonePop === 'function') window.soundManager.playPhonePop();
+          if (typeof window.soundManager.playSuccess === 'function') window.soundManager.playSuccess();
+        }
+
+        // Show Toast
+        if (window.showToast) {
+          window.showToast(`⭐ +${xp} XP & +$${funds}: Completed "${email.taskTitle || email.subject}"!`);
+        }
+
+        // Sync with Smartphone Tasks
+        if (window.phoneDevice && typeof window.phoneDevice.getActiveCharId === 'function') {
+          const charId = window.phoneDevice.getActiveCharId();
+          const tasks = window.phoneDevice.characterTasks[charId] || [];
+          const uncompleted = tasks.find(t => !t.completed);
+          if (uncompleted) {
+            uncompleted.completed = true;
+            window.phoneDevice.completedTaskTitles.add(uncompleted.title);
+            window.phoneDevice.renderSweTaskList(charId);
+            window.phoneDevice.updatePhoneBadge();
+
+            const allDone = tasks.length > 0 && tasks.every(t => t.completed);
+            if (allDone && typeof window.phoneDevice.onAllTasksCompleted === 'function') {
+              window.phoneDevice.onAllTasksCompleted(charId);
+            }
+          }
+        }
+      } else {
+        playSound('notify');
+        if (window.showToast) {
+          window.showToast(`✉️ Email reply delivered to ${email.senderName}!`);
+        }
+      }
+
+      saveMailState();
+      selectEmail(email.id);
+
+      // Automated coworker response after 4.5 seconds
+      setTimeout(() => {
+        const replyMap = {
+          'mail_task_retro': 'Thank you! Reviewed your retrospective submission. Outstanding technical clarity. Keep up the high velocity!',
+          'mail_task_rca': 'RCA received and verified. The incident ticket INC-4091 has been marked resolved. Great turnaround!',
+          'mail_task_client': 'Confirmed and received. The executive board was very pleased with the sub-millisecond telemetry numbers.',
+          'mail_task_security': 'Sign-off received and filed with compliance auditors. SOC2 Type II audit passed.',
+          'mail_task_canary': 'ACK token processed. Canary promoted to 100% production traffic. Deployment pipeline green.'
+        };
+        const replyText = replyMap[email.id] || 'Thanks for the quick response! Logged into team records.';
+
+        email.replies.push({
+          sender: email.senderName,
+          text: replyText,
+          time: `Today, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+        });
+        saveMailState();
+
+        if (window.soundManager && typeof window.soundManager.playPhonePop === 'function') {
+          window.soundManager.playPhonePop();
+        }
+        if (window.showToast) {
+          window.showToast(`📬 New Reply from ${email.senderName}: "${replyText.substring(0, 48)}..."`);
+        }
+        if (selectedMailId === email.id) {
+          selectEmail(email.id);
+        }
+      }, 4500);
+    };
+
+    // Filter tabs
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.getAttribute('data-filter') || 'all';
+        renderThreadsList();
+      });
+    });
+
+    // Folders
+    folderItems.forEach(item => {
+      item.addEventListener('click', () => {
+        folderItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        currentFolder = item.getAttribute('data-folder') || 'inbox';
+        renderThreadsList();
+        const first = (currentFolder === 'sent' ? sentMails[0] : mails[0]);
+        if (first) selectEmail(first.id);
+      });
+    });
+
+    // Search bar
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderThreadsList();
+      });
+    }
+
+    // Compose dialog
+    if (composeBtn && composeDialog) {
+      composeBtn.onclick = () => {
+        composeDialog.style.display = 'flex';
+        playSound('click');
+      };
+    }
+    if (composeClose && composeDialog) {
+      composeClose.onclick = () => { composeDialog.style.display = 'none'; };
+    }
+    if (composeCancel && composeDialog) {
+      composeCancel.onclick = () => { composeDialog.style.display = 'none'; };
+    }
+
+    // Quick fill pills in compose
+    winEl.querySelectorAll('.mail-pill-btn[data-fill]').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const fillType = pill.getAttribute('data-fill');
+        if (fillType === 'retro') {
+          composeSub.value = 'Sprint Retrospective & OKR Deliverables';
+          composeBody.value = 'Hi team,\n\nHere are my sprint deliverables:\n- Microservice latency reduced to 0.8ms.\n- Zero open P0 blockers.\n- Ready for Q1 planning.\n\nBest,\nEngineer';
+        } else if (fillType === 'status') {
+          composeSub.value = 'Engineering Status Report';
+          composeBody.value = 'All production pods operating normally. Ingestion queue is at zero backlog. Next deployment scheduled for 2 PM.';
+        } else if (fillType === 'rca') {
+          composeSub.value = 'Post-Mortem Root Cause Analysis';
+          composeBody.value = 'Root Cause: Database connection timeout on burst traffic.\nMitigation: Increased pool capacity and added connection recycling.\nAction Items: Monitoring alerts adjusted.';
+        } else if (fillType === 'canary') {
+          composeSub.value = 'Canary Deployment Verification & Sign-off';
+          composeBody.value = 'ACK_DEPLOY_PROD_CANARY\n\nSynthetic health probes pass. Zero regressions observed. Approved for rollout.';
+        }
+        playSound('click');
+      });
+    });
+
+    // Send custom compose
+    if (composeSend) {
+      composeSend.onclick = () => {
+        const to = composeTo.value;
+        const sub = composeSub.value.trim() || 'Engineering Directive Update';
+        const body = composeBody.value.trim();
+
+        if (!body) {
+          if (window.showToast) window.showToast('⚠️ Please write message content before sending!');
+          playSound('error');
+          return;
+        }
+
+        const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const newSent = {
+          id: `custom_${Date.now()}`,
+          isTask: false,
+          isCompleted: true,
+          isRead: true,
+          folder: 'sent',
+          senderName: 'You (Lead Dev)',
+          senderDept: 'Assigned Workstation #1',
+          senderEmail: userEmailEl ? userEmailEl.textContent : 'yasharth@omnicorp.internal',
+          subject: sub,
+          date: `Today, ${nowStr}`,
+          category: 'SENT',
+          priority: 'Normal',
+          body: body.replace(/\n/g, '<br>'),
+          replies: []
+        };
+
+        sentMails.unshift(newSent);
+        saveMailState();
+        composeDialog.style.display = 'none';
+
+        // Award proactive communication bonus
+        const commsBonus = 80;
+        if (window.state && window.state.player) {
+          window.state.player.score = (window.state.player.score || 0) + commsBonus;
+          const scoreEl = document.getElementById('stat-score');
+          if (scoreEl) scoreEl.textContent = window.state.player.score;
+        }
+
+        // Chimes & toast
+        if (window.soundManager && typeof window.soundManager.playPhonePop === 'function') {
+          window.soundManager.playPhonePop();
+        }
+        if (window.showToast) {
+          window.showToast(`✉️ Email sent to ${to}! +${commsBonus} XP Communication Bonus.`);
+        }
+
+        updateBadges();
+      };
+    }
+
+    // Initial view
+    updateBadges();
+    renderThreadsList();
+    if (mails[0]) selectEmail(mails[0].id);
+  }
+
   function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1801,11 +2575,11 @@ git add . && git commit -m "another day another feature"`;
       window.showToast('💻 Logged into Workstation #1 (OfficeOS 11 Pro)');
     }
 
-    // Auto-open Terminal on first launch
+    // Auto-open Mail on first launch if no other windows open
     if (Object.keys(PC_STATE.windows).length === 0) {
       setTimeout(() => {
-        openApp('terminal');
-      }, 300);
+        openApp('mail');
+      }, 250);
     }
   };
 
@@ -1817,6 +2591,33 @@ git add . && git commit -m "another day another feature"`;
     playSound('click');
   };
 
+  // Expose global pcOS API
+  window.pcOS = {
+    open: window.openWorkstationPC,
+    close: window.closeWorkstationPC,
+    openApp: openApp,
+    openMail: function() {
+      window.openWorkstationPC();
+      setTimeout(() => openApp('mail'), 220);
+    },
+    openBrowser: function() {
+      window.openWorkstationPC();
+      setTimeout(() => openApp('browser'), 220);
+    },
+    openTerminal: function() {
+      window.openWorkstationPC();
+      setTimeout(() => openApp('terminal'), 220);
+    },
+    openSlack: function() {
+      window.openWorkstationPC();
+      setTimeout(() => openApp('slack'), 220);
+    },
+    openNotepad: function() {
+      window.openWorkstationPC();
+      setTimeout(() => openApp('notepad'), 220);
+    }
+  };
+
   // Auto-init on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPCOS);
@@ -1824,3 +2625,4 @@ git add . && git commit -m "another day another feature"`;
     initPCOS();
   }
 })();
+
