@@ -804,7 +804,7 @@
                   <div class="notif-title" id="phone-notif-title">Software Engineering Tasks</div>
                   <div class="notif-loc-tag" id="phone-notif-location">📍 Acme R&D Innovation Mega-Hub</div>
                   <div class="notif-desc-text" id="phone-notif-desc">
-                    Groq AI generated 4-5 priority tasks for your engineering role. Click checkboxes to complete tasks and earn XP!
+                    Double-click any task notification below to tick & complete it! Earn corporate XP & cash rewards.
                   </div>
 
                   <!-- Dynamic Interactive SWE Task Cards -->
@@ -1367,41 +1367,88 @@ Each object must have these exact keys:
 
       const tasks = this.characterTasks[charId] || [];
       if (tasks.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:15px; color:#94a3b8; font-size:0.75rem;">No active tasks. Tap Refresh to ask HR for tasks.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:15px; color:#94a3b8; font-size:0.75rem;">No active notifications. Tap 'Generate New Tasks' to request tasks from HR.</div>`;
         return;
       }
 
-      container.innerHTML = tasks.map((t) => {
+      container.innerHTML = tasks.map((t, index) => {
         const rewardInfo = getTaskDifficultyAndMoney(t);
+        const timeAgo = (index === 0) ? 'just now' : `${(index + 1) * 3}m ago`;
         return `
-          <div class="swe-task-card ${t.completed ? 'completed' : ''}" data-task-id="${t.id}">
-            <div class="swe-task-header">
-              <div class="swe-task-left">
-                <div class="swe-task-checkbox ${t.completed ? 'checked' : ''}" data-task-id="${t.id}" title="Toggle Task Completion">
-                  ${t.completed ? '✓' : ''}
-                </div>
-                <div class="swe-task-title">${t.title}</div>
+          <div class="swe-task-notif-card ${t.completed ? 'completed' : ''}" data-task-id="${t.id}" title="Double-click to ${t.completed ? 'unmark' : 'tick & complete'}">
+            <div class="notif-header-strip">
+              <div class="notif-app-meta">
+                <span class="notif-app-icon">🏢</span>
+                <span class="notif-app-name">Sprint Directive</span>
+                <span class="notif-bullet">•</span>
+                <span class="notif-timestamp">${timeAgo}</span>
+              </div>
+              <div class="notif-tick-badge ${t.completed ? 'checked' : ''}" data-task-id="${t.id}" title="Double-click card or click badge to toggle">
+                <span class="tick-icon">${t.completed ? '✓' : '○'}</span>
+                <span class="tick-label">${t.completed ? 'DONE' : 'TICK'}</span>
               </div>
             </div>
-            <div class="swe-task-badge-row">
-              <span class="diff-tag diff-${rewardInfo.diffClass}">${rewardInfo.diffBadge}</span>
-              <span class="money-tag">💵 +$${rewardInfo.money}</span>
-              <span class="cat-tag">${t.category || 'Tech'}</span>
-              <span class="xp-tag">+${t.xp} XP</span>
+            <div class="notif-main-content">
+              <div class="notif-task-title">${t.title}</div>
+              <div class="notif-task-desc">${t.description}</div>
             </div>
-            <div class="swe-task-desc">${t.description}</div>
-            <div class="swe-task-loc">📍 ${t.location}</div>
+            <div class="notif-footer-strip">
+              <div class="notif-badges-left">
+                <span class="diff-tag diff-${rewardInfo.diffClass}">${rewardInfo.diffBadge}</span>
+                <span class="money-tag">💵 +$${rewardInfo.money}</span>
+                <span class="cat-tag">${t.category || 'Tech'}</span>
+                <span class="xp-tag">+${t.xp} XP</span>
+              </div>
+              <div class="notif-dblclick-hint ${t.completed ? 'completed' : ''}">
+                ${t.completed ? '✓ Completed' : '⚡ Double-Click to Tick'}
+              </div>
+            </div>
           </div>
         `;
       }).join('');
 
-      // Attach click events to toggle completion
-      const cards = container.querySelectorAll('.swe-task-card');
+      // Attach double-click and double-tap events to toggle task completion
+      const cards = container.querySelectorAll('.swe-task-notif-card');
       cards.forEach(card => {
         const taskId = card.getAttribute('data-task-id');
-        card.onclick = (e) => {
-          this.toggleTaskCompleted(charId, taskId);
+        let lastTapTime = 0;
+
+        const doTick = () => {
+          card.classList.add('ticking-pop');
+          setTimeout(() => {
+            this.toggleTaskCompleted(charId, taskId);
+          }, 140);
         };
+
+        // Desktop Double Click
+        card.ondblclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          doTick();
+        };
+
+        // Mobile / Touch Double Tap
+        card.addEventListener('touchend', (e) => {
+          const now = Date.now();
+          if (now - lastTapTime < 350) {
+            e.preventDefault();
+            e.stopPropagation();
+            lastTapTime = 0;
+            doTick();
+          } else {
+            lastTapTime = now;
+          }
+        });
+
+        // Direct click on the tick badge also ticks immediately for convenience
+        const tickBadge = card.querySelector('.notif-tick-badge');
+        if (tickBadge) {
+          tickBadge.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            doTick();
+          };
+        }
       });
     }
 
@@ -1452,7 +1499,11 @@ Each object must have these exact keys:
       // Play sound
       if (window.soundManager) {
         if (task.completed) {
-          window.soundManager.playSuccess();
+          if (typeof window.soundManager.playNotificationPop === 'function') {
+            window.soundManager.playNotificationPop();
+          } else {
+            window.soundManager.playQuestComplete();
+          }
         } else {
           window.soundManager.playInteract();
         }
