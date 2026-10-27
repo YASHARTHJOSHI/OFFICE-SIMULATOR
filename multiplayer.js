@@ -243,11 +243,13 @@ class MultiplayerEngine {
 
     conn.on('close', () => {
       this.connections.delete(conn.peer);
+      this.removePeer(conn.peer, 'disconnected');
       if (this.onLobbyUpdate) this.onLobbyUpdate();
     });
 
     conn.on('error', () => {
       this.connections.delete(conn.peer);
+      this.removePeer(conn.peer, 'disconnected');
     });
   }
 
@@ -303,6 +305,19 @@ class MultiplayerEngine {
         case 'JOIN': {
           const p = msg.player;
           if (!p || !p.id) break;
+
+          // Rejoin cleanup: if player previously existed, clean up stale entry so rejoin is 100% fresh
+          if (this.peers.has(p.id)) {
+            this.removePeer(p.id, 'silent');
+          } else {
+            for (const [key, val] of this.peers.entries()) {
+              if (val.name === p.name) {
+                this.removePeer(key, 'silent');
+                break;
+              }
+            }
+          }
+
           const validX = Number.isFinite(p.x) ? p.x : 512;
           const validY = Number.isFinite(p.y) ? p.y : 245;
 
@@ -441,21 +456,7 @@ class MultiplayerEngine {
         }
 
         case 'LEAVE': {
-          const p = this.peers.get(msg.senderId);
-          if (p) {
-            this.characters.forEach(c => {
-              if (c.claimedBy === msg.senderId) {
-                c.claimedBy = null;
-                c.claimedByName = null;
-                c.available = true;
-              }
-            });
-            if (this.onToast) {
-              this.onToast(`🚶 ${p.name || 'Colleague'} left the room.`);
-            }
-            this.peers.delete(msg.senderId);
-            if (this.onLobbyUpdate) this.onLobbyUpdate();
-          }
+          this.removePeer(msg.senderId, 'left');
           break;
         }
       }
@@ -577,10 +578,76 @@ class MultiplayerEngine {
   }
 
   /**
+   * Remove a player immediately upon leaving or disconnecting
+   */
+  removePeer(peerId, reason = 'left') {
+    let target = this.peers.get(peerId);
+    let realKey = peerId;
+
+    if (!target) {
+      for (const [key, val] of this.peers.entries()) {
+        if (peerId.includes(key) || key.includes(peerId) || (val.connectionPeerId && val.connectionPeerId === peerId)) {
+          target = val;
+          realKey = key;
+          break;
+        }
+      }
+    }
+
+    if (target) {
+      const charId = target.charId;
+      this.characters.forEach(c => {
+        if (c.claimedBy === realKey || c.claimedBy === peerId || (charId && c.id === charId)) {
+          c.claimedBy = null;
+          c.claimedByName = null;
+          c.available = true;
+        }
+      });
+
+      if (this.onToast && reason !== 'silent') {
+        this.onToast(`🚶 ${target.name || 'Colleague'} left the game.`);
+      }
+
+      this.peers.delete(realKey);
+      this.peers.delete(peerId);
+
+      if (this.isHost) {
+        this.broadcast({
+          type: 'SYNC_CLAIMS',
+          senderId: this.localPlayer.id,
+          claims: this.getClaimsPayload()
+        });
+      }
+
+      if (this.onLobbyUpdate) this.onLobbyUpdate();
+    }
+  }
+
+  /**
+   * Check for stale/disconnected peers if connection abruptly dropped
+   */
+  checkStalePeers() {
+    const now = Date.now();
+    const staleThreshold = 5000;
+    const staleList = [];
+
+    this.peers.forEach((peer, peerId) => {
+      if (peer.lastSeen && (now - peer.lastSeen > staleThreshold)) {
+        staleList.push(peerId);
+      }
+    });
+
+    staleList.forEach(id => {
+      this.removePeer(id, 'left');
+    });
+  }
+
+  /**
    * Interpolate remote player positions for butter-smooth movement
    */
   updateRemotePlayers(dt) {
     if (!this.active) return;
+    this.checkStalePeers();
     const lerpFactor = Math.min(1, Math.max(0, dt * 18));
 
     this.peers.forEach(peer => {
@@ -626,3 +693,17 @@ class MultiplayerEngine {
 
 // Global Singleton
 window.multiplayerEngine = new MultiplayerEngine();
+
+// Clean disconnect on tab close / reload
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('beforeunload', () => {
+    if (window.multiplayerEngine && window.multiplayerEngine.active) {
+      window.multiplayerEngine.disconnect();
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    if (window.multiplayerEngine && window.multiplayerEngine.active) {
+      window.multiplayerEngine.disconnect();
+    }
+  });
+}
