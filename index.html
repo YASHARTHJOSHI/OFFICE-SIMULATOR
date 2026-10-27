@@ -26,14 +26,21 @@
           <span id="online-player-count">👥 1</span>
           <button id="btn-leave-room" class="btn-leave-room" title="Leave Multiplayer Room">Leave</button>
         </div>
+        <div class="quest-score-badge" id="quest-score-badge" title="Workplace Quest Communication Score">
+          🎯 Mastery: 0% (New Intern)
+        </div>
       </div>
       <div class="header-center">
         <div class="objective-tracker" id="objective-tracker">
           <span class="obj-icon">🎯</span>
-          <span id="objective-text">Walk to the wooden door at the top to enter the Boss's Cabinet</span>
+          <span id="objective-text">Talk to Rahul, Priya, Amit, or Neha to learn workplace communication!</span>
         </div>
       </div>
       <div class="header-right">
+        <button id="btn-toggle-classic" class="btn-classic-toggle" title="Switch between 2D Office View and Clean Quest Dashboard">
+          <span id="toggle-mode-icon">📋</span>
+          <span id="toggle-mode-text">Dashboard Mode</span>
+        </button>
         <button id="btn-crt" class="btn-icon" title="Toggle Retro CRT Scanlines" aria-label="Toggle Retro CRT Scanlines">
           <span id="crt-icon">📺</span>
         </button>
@@ -54,10 +61,63 @@
       <div id="canvas-wrapper">
         <canvas id="game-canvas" width="1024" height="576" tabindex="0"></canvas>
 
-
-
         <!-- Door Transition Overlay -->
         <div id="transition-overlay" class="hidden"></div>
+      </div>
+
+      <!-- Classic Mode Quest Dashboard View (Clean non-2D mode) -->
+      <div id="classic-dashboard" class="classic-dashboard hidden">
+        <div class="dashboard-scroll-wrap">
+          <!-- Hero Section: Mastery Scorecard -->
+          <div class="dash-hero">
+            <div class="dash-hero-info">
+              <span class="dash-hero-badge">PS 7 WORKPLACE QUEST</span>
+              <h2 class="dash-hero-title">Professional Communication Mastery</h2>
+              <p class="dash-hero-subtitle">Learn context-rich PR descriptions, bug ticket triage, assertive help-seeking, and clean standup action items.</p>
+              <div class="dash-rank-pill" id="dash-rank-pill">Rank: New Intern 🎓</div>
+            </div>
+            <div class="dash-score-card">
+              <div class="dash-score-circle">
+                <span class="dash-score-val" id="dash-total-score">0%</span>
+                <span class="dash-score-sub">Overall Score</span>
+              </div>
+              <div class="dash-pillars">
+                <div class="pillar-row">
+                  <span class="pillar-label">Clarity</span>
+                  <div class="pillar-bar"><div class="pillar-fill" id="pillar-clarity" style="width: 0%"></div></div>
+                </div>
+                <div class="pillar-row">
+                  <span class="pillar-label">Completeness</span>
+                  <div class="pillar-bar"><div class="pillar-fill" id="pillar-completeness" style="width: 0%"></div></div>
+                </div>
+                <div class="pillar-row">
+                  <span class="pillar-label">Tone</span>
+                  <div class="pillar-bar"><div class="pillar-fill" id="pillar-tone" style="width: 0%"></div></div>
+                </div>
+                <div class="pillar-row">
+                  <span class="pillar-label">Next Action</span>
+                  <div class="pillar-bar"><div class="pillar-fill" id="pillar-next-action" style="width: 0%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Workplace Quest Cards Grid -->
+          <div class="dash-quests-grid" id="dash-quests-grid">
+            <!-- Dynamically populated quest cards for Rahul, Priya, Amit, Neha -->
+          </div>
+
+          <!-- Live Office NPC Activity Feed -->
+          <div class="dash-live-activity">
+            <div class="activity-header">
+              <h3>📡 Live Office Employee Roster & Activity</h3>
+              <span class="live-dot-pulse">● LIVE AI ROUTINE</span>
+            </div>
+            <div class="activity-roster" id="dash-activity-roster">
+              <!-- Live employee status pills -->
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Dialogue Modal Box -->
@@ -264,11 +324,133 @@
         </div>
       </div>
     </div>
+
+    <!-- Interactive Workplace Quest & AI Evaluation Modal -->
+    <div id="quest-modal" class="modal hidden">
+      <div class="modal-card quest-modal-card">
+        <div class="modal-header quest-modal-header">
+          <div class="quest-header-left">
+            <img id="quest-npc-portrait" src="assets/npc_rahul_portrait.png" alt="NPC Portrait" class="quest-avatar-img">
+            <div>
+              <div class="quest-meta-pill" id="quest-meta-pill">CABIN ROOM • TECH LEAD</div>
+              <h3 id="quest-title-heading">Review Ready</h3>
+              <p id="quest-subtitle" class="quest-subtitle">Context-rich PR descriptions</p>
+            </div>
+          </div>
+          <button id="btn-close-quest" class="modal-close">&times;</button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="quest-tabs">
+          <button id="tab-btn-challenge" class="quest-tab-btn active">🎯 Quest Challenge & Rubric</button>
+          <button id="tab-btn-chat" class="quest-tab-btn">💬 Live AI Chat with Mentor</button>
+        </div>
+
+        <div class="modal-body quest-modal-body">
+          <!-- Tab 1: Challenge & Rubric Evaluation View -->
+          <div id="quest-tab-challenge" class="quest-tab-content active">
+            <!-- Scenario Box -->
+            <div class="scenario-box">
+              <div class="scenario-label">WORKPLACE SCENARIO</div>
+              <p id="quest-scenario-text" class="scenario-text"></p>
+            </div>
+
+            <!-- Challenge Prompt & Template Toggle -->
+            <div class="challenge-guidance">
+              <div class="guidance-header">
+                <span class="guidance-title">YOUR MISSION</span>
+                <button id="btn-toggle-template" class="btn-subtle-pill">📋 Insert Template</button>
+              </div>
+              <p id="quest-prompt-text" class="guidance-desc"></p>
+            </div>
+
+            <!-- Input Draft Area -->
+            <div class="quest-input-wrap">
+              <label for="quest-draft-input">YOUR DRAFT RESPONSE:</label>
+              <textarea id="quest-draft-input" rows="6" placeholder="Type your professional response or draft here..."></textarea>
+            </div>
+
+            <div class="quest-submit-row">
+              <button id="btn-submit-eval" class="btn-pixel-primary btn-eval">
+                <span class="btn-eval-icon">🚀</span> SUBMIT TO AI FOR EVALUATION
+              </button>
+            </div>
+
+            <!-- AI Evaluation Results Section -->
+            <div id="quest-eval-results" class="eval-results-box hidden">
+              <div class="results-header">
+                <div class="score-badge-circle" id="eval-score-circle">
+                  <span id="eval-total-score">88</span>
+                  <small>/100</small>
+                </div>
+                <div>
+                  <h4 id="eval-verdict-title">Evaluation Complete</h4>
+                  <p id="eval-summary-text" class="eval-summary"></p>
+                </div>
+              </div>
+
+              <!-- 4 Rubric Pillars -->
+              <div class="rubric-grid">
+                <div class="rubric-card">
+                  <span class="rubric-name">Clarity</span>
+                  <span class="rubric-score" id="rubric-clarity">22/25</span>
+                </div>
+                <div class="rubric-card">
+                  <span class="rubric-name">Completeness</span>
+                  <span class="rubric-score" id="rubric-completeness">20/25</span>
+                </div>
+                <div class="rubric-card">
+                  <span class="rubric-name">Tone</span>
+                  <span class="rubric-score" id="rubric-tone">24/25</span>
+                </div>
+                <div class="rubric-card">
+                  <span class="rubric-name">Next Action</span>
+                  <span class="rubric-score" id="rubric-next-action">22/25</span>
+                </div>
+              </div>
+
+              <!-- Feedback Sections -->
+              <div class="feedback-blocks">
+                <div class="feedback-item positive">
+                  <strong>✨ Key Strengths:</strong>
+                  <p id="eval-strengths-text"></p>
+                </div>
+                <div class="feedback-item improvement">
+                  <strong>💡 Actionable Tips to Improve:</strong>
+                  <p id="eval-improvements-text"></p>
+                </div>
+                <div class="feedback-item exemplar">
+                  <strong>⭐ Exemplary Executive Polish:</strong>
+                  <div id="eval-exemplar-text" class="exemplar-code"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Live AI Chat Terminal -->
+          <div id="quest-tab-chat" class="quest-tab-content hidden">
+            <div class="chat-terminal-wrap">
+              <div class="chat-messages" id="quest-chat-messages">
+                <!-- Chat Bubbles -->
+              </div>
+              <div class="chat-quick-chips" id="quest-chat-chips">
+                <!-- Quick question suggestions -->
+              </div>
+              <div class="chat-input-row">
+                <input type="text" id="quest-chat-input" placeholder="Ask question or seek feedback from mentor..." autocomplete="off">
+                <button id="btn-send-chat" class="btn-action-small">Send ⏎</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="peerjs.min.js"></script>
   <script src="audio.js"></script>
   <script src="pixel-engine.js"></script>
+  <script src="ai-agent.js"></script>
   <script src="multiplayer.js"></script>
   <script src="main.js"></script>
 </body>

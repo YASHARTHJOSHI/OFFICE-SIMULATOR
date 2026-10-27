@@ -94,6 +94,23 @@ registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=3');
 registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=3');
 registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=3');
 
+// 4 Workplace Quest NPC Employees (Rahul, Priya, Amit, Neha)
+registerAsset('npc_rahulSpritesheet', 'assets/npc_rahul_spritesheet.png');
+registerAsset('npc_rahulPortrait', 'assets/npc_rahul_portrait.png');
+registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png');
+
+registerAsset('npc_priyaSpritesheet', 'assets/npc_priya_spritesheet.png');
+registerAsset('npc_priyaPortrait', 'assets/npc_priya_portrait.png');
+registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png');
+
+registerAsset('npc_amitSpritesheet', 'assets/npc_amit_spritesheet.png');
+registerAsset('npc_amitPortrait', 'assets/npc_amit_portrait.png');
+registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png');
+
+registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png');
+registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png');
+registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png');
+
 // Check if all cached already
 checkAllAssetsLoaded();
 
@@ -502,6 +519,8 @@ function initGame() {
 
   setupEventListeners();
   setupStartMenuAndLobby();
+  setupQuestEventListeners();
+  if (window.aiAgent) window.aiAgent.updateHeaderScoreUI();
   updateResponsiveCanvas();
   window.addEventListener('resize', updateResponsiveCanvas);
 
@@ -1283,6 +1302,11 @@ function update(dt) {
     }
     window.pixelEngine.particles.update(dt);
   }
+
+  // Autonomous AI NPC Routines
+  if (window.aiAgent) {
+    window.aiAgent.update(dt * 1000);
+  }
 }
 
 function updateTriggers() {
@@ -1291,15 +1315,38 @@ function updateTriggers() {
 
   let foundTrigger = null;
 
-  for (const trig of scene.triggers) {
-    // Check player proximity to trigger box
-    const dist = Math.hypot(p.x - (trig.x + trig.w / 2), p.y - (trig.y + trig.h / 2));
-    if (dist < 65 || (
-      p.x >= trig.x - 20 && p.x <= trig.x + trig.w + 20 &&
-      p.y >= trig.y - 20 && p.y <= trig.y + trig.h + 20
-    )) {
-      foundTrigger = trig;
-      break;
+  // 1. Check proximity to autonomous Workplace Quest NPCs
+  if (window.aiAgent && window.aiAgent.npcs) {
+    for (const npc of window.aiAgent.npcs) {
+      if (npc.scene === state.currentScene) {
+        const dist = Math.hypot(p.x - npc.x, p.y - npc.y);
+        if (dist < 65) {
+          const quest = window.aiAgent.quests[npc.questId];
+          foundTrigger = {
+            id: `talk_to_${npc.id}`,
+            npcId: npc.id,
+            questId: npc.questId,
+            prompt: `Talk to ${npc.name} (${npc.role}) - ${quest.title} [E]`,
+            promptPos: { x: npc.x, y: npc.y - 75 },
+            action: () => openQuestModal(npc.questId, npc.id)
+          };
+          break;
+        }
+      }
+    }
+  }
+
+  // 2. Standard Scene Triggers (Doors, water cooler, workstations)
+  if (!foundTrigger) {
+    for (const trig of scene.triggers) {
+      const dist = Math.hypot(p.x - (trig.x + trig.w / 2), p.y - (trig.y + trig.h / 2));
+      if (dist < 65 || (
+        p.x >= trig.x - 20 && p.x <= trig.x + trig.w + 20 &&
+        p.y >= trig.y - 20 && p.y <= trig.y + trig.h + 20
+      )) {
+        foundTrigger = trig;
+        break;
+      }
     }
   }
 
@@ -1332,10 +1379,15 @@ function render() {
     renderCornerOffice();
   }
 
-  // 3. Draw Player Character
+  // 3. Draw Autonomous AI NPCs (Rahul, Priya, Amit, Neha)
+  if (window.aiAgent) {
+    window.aiAgent.render(ctx, state.currentScene, assets, scene.playerScale);
+  }
+
+  // 3b. Draw Player Character
   renderPlayer();
 
-  // 3b. Draw Other Online Players in Same Scene
+  // 3c. Draw Other Online Players in Same Scene
   renderRemotePlayers();
 
   // 4. Draw Foreground Elements (e.g. if character walks behind desk)
@@ -1733,6 +1785,396 @@ function renderRemotePlayers() {
       ctx.restore();
     }
   });
+}
+
+// ==========================================
+// WORKPLACE QUEST & CLASSIC DASHBOARD CONTROLLER
+// ==========================================
+let currentQuestId = null;
+let currentNPCId = null;
+
+function toggleClassicDashboard() {
+  const dash = document.getElementById('classic-dashboard');
+  const canvasWrap = document.getElementById('canvas-wrapper');
+  const btnToggle = document.getElementById('btn-toggle-classic');
+  if (!dash || !canvasWrap || !btnToggle) return;
+
+  const isCurrentlyHidden = dash.classList.contains('hidden');
+
+  if (isCurrentlyHidden) {
+    // Switch to Dashboard Mode
+    dash.classList.remove('hidden');
+    canvasWrap.classList.add('hidden');
+    btnToggle.classList.add('active');
+    btnToggle.innerHTML = '<span id="toggle-mode-icon">🎮</span> <span id="toggle-mode-text">2D View</span>';
+    renderClassicDashboard();
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+    showToast('📋 Switched to Workplace Quest Dashboard.');
+  } else {
+    // Switch to 2D Game View
+    dash.classList.add('hidden');
+    canvasWrap.classList.remove('hidden');
+    btnToggle.classList.remove('active');
+    btnToggle.innerHTML = '<span id="toggle-mode-icon">📋</span> <span id="toggle-mode-text">Dashboard Mode</span>';
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+    showToast('🎮 Switched to 2D Office View.');
+  }
+}
+
+function renderClassicDashboard() {
+  if (!window.aiAgent) return;
+
+  const totalScore = window.aiAgent.getTotalScore();
+  const rank = window.aiAgent.getRank();
+
+  // Update Rank & Scores
+  const rankEl = document.getElementById('dash-rank-pill');
+  if (rankEl) rankEl.textContent = `Rank: ${rank}`;
+
+  const scoreEl = document.getElementById('dash-total-score');
+  if (scoreEl) scoreEl.textContent = `${totalScore}%`;
+
+  // Calculate Average Pillars across completed quests
+  let claritySum = 0, compSum = 0, toneSum = 0, nextSum = 0, count = 0;
+  Object.values(window.aiAgent.scores).forEach(s => {
+    if (s.details) {
+      claritySum += s.details.clarity || 0;
+      compSum += s.details.completeness || 0;
+      toneSum += s.details.tone || 0;
+      nextSum += s.details.nextAction || 0;
+      count++;
+    }
+  });
+
+  const cPct = count > 0 ? Math.round((claritySum / (count * 25)) * 100) : 0;
+  const compPct = count > 0 ? Math.round((compSum / (count * 25)) * 100) : 0;
+  const tPct = count > 0 ? Math.round((toneSum / (count * 25)) * 100) : 0;
+  const nPct = count > 0 ? Math.round((nextSum / (count * 25)) * 100) : 0;
+
+  const pClarity = document.getElementById('pillar-clarity');
+  if (pClarity) pClarity.style.width = `${cPct}%`;
+  const pComp = document.getElementById('pillar-completeness');
+  if (pComp) pComp.style.width = `${compPct}%`;
+  const pTone = document.getElementById('pillar-tone');
+  if (pTone) pTone.style.width = `${tPct}%`;
+  const pNext = document.getElementById('pillar-next-action');
+  if (pNext) pNext.style.width = `${nPct}%`;
+
+  // Populate 4 Quest Cards
+  const grid = document.getElementById('dash-quests-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    window.aiAgent.npcs.forEach(npc => {
+      const q = window.aiAgent.quests[npc.questId];
+      const s = window.aiAgent.scores[npc.questId] || { score: 0, completed: false };
+
+      const card = document.createElement('div');
+      card.className = 'dash-quest-card';
+      card.innerHTML = `
+        <div class="dash-card-header">
+          <img src="assets/${npc.id}_portrait.png" alt="${npc.name}" class="dash-card-avatar">
+          <div class="dash-card-meta">
+            <span class="dash-card-room">${q.location}</span>
+            <div class="dash-card-title">${q.title}</div>
+            <div class="dash-card-mentor">Mentor: ${npc.name} (${npc.role})</div>
+          </div>
+        </div>
+        <p class="dash-card-desc">${q.objective}</p>
+        <div class="dash-card-footer">
+          <span class="dash-status-tag ${s.completed ? 'completed' : ''}">
+            ${s.completed ? `⭐ Mastered (${s.score}%)` : (s.score > 0 ? `In Progress (${s.score}%)` : 'Not Started')}
+          </span>
+          <button class="btn-dash-action" data-quest="${q.id}" data-npc="${npc.id}">
+            ${s.completed ? 'Review / Chat' : 'Start Quest 🚀'}
+          </button>
+        </div>
+      `;
+
+      const btn = card.querySelector('.btn-dash-action');
+      if (btn) {
+        btn.onclick = () => openQuestModal(q.id, npc.id);
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // Populate Live Activity Feed
+  const roster = document.getElementById('dash-activity-roster');
+  if (roster) {
+    roster.innerHTML = '';
+    window.aiAgent.npcs.forEach(npc => {
+      const pill = document.createElement('div');
+      pill.className = 'activity-npc-pill';
+      pill.innerHTML = `
+        <img src="assets/${npc.id}_portrait.png" alt="${npc.name}" class="activity-npc-avatar">
+        <div class="activity-npc-info">
+          <div class="activity-npc-name">${npc.name} (${npc.role})</div>
+          <div class="activity-npc-task">${npc.activityLabel}</div>
+          <div class="activity-npc-loc">📍 Location: ${npc.scene.replace('_', ' ')} • ${npc.isSitting ? 'Seated at Desk' : 'Active'}</div>
+        </div>
+      `;
+      roster.appendChild(pill);
+    });
+  }
+
+  window.aiAgent.updateHeaderScoreUI();
+}
+
+function openQuestModal(questId, npcId) {
+  if (!window.aiAgent) return;
+  const quest = window.aiAgent.quests[questId];
+  const npc = window.aiAgent.npcs.find(n => n.id === npcId);
+  if (!quest || !npc) return;
+
+  currentQuestId = questId;
+  currentNPCId = npcId;
+
+  const modal = document.getElementById('quest-modal');
+  modal.classList.remove('hidden');
+
+  // Populate Header
+  const portImg = document.getElementById('quest-npc-portrait');
+  if (portImg) portImg.src = `assets/${npc.id}_portrait.png`;
+  const metaPill = document.getElementById('quest-meta-pill');
+  if (metaPill) metaPill.textContent = `${quest.location.toUpperCase()} • ${npc.role.toUpperCase()}`;
+  const titleEl = document.getElementById('quest-title-heading');
+  if (titleEl) titleEl.textContent = quest.title;
+  const subEl = document.getElementById('quest-subtitle');
+  if (subEl) subEl.textContent = `Mentor: ${npc.name} • ${quest.objective}`;
+
+  // Populate Tab 1 (Challenge)
+  const scText = document.getElementById('quest-scenario-text');
+  if (scText) scText.textContent = quest.scenario;
+  const prText = document.getElementById('quest-prompt-text');
+  if (prText) prText.textContent = quest.defaultPrompt;
+  const draftIn = document.getElementById('quest-draft-input');
+  if (draftIn) draftIn.value = '';
+
+  // Hide previous results
+  const resBox = document.getElementById('quest-eval-results');
+  if (resBox) resBox.classList.add('hidden');
+
+  // Default to challenge tab
+  switchQuestTab('challenge');
+
+  // Render chat history in Tab 2
+  renderChatMessages(npcId);
+
+  window.soundManager.unlock();
+  window.soundManager.playInteract();
+}
+
+function closeQuestModal() {
+  const modal = document.getElementById('quest-modal');
+  if (modal) modal.classList.add('hidden');
+  currentQuestId = null;
+  currentNPCId = null;
+}
+
+function switchQuestTab(tabName) {
+  const btnChallenge = document.getElementById('tab-btn-challenge');
+  const btnChat = document.getElementById('tab-btn-chat');
+  const tabChallenge = document.getElementById('quest-tab-challenge');
+  const tabChat = document.getElementById('quest-tab-chat');
+  if (!btnChallenge || !btnChat || !tabChallenge || !tabChat) return;
+
+  if (tabName === 'challenge') {
+    btnChallenge.classList.add('active');
+    btnChat.classList.remove('active');
+    tabChallenge.classList.remove('hidden');
+    tabChat.classList.add('hidden');
+  } else {
+    btnChat.classList.add('active');
+    btnChallenge.classList.remove('active');
+    tabChat.classList.remove('hidden');
+    tabChallenge.classList.add('hidden');
+    renderChatMessages(currentNPCId);
+  }
+}
+
+function renderChatMessages(npcId) {
+  if (!window.aiAgent || !npcId) return;
+  const history = window.aiAgent.chatHistory[npcId] || [];
+  const container = document.getElementById('quest-chat-messages');
+  if (!container) return;
+
+  container.innerHTML = '';
+  history.forEach(msg => {
+    const bubble = document.createElement('div');
+    bubble.className = `chat-msg ${msg.role}`;
+    bubble.textContent = msg.content;
+    container.appendChild(bubble);
+  });
+  container.scrollTop = container.scrollHeight;
+
+  // Render Quick Chips
+  const chipsWrap = document.getElementById('quest-chat-chips');
+  if (chipsWrap) {
+    chipsWrap.innerHTML = '';
+    const suggestions = [
+      'What are the key elements to include?',
+      'Can you review my current draft thoughts?',
+      'How do top engineers approach this?',
+      'What common mistakes should I avoid?'
+    ];
+    suggestions.forEach(s => {
+      const chip = document.createElement('button');
+      chip.className = 'quick-chip';
+      chip.textContent = s;
+      chip.onclick = () => {
+        const input = document.getElementById('quest-chat-input');
+        if (input) input.value = s;
+        handleSendChat();
+      };
+      chipsWrap.appendChild(chip);
+    });
+  }
+}
+
+async function handleSendChat() {
+  const input = document.getElementById('quest-chat-input');
+  if (!input) return;
+  const text = (input.value || '').trim();
+  if (!text || !currentNPCId || !window.aiAgent) return;
+
+  input.value = '';
+  const container = document.getElementById('quest-chat-messages');
+  if (!container) return;
+
+  // Player message bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'chat-msg user';
+  userBubble.textContent = text;
+  container.appendChild(userBubble);
+
+  // Typing indicator bubble
+  const typingBubble = document.createElement('div');
+  typingBubble.className = 'chat-msg assistant';
+  typingBubble.innerHTML = '<em>Thinking & typing...</em>';
+  container.appendChild(typingBubble);
+  container.scrollTop = container.scrollHeight;
+
+  try {
+    const reply = await window.aiAgent.chatWithNPC(currentNPCId, text);
+    typingBubble.textContent = reply;
+  } catch (err) {
+    typingBubble.textContent = 'Network timeout, please try again.';
+  }
+  container.scrollTop = container.scrollHeight;
+}
+
+async function handleSubmitEvaluation() {
+  if (!window.aiAgent || !currentQuestId) return;
+  const input = document.getElementById('quest-draft-input');
+  const draft = (input ? input.value : '').trim();
+  if (!draft) {
+    showToast('⚠️ Please type your draft response before submitting for evaluation!');
+    return;
+  }
+
+  const btn = document.getElementById('btn-submit-eval');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> EVALUATING WITH GROQ AI...';
+  }
+
+  try {
+    const evalData = await window.aiAgent.evaluateSubmission(currentQuestId, draft);
+    displayEvaluationResults(evalData);
+  } catch (err) {
+    console.warn('Evaluation failed:', err);
+    showToast('⚠️ Evaluation error, loaded local rubric scorecard.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>🚀</span> SUBMIT TO AI FOR EVALUATION';
+    }
+  }
+}
+
+function displayEvaluationResults(data) {
+  if (!data) return;
+  const box = document.getElementById('quest-eval-results');
+  if (!box) return;
+  box.classList.remove('hidden');
+
+  const totalEl = document.getElementById('eval-total-score');
+  if (totalEl) totalEl.textContent = data.totalScore;
+  const sumEl = document.getElementById('eval-summary-text');
+  if (sumEl) sumEl.textContent = data.summary;
+
+  const rClarity = document.getElementById('rubric-clarity');
+  if (rClarity) rClarity.textContent = `${data.clarity}/25`;
+  const rComp = document.getElementById('rubric-completeness');
+  if (rComp) rComp.textContent = `${data.completeness}/25`;
+  const rTone = document.getElementById('rubric-tone');
+  if (rTone) rTone.textContent = `${data.tone}/25`;
+  const rNext = document.getElementById('rubric-next-action');
+  if (rNext) rNext.textContent = `${data.nextAction}/25`;
+
+  const stEl = document.getElementById('eval-strengths-text');
+  if (stEl) stEl.textContent = data.strengths;
+  const impEl = document.getElementById('eval-improvements-text');
+  if (impEl) impEl.textContent = data.improvements;
+  const exEl = document.getElementById('eval-exemplar-text');
+  if (exEl) exEl.textContent = data.exemplaryRewrite;
+
+  // Sound & Toast
+  window.soundManager.unlock();
+  window.soundManager.playLevelUp();
+  showToast(`🎉 Score: ${data.totalScore}/100! Quest evaluation recorded.`);
+
+  // Update header and dashboard
+  if (window.aiAgent) window.aiAgent.updateHeaderScoreUI();
+  renderClassicDashboard();
+
+  box.scrollIntoView({ behavior: 'smooth' });
+}
+
+function setupQuestEventListeners() {
+  const btnToggle = document.getElementById('btn-toggle-classic');
+  if (btnToggle) btnToggle.addEventListener('click', toggleClassicDashboard);
+
+  const btnClose = document.getElementById('btn-close-quest');
+  if (btnClose) btnClose.addEventListener('click', closeQuestModal);
+
+  const tabChallenge = document.getElementById('tab-btn-challenge');
+  if (tabChallenge) tabChallenge.addEventListener('click', () => switchQuestTab('challenge'));
+
+  const tabChat = document.getElementById('tab-btn-chat');
+  if (tabChat) tabChat.addEventListener('click', () => switchQuestTab('chat'));
+
+  const btnTemplate = document.getElementById('btn-toggle-template');
+  if (btnTemplate) {
+    btnTemplate.addEventListener('click', () => {
+      if (!window.aiAgent || !currentQuestId) return;
+      const quest = window.aiAgent.quests[currentQuestId];
+      const input = document.getElementById('quest-draft-input');
+      if (quest && input && quest.sampleTemplate) {
+        input.value = quest.sampleTemplate;
+        input.focus();
+        showToast('📋 Inserted mission draft template.');
+      }
+    });
+  }
+
+  const btnSubmit = document.getElementById('btn-submit-eval');
+  if (btnSubmit) btnSubmit.addEventListener('click', handleSubmitEvaluation);
+
+  const btnSendChat = document.getElementById('btn-send-chat');
+  if (btnSendChat) btnSendChat.addEventListener('click', handleSendChat);
+
+  const chatInput = document.getElementById('quest-chat-input');
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSendChat();
+      }
+    });
+  }
 }
 
 function setupStartMenuAndLobby() {
