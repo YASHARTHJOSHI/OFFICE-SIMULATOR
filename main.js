@@ -86,10 +86,10 @@ registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
 registerAsset('char1Sitting', 'assets/char1_sitting.png');
 registerAsset('char2Sitting', 'assets/char2_sitting.png');
-registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png');
-registerAsset('char3Avatar', 'assets/char3_avatar.png');
-registerAsset('char3Idle', 'assets/char3_idle.png');
-registerAsset('char3Sitting', 'assets/char3_sitting.png');
+registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png?v=2');
+registerAsset('char3Avatar', 'assets/char3_avatar.png?v=2');
+registerAsset('char3Idle', 'assets/char3_idle.png?v=2');
+registerAsset('char3Sitting', 'assets/char3_sitting.png?v=2');
 
 // Check if all cached already
 checkAllAssetsLoaded();
