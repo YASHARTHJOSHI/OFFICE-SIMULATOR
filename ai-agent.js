@@ -71,8 +71,29 @@
       scenario: 'In today\'s sync, the team rambled for 25 minutes about database migrations, frontend UI glitches, and API rate limits. Neha asks you to summarize the discussion into clean bullet points with explicit owners, decisions, and deadlines.',
       defaultPrompt: 'Distill the raw discussion into: Key Decisions Made, Action Items (Who/What/When), and Open Blockers.',
       sampleTemplate: '### Decisions\n- Migration scheduled for Thursday 11 PM.\n\n### Action Items\n- [Rahul] Add redis caching by Wed.\n- [Intern] Update test mocks by Thu noon.'
+    },
+    quest_gentle_nudge: {
+      id: 'quest_gentle_nudge',
+      title: 'The Gentle Nudge',
+      npcId: 'npc_alex',
+      npcName: 'Alex',
+      npcRole: 'Cafeteria & Ops Lead',
+      location: 'Cafeteria & Lounge',
+      objective: 'Master sending polite, firm, context-rich follow-up nudges without sounding aggressive or passive-aggressive.',
+      scenario: 'A key external security vendor was supposed to deliver audit credentials 2 days ago for an upcoming executive review at 4:00 PM today. You have not heard back. Alex asks you to draft a polite, high-urgency follow-up message that gets an immediate reply without burning bridges.',
+      defaultPrompt: 'Draft your nudge message stating: 1) What was promised, 2) The original deadline, 3) Today\'s 4 PM audit impact, and 4) An offer to assist.',
+      sampleTemplate: 'Hi [Name],\n\nFollowing up on the security credentials scheduled for delivery on Tuesday. We have our executive audit sync today at 4:00 PM and need to verify the batch.\n\nPlease let us know if there are any blockers or if we can assist with courier clearance.\n\nBest regards,\n[Your Name]'
     }
   };
+
+  // Sequential Progressive Quest Tree (One by One)
+  const QUEST_PROGRESSION = [
+    'quest_ask_help',       // Mission 1: Reception / Hall (Amit)
+    'quest_ticket_triage',   // Mission 2: Corner Office (Priya)
+    'quest_gentle_nudge',    // Mission 3: Cafeteria & Lounge (Alex)
+    'quest_meeting_echo',    // Mission 4: Main Hall Desks (Neha)
+    'quest_pr_review'        // Mission 5 (Boss Quest): Executive Suite (Rahul)
+  ];
 
   // Autonomous NPC Employee Definitions
   const NPC_DEFINITIONS = [
@@ -189,6 +210,34 @@
         { scene: 'OFFICE_HALL', x: 410, y: 512, sit: false, label: '📋 Velocity Chart Review' }
       ],
       systemPrompt: 'You are Neha, an upbeat, high-velocity Scrum Master. You despise 45-minute rambling meetings and champion crisp decisions, explicit assignees, and realistic deadlines ("Meeting Echo"). You speak concisely and motivate teams.'
+    },
+    {
+      id: 'npc_alex',
+      name: 'Alex',
+      role: 'Cafeteria & Ops Lead',
+      questId: 'quest_gentle_nudge',
+      primaryScene: 'CAFETERIA',
+      scene: 'CAFETERIA',
+      x: 508,
+      y: 260,
+      targetX: 508,
+      targetY: 260,
+      isMoving: false,
+      isSitting: false,
+      direction: 'down',
+      animFrame: 0,
+      stateTimer: 8000,
+      scheduleState: 'DESK_WORK',
+      activityLabel: '☕ Brewing Fresh Espresso',
+      deskPos: { scene: 'CAFETERIA', x: 508, y: 260 },
+      waypoints: [
+        { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Brewing Fresh Espresso' },
+        { scene: 'CAFETERIA', x: 595, y: 260, sit: false, label: '🥤 Restocking Vending Machine' },
+        { scene: 'CAFETERIA', x: 700, y: 260, sit: false, label: '🍲 Cleaning Microwave Station' },
+        { scene: 'CAFETERIA', x: 55, y: 430, sit: true, label: '🛋️ Taking Lounge Break' },
+        { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Refilling Water Cooler' }
+      ],
+      systemPrompt: 'You are Alex, an energetic Cafeteria Barista and Workplace Operations Lead. You know all the office dynamics and teach colleagues how to send polite, firm follow-up nudges ("The Gentle Nudge") without passive-aggressive phrasing.'
     }
   ];
 
@@ -217,16 +266,86 @@
     loadScores() {
       try {
         const saved = localStorage.getItem('officesim_quest_scores');
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (!parsed.quest_gentle_nudge) {
+            parsed.quest_gentle_nudge = { score: 0, completed: false, feedback: '' };
+          }
+          return parsed;
+        }
       } catch (e) {
         console.warn('Could not load quest scores from localStorage:', e);
       }
       return {
-        quest_pr_review: { score: 0, completed: false, feedback: '' },
-        quest_ticket_triage: { score: 0, completed: false, feedback: '' },
         quest_ask_help: { score: 0, completed: false, feedback: '' },
-        quest_meeting_echo: { score: 0, completed: false, feedback: '' }
+        quest_ticket_triage: { score: 0, completed: false, feedback: '' },
+        quest_gentle_nudge: { score: 0, completed: false, feedback: '' },
+        quest_meeting_echo: { score: 0, completed: false, feedback: '' },
+        quest_pr_review: { score: 0, completed: false, feedback: '' }
       };
+    }
+
+    getProgression() {
+      return QUEST_PROGRESSION;
+    }
+
+    getActiveQuestId() {
+      for (const qId of QUEST_PROGRESSION) {
+        const s = this.scores[qId];
+        if (!s || !s.completed) {
+          return qId;
+        }
+      }
+      return QUEST_PROGRESSION[QUEST_PROGRESSION.length - 1];
+    }
+
+    isQuestUnlocked(questId) {
+      const idx = QUEST_PROGRESSION.indexOf(questId);
+      if (idx <= 0) return true; // Mission 1 is always unlocked
+      const prevQuestId = QUEST_PROGRESSION[idx - 1];
+      return !!(this.scores[prevQuestId] && this.scores[prevQuestId].completed);
+    }
+
+    getQuestIndex(questId) {
+      return QUEST_PROGRESSION.indexOf(questId);
+    }
+
+    getInboxThreads() {
+      return [
+        {
+          id: 'thread_backend',
+          channel: '#eng-backend',
+          name: 'Vikram & Backend Team',
+          avatar: 'assets/char1_avatar.png',
+          unread: false,
+          messages: [
+            { sender: 'Vikram', role: 'Dev Lead', time: '10:14 AM', text: 'Hey team, did anyone run the new Docker database migrations for Postgres 16?' },
+            { sender: 'Amit', role: 'Engineering Mgr', time: '10:18 AM', text: 'Yes, remember to run with `--skip-ssl`. Intern, if you are hitting a blocker with role root, make sure to ask without apology!' }
+          ]
+        },
+        {
+          id: 'thread_client',
+          channel: '#vip-client-triage',
+          name: 'Priya & Support Escalations',
+          avatar: 'assets/npc_priya_portrait.png',
+          unread: true,
+          messages: [
+            { sender: 'Priya', role: 'Product Manager', time: '11:02 AM', text: '🚨 Priority Ticket from Acme Corp: "Dashboard broken, cancelling subscription!"' },
+            { sender: 'Priya', role: 'Product Manager', time: '11:04 AM', text: 'Need a crisp triage response clarifying their browser, error screenshot, and setting our 2-hour SLA expectation.' }
+          ]
+        },
+        {
+          id: 'thread_social',
+          channel: '#cafeteria-lounge',
+          name: 'Alex & Neha (Social)',
+          avatar: 'assets/npc_alex_portrait.png',
+          unread: false,
+          messages: [
+            { sender: 'Alex', role: 'Barista', time: '09:30 AM', text: '☕ Fresh single-origin Ethiopian espresso beans in the grinder today! Come by!' },
+            { sender: 'Neha', role: 'Scrum Master', time: '09:45 AM', text: 'Grabbing a cup before standup! Team, remember standup notes need explicit owners today (Meeting Echo).' }
+          ]
+        }
+      ];
     }
 
     saveScores() {

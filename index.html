@@ -37,9 +37,14 @@
         </div>
       </div>
       <div class="header-right">
-        <button id="btn-toggle-classic" class="btn-classic-toggle" title="Switch between 2D Office View and Clean Quest Dashboard">
-          <span id="toggle-mode-icon">📋</span>
-          <span id="toggle-mode-text">Dashboard Mode</span>
+        <button id="btn-open-pager" class="btn-pager-toggle" title="Open Simulated Chat Inbox (I)" aria-label="Open OfficePager">
+          <span class="pager-icon">📟</span>
+          <span class="pager-label">OfficePager</span>
+          <span id="pager-unread-badge" class="pager-badge hidden">1</span>
+        </button>
+        <button id="btn-toggle-classic" class="btn-classic-toggle" title="Switch between 2D Office View and Quest Log (Q)">
+          <span id="toggle-mode-icon">📜</span>
+          <span id="toggle-mode-text">Quest Log</span>
         </button>
         <button id="btn-crt" class="btn-icon" title="Toggle Retro CRT Scanlines" aria-label="Toggle Retro CRT Scanlines">
           <span id="crt-icon">📺</span>
@@ -61,19 +66,36 @@
       <div id="canvas-wrapper">
         <canvas id="game-canvas" width="1024" height="576" tabindex="0"></canvas>
 
+        <!-- In-Game 1-by-1 Corner HUD Quest Tracker -->
+        <div id="hud-quest-tracker" class="hud-quest-tracker" title="Current Mission Objective (Click or Press Q for Quest Log)">
+          <div class="hud-tracker-header">
+            <span class="hud-tracker-tag">📜 MISSION <span id="hud-quest-num">1</span>/5</span>
+            <span class="hud-pulse-dot"></span>
+          </div>
+          <div class="hud-tracker-title" id="hud-quest-title">Ask Without Apology</div>
+          <div class="hud-tracker-target" id="hud-quest-target">👤 Mentor: Amit (Reception)</div>
+          <div class="hud-tracker-bar-wrap">
+            <div class="hud-tracker-bar" id="hud-quest-bar" style="width: 0%"></div>
+          </div>
+          <div class="hud-tracker-footer">
+            <span id="hud-quest-status" class="hud-status">[IN PROGRESS]</span>
+            <span class="hud-hint">Press [Q]</span>
+          </div>
+        </div>
+
         <!-- Door Transition Overlay -->
         <div id="transition-overlay" class="hidden"></div>
       </div>
 
-      <!-- Classic Mode Quest Dashboard View (Clean non-2D mode) -->
+      <!-- Classic Mode Quest Dashboard View (16-Bit Guild Board) -->
       <div id="classic-dashboard" class="classic-dashboard hidden">
         <div class="dashboard-scroll-wrap">
           <!-- Hero Section: Mastery Scorecard -->
           <div class="dash-hero">
             <div class="dash-hero-info">
-              <span class="dash-hero-badge">PS 7 WORKPLACE QUEST</span>
-              <h2 class="dash-hero-title">Professional Communication Mastery</h2>
-              <p class="dash-hero-subtitle">Learn context-rich PR descriptions, bug ticket triage, assertive help-seeking, and clean standup action items.</p>
+              <span class="dash-hero-badge">⚔️ ADVENTURER'S GUILD</span>
+              <h2 class="dash-hero-title">Workplace Communication Quest Log</h2>
+              <p class="dash-hero-subtitle">Clear 5 progressive missions one-by-one to rank up from Intern to Principal Engineer!</p>
               <div class="dash-rank-pill" id="dash-rank-pill">Rank: New Intern 🎓</div>
             </div>
             <div class="dash-score-card">
@@ -174,6 +196,8 @@
         <span class="guide-item"><kbd>▼</kbd> or <kbd>E</kbd> / <kbd>Space</kbd> Interact / Open Door</span>
         <span class="guide-item"><kbd>C</kbd> Sit / Stand</span>
         <span class="guide-item"><kbd>Shift</kbd> Run</span>
+        <span class="guide-item"><kbd>Q</kbd> Quest Log</span>
+        <span class="guide-item"><kbd>I</kbd> Pager</span>
         <span class="guide-item"><kbd>M</kbd> Mute</span>
       </div>
       <div class="status-clock" id="status-clock">09:41 AM</div>
@@ -330,6 +354,59 @@
       </div>
     </div>
 
+    <!-- Simulated Chat Inbox Modal (OfficePager 3000) -->
+    <div id="pager-modal" class="modal hidden">
+      <div class="modal-card pager-card">
+        <div class="modal-header pager-header">
+          <div class="pager-header-left">
+            <span class="pager-beeper-icon">📟</span>
+            <div>
+              <h3 class="pager-title">OFFICEPAGER 3000</h3>
+              <p class="pager-subtitle">Simulated Coworker Chat Inbox • 100% Synthetic Fictional Threads</p>
+            </div>
+          </div>
+          <button id="btn-close-pager" class="modal-close">&times;</button>
+        </div>
+
+        <div class="pager-body">
+          <!-- Sidebar Channels -->
+          <div class="pager-sidebar">
+            <div class="pager-channels-header">CHANNELS</div>
+            <div class="pager-channels-list" id="pager-channels-list">
+              <!-- Dynamically populated from seeded threads -->
+            </div>
+            <div class="pager-network-status">
+              <span class="network-dot">●</span>
+              <span>SYNTHETIC INTRANET</span>
+            </div>
+          </div>
+
+          <!-- Chat Thread Panel -->
+          <div class="pager-chat-panel">
+            <div class="pager-thread-header">
+              <div class="thread-title" id="pager-thread-title">#eng-backend</div>
+              <div class="thread-members" id="pager-thread-members">Participants: Rahul (Tech Lead), Dev Team</div>
+            </div>
+
+            <div class="pager-messages-stream" id="pager-messages-stream">
+              <!-- Message bubbles -->
+            </div>
+
+            <div class="pager-quick-responses" id="pager-quick-responses">
+              <!-- Quick reply chips -->
+            </div>
+
+            <div class="pager-input-wrap">
+              <input type="text" id="pager-input" placeholder="Type synthetic response to coworkers..." autocomplete="off">
+              <button id="btn-send-pager" class="btn-pixel-primary btn-pager-send">
+                <span>TRANSMIT ⏎</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Interactive Workplace Quest & AI Evaluation Modal -->
     <div id="quest-modal" class="modal hidden">
       <div class="modal-card quest-modal-card">
@@ -392,6 +469,20 @@
                   <h4 id="eval-verdict-title">Evaluation Complete</h4>
                   <p id="eval-summary-text" class="eval-summary"></p>
                 </div>
+              </div>
+
+              <!-- Next Mission Unlocked Banner -->
+              <div id="eval-next-mission-banner" class="eval-next-mission-banner hidden">
+                <div class="next-banner-text">
+                  <span class="next-banner-icon">⚔️</span>
+                  <div>
+                    <div class="next-banner-title">MISSION CLEARED! RANK PROMOTION EARNED</div>
+                    <div class="next-banner-sub" id="next-banner-sub">Next workplace quest unlocked!</div>
+                  </div>
+                </div>
+                <button id="btn-proceed-next-quest" class="btn-pixel-primary next-quest-btn">
+                  NEXT QUEST ▶
+                </button>
               </div>
 
               <!-- 4 Rubric Pillars -->

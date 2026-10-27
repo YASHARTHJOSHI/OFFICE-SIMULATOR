@@ -762,6 +762,14 @@ function setupEventListeners() {
         toggleSitInChair();
         matched = true;
       }
+      if (k === 'q' || c === 'KeyQ') {
+        toggleClassicDashboard();
+        matched = true;
+      }
+      if (k === 'i' || c === 'KeyI') {
+        togglePagerModal();
+        matched = true;
+      }
       if (k === 'm' || c === 'KeyM') toggleSound();
       if (k === 'h' || c === 'KeyH') toggleHelpModal();
       if (k === 'f' || c === 'KeyF') toggleFullscreen();
@@ -2124,21 +2132,33 @@ function renderClassicDashboard() {
   const pNext = document.getElementById('pillar-next-action');
   if (pNext) pNext.style.width = `${nPct}%`;
 
-  // Populate 4 Quest Cards
+  // Populate 5 Progressive Workplace Quest Cards
   const grid = document.getElementById('dash-quests-grid');
   if (grid) {
     grid.innerHTML = '';
-    window.aiAgent.npcs.forEach(npc => {
-      const q = window.aiAgent.quests[npc.questId];
-      const s = window.aiAgent.scores[npc.questId] || { score: 0, completed: false };
+    const progression = window.aiAgent.getProgression();
+    const activeQuestId = window.aiAgent.getActiveQuestId();
+
+    progression.forEach((questId, index) => {
+      const q = window.aiAgent.quests[questId];
+      if (!q) return;
+      const npc = window.aiAgent.npcs.find(n => n.id === q.mentorId) || window.aiAgent.npcs[0];
+      const s = window.aiAgent.scores[questId] || { score: 0, completed: false };
+      const isUnlocked = window.aiAgent.isQuestUnlocked(questId);
+      const isActive = questId === activeQuestId;
 
       const card = document.createElement('div');
-      card.className = 'dash-quest-card';
+      let statusClass = '';
+      if (s.completed) statusClass = 'completed-quest';
+      else if (isActive) statusClass = 'active-quest';
+      else if (!isUnlocked) statusClass = 'locked-quest';
+
+      card.className = `dash-quest-card ${statusClass}`;
       card.innerHTML = `
         <div class="dash-card-header">
           <img src="assets/${npc.id}_portrait.png" alt="${npc.name}" class="dash-card-avatar">
           <div class="dash-card-meta">
-            <span class="dash-card-room">${q.location}</span>
+            <span class="dash-card-room">${q.location} • MISSION ${index + 1}/5</span>
             <div class="dash-card-title">${q.title}</div>
             <div class="dash-card-mentor">Mentor: ${npc.name} (${npc.role})</div>
           </div>
@@ -2146,16 +2166,16 @@ function renderClassicDashboard() {
         <p class="dash-card-desc">${q.objective}</p>
         <div class="dash-card-footer">
           <span class="dash-status-tag ${s.completed ? 'completed' : ''}">
-            ${s.completed ? `⭐ Mastered (${s.score}%)` : (s.score > 0 ? `In Progress (${s.score}%)` : 'Not Started')}
+            ${s.completed ? `⭐ S-Rank Mastered (${s.score}%)` : (isActive ? `▶ Current Objective (${s.score > 0 ? s.score + '%' : '0%'})` : (!isUnlocked ? `🔒 Locked (Clear Mission ${index})` : `Ready`))}
           </span>
-          <button class="btn-dash-action" data-quest="${q.id}" data-npc="${npc.id}">
-            ${s.completed ? 'Review / Chat' : 'Start Quest 🚀'}
+          <button class="btn-dash-action" data-quest="${q.id}" data-npc="${npc.id}" ${!isUnlocked ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}>
+            ${s.completed ? 'Review / Retry ↺' : (isActive ? 'Tackle Mission ⚔️' : (!isUnlocked ? 'Locked 🔒' : 'Start Quest 🚀'))}
           </button>
         </div>
       `;
 
       const btn = card.querySelector('.btn-dash-action');
-      if (btn) {
+      if (btn && isUnlocked) {
         btn.onclick = () => openQuestModal(q.id, npc.id);
       }
       grid.appendChild(card);
@@ -2182,6 +2202,7 @@ function renderClassicDashboard() {
   }
 
   window.aiAgent.updateHeaderScoreUI();
+  updateHUDQuestTracker();
 }
 
 function openQuestModal(questId, npcId) {
@@ -2356,6 +2377,199 @@ async function handleSubmitEvaluation() {
   }
 }
 
+function updateHUDQuestTracker() {
+  if (!window.aiAgent) return;
+  const activeQuestId = window.aiAgent.getActiveQuestId();
+  const q = window.aiAgent.quests[activeQuestId];
+  if (!q) return;
+
+  const npc = window.aiAgent.npcs.find(n => n.id === q.mentorId) || window.aiAgent.npcs[0];
+  const s = window.aiAgent.scores[activeQuestId] || { score: 0, completed: false };
+  const questIdx = window.aiAgent.getQuestIndex(activeQuestId);
+
+  const numEl = document.getElementById('hud-quest-num');
+  if (numEl) numEl.textContent = (questIdx + 1);
+
+  const titleEl = document.getElementById('hud-quest-title');
+  if (titleEl) titleEl.textContent = q.title;
+
+  const targetEl = document.getElementById('hud-quest-target');
+  if (targetEl) targetEl.textContent = `👤 Mentor: ${npc.name} (${q.location})`;
+
+  const barEl = document.getElementById('hud-quest-bar');
+  if (barEl) barEl.style.width = `${s.score}%`;
+
+  const statusEl = document.getElementById('hud-quest-status');
+  if (statusEl) {
+    if (s.completed) {
+      statusEl.textContent = `[CLEARED ★ ${s.score}%]`;
+      statusEl.className = 'hud-status cleared';
+    } else if (s.score > 0) {
+      statusEl.textContent = `[IN PROGRESS: ${s.score}%]`;
+      statusEl.className = 'hud-status';
+    } else {
+      statusEl.textContent = `[IN PROGRESS]`;
+      statusEl.className = 'hud-status';
+    }
+  }
+
+  const trackerEl = document.getElementById('hud-quest-tracker');
+  if (trackerEl) {
+    trackerEl.onclick = () => {
+      openQuestModal(activeQuestId, npc.id);
+    };
+  }
+}
+
+// OfficePager 3000 (Simulated Chat Inbox)
+let currentPagerChannel = 'eng-backend';
+
+function openPagerModal() {
+  const modal = document.getElementById('pager-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  renderPagerChannels();
+  renderPagerMessages();
+  window.soundManager.unlock();
+  window.soundManager.playPagerBeep();
+  const badge = document.getElementById('pager-unread-badge');
+  if (badge) badge.classList.add('hidden');
+}
+
+function closePagerModal() {
+  const modal = document.getElementById('pager-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function togglePagerModal() {
+  const modal = document.getElementById('pager-modal');
+  if (!modal) return;
+  if (modal.classList.contains('hidden')) openPagerModal();
+  else closePagerModal();
+}
+
+function renderPagerChannels() {
+  const list = document.getElementById('pager-channels-list');
+  if (!list || !window.aiAgent) return;
+  list.innerHTML = '';
+  const threads = window.aiAgent.getInboxThreads();
+  Object.keys(threads).forEach(chKey => {
+    const thread = threads[chKey];
+    const item = document.createElement('div');
+    item.className = `pager-channel-item ${chKey === currentPagerChannel ? 'active' : ''}`;
+    item.innerHTML = `
+      <span>${thread.title}</span>
+      <span class="pager-channel-unread">${thread.messages.length}</span>
+    `;
+    item.onclick = () => {
+      currentPagerChannel = chKey;
+      renderPagerChannels();
+      renderPagerMessages();
+      window.soundManager.playInteract();
+    };
+    list.appendChild(item);
+  });
+}
+
+function renderPagerMessages() {
+  if (!window.aiAgent) return;
+  const threads = window.aiAgent.getInboxThreads();
+  const thread = threads[currentPagerChannel];
+  if (!thread) return;
+
+  const titleEl = document.getElementById('pager-thread-title');
+  if (titleEl) titleEl.textContent = thread.title;
+  const membersEl = document.getElementById('pager-thread-members');
+  if (membersEl) membersEl.textContent = `Participants: ${thread.participants}`;
+
+  const stream = document.getElementById('pager-messages-stream');
+  if (stream) {
+    stream.innerHTML = '';
+    thread.messages.forEach(msg => {
+      const bubble = document.createElement('div');
+      bubble.className = `pager-msg ${msg.sender === 'You' ? 'sender-user' : ''}`;
+      bubble.innerHTML = `
+        <span class="pager-msg-sender">${msg.sender} [${msg.time || 'NOW'}]</span>
+        <span class="pager-msg-text">${msg.text}</span>
+      `;
+      stream.appendChild(bubble);
+    });
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  // Quick Chips
+  const chipsWrap = document.getElementById('pager-quick-responses');
+  if (chipsWrap) {
+    chipsWrap.innerHTML = '';
+    const quickReplies = [
+      "I'm on it right now, will update in 15 mins.",
+      "Can you share repro steps or an error screenshot?",
+      "Checked the logs, pushing a hotfix draft.",
+      "Let's sync up in the cafeteria."
+    ];
+    quickReplies.forEach(qr => {
+      const chip = document.createElement('button');
+      chip.className = 'pager-chip';
+      chip.textContent = qr;
+      chip.onclick = () => {
+        const inp = document.getElementById('pager-input');
+        if (inp) {
+          inp.value = qr;
+          inp.focus();
+        }
+      };
+      chipsWrap.appendChild(chip);
+    });
+  }
+}
+
+async function handlePagerSend() {
+  const inp = document.getElementById('pager-input');
+  if (!inp) return;
+  const text = (inp.value || '').trim();
+  if (!text || !window.aiAgent) return;
+  inp.value = '';
+
+  const threads = window.aiAgent.getInboxThreads();
+  const thread = threads[currentPagerChannel];
+  if (!thread) return;
+
+  // Add user message
+  const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  thread.messages.push({ sender: 'You', text: text, time: now });
+  renderPagerMessages();
+
+  // Synthetic coworker typing response
+  const stream = document.getElementById('pager-messages-stream');
+  const typing = document.createElement('div');
+  typing.className = 'pager-msg';
+  typing.innerHTML = `<span class="pager-msg-sender">COWORKER</span><span class="pager-msg-text"><em>Typing simulated reply...</em></span>`;
+  if (stream) {
+    stream.appendChild(typing);
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  // Get AI / seeded coworker response
+  setTimeout(async () => {
+    let replyText = "Received! Thanks for the quick triage and prompt response.";
+    try {
+      let npcId = 'npc_rahul';
+      if (currentPagerChannel === 'vip-client-triage') npcId = 'npc_priya';
+      else if (currentPagerChannel === 'cafeteria-social') npcId = 'npc_alex';
+      replyText = await window.aiAgent.chatWithNPC(npcId, `In team chat channel '${thread.title}', colleague replied: "${text}". Give a realistic 1-2 sentence professional coworker response.`);
+    } catch (e) {
+      replyText = "Got it! Thanks for stepping in, keeping the customer updated.";
+    }
+
+    if (typing && typing.parentNode) typing.parentNode.removeChild(typing);
+    const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let senderName = currentPagerChannel === 'vip-client-triage' ? 'Priya (PM)' : (currentPagerChannel === 'cafeteria-social' ? 'Alex (Ops)' : 'Rahul (Lead)');
+    thread.messages.push({ sender: senderName, text: replyText, time: replyTime });
+    renderPagerMessages();
+    window.soundManager.playPagerBeep();
+  }, 850);
+}
+
 function displayEvaluationResults(data) {
   if (!data) return;
   const box = document.getElementById('quest-eval-results');
@@ -2383,14 +2597,50 @@ function displayEvaluationResults(data) {
   const exEl = document.getElementById('eval-exemplar-text');
   if (exEl) exEl.textContent = data.exemplaryRewrite;
 
-  // Sound & Toast
-  window.soundManager.unlock();
-  window.soundManager.playLevelUp();
-  showToast(`🎉 Score: ${data.totalScore}/100! Quest evaluation recorded.`);
+  // Celebratory Next Mission Banner
+  const nextBanner = document.getElementById('eval-next-mission-banner');
+  const btnNext = document.getElementById('btn-proceed-next-quest');
+  const nextSub = document.getElementById('next-banner-sub');
 
-  // Update header and dashboard
+  if (data.totalScore >= 60) {
+    window.soundManager.unlock();
+    window.soundManager.playQuestComplete();
+    showToast(`⚔️ VICTORY! Score: ${data.totalScore}/100! Next mission unlocked.`);
+
+    if (nextBanner) nextBanner.classList.remove('hidden');
+
+    // Find next quest
+    const progression = window.aiAgent.getProgression();
+    const currIdx = progression.indexOf(currentQuestId);
+    if (currIdx !== -1 && currIdx < progression.length - 1) {
+      const nextQId = progression[currIdx + 1];
+      const nextQ = window.aiAgent.quests[nextQId];
+      if (nextSub) nextSub.textContent = `Unlocked: Mission ${currIdx + 2} - ${nextQ.title}!`;
+      if (btnNext) {
+        btnNext.textContent = `PROCEED TO MISSION ${currIdx + 2} ▶`;
+        btnNext.onclick = () => {
+          closeQuestModal();
+          openQuestModal(nextQId, nextQ.mentorId);
+        };
+      }
+    } else {
+      if (nextSub) nextSub.textContent = '👑 All 5 Workplace Quests Mastered! You achieved Principal Engineer rank!';
+      if (btnNext) {
+        btnNext.textContent = 'RETURN TO OFFICE 🏢';
+        btnNext.onclick = closeQuestModal;
+      }
+    }
+  } else {
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+    showToast(`Score: ${data.totalScore}/100. Review the rubric tips and try again!`);
+    if (nextBanner) nextBanner.classList.add('hidden');
+  }
+
+  // Update header, dashboard & corner HUD
   if (window.aiAgent) window.aiAgent.updateHeaderScoreUI();
   renderClassicDashboard();
+  updateHUDQuestTracker();
 
   box.scrollIntoView({ behavior: 'smooth' });
 }
@@ -2398,6 +2648,25 @@ function displayEvaluationResults(data) {
 function setupQuestEventListeners() {
   const btnToggle = document.getElementById('btn-toggle-classic');
   if (btnToggle) btnToggle.addEventListener('click', toggleClassicDashboard);
+
+  const btnPager = document.getElementById('btn-open-pager');
+  if (btnPager) btnPager.addEventListener('click', togglePagerModal);
+
+  const btnClosePager = document.getElementById('btn-close-pager');
+  if (btnClosePager) btnClosePager.addEventListener('click', closePagerModal);
+
+  const btnSendPager = document.getElementById('btn-send-pager');
+  if (btnSendPager) btnSendPager.addEventListener('click', handlePagerSend);
+
+  const pagerInput = document.getElementById('pager-input');
+  if (pagerInput) {
+    pagerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handlePagerSend();
+      }
+    });
+  }
 
   const btnClose = document.getElementById('btn-close-quest');
   if (btnClose) btnClose.addEventListener('click', closeQuestModal);
@@ -2437,6 +2706,9 @@ function setupQuestEventListeners() {
       }
     });
   }
+
+  // Initial HUD update
+  setTimeout(updateHUDQuestTracker, 500);
 }
 
 function setupStartMenuAndLobby() {

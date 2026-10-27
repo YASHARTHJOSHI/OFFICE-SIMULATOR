@@ -235,6 +235,48 @@ class SoundManager {
       osc2.stop(t + 0.3);
     } catch (e) {}
   }
+
+  // --- RETRO RPG QUEST VICTORY FANFARE ---
+  playQuestComplete() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t + idx * 0.1);
+        gain.gain.setValueAtTime(0.25, t + idx * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.1 + 0.35);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + idx * 0.1);
+        osc.stop(t + idx * 0.1 + 0.4);
+      });
+    } catch (e) {}
+  }
+
+  // --- RETRO PAGER CHAT BEEP ---
+  playPagerBeep() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.setValueAtTime(1760, t + 0.06);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.15);
+    } catch (e) {}
+  }
 }
 
 window.soundManager = new SoundManager();
