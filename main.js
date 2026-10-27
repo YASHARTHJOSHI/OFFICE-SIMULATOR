@@ -185,7 +185,6 @@ const SCENES = {
         x: 462, y: 175, w: 98, h: 50,
         prompt: 'Enter Boss\'s Cabinet',
         promptPos: { x: 512, y: 170 },
-        glowBox: { x: 462, y: 36, w: 100, h: 176, r: 8, label: 'Boss Door' },
         action: () => enterBossCabinet()
       },
       {
@@ -193,7 +192,6 @@ const SCENES = {
         x: 935, y: 180, w: 75, h: 65,
         prompt: 'Drink Ice Cold Water',
         promptPos: { x: 975, y: 170 },
-        glowBox: { x: 944, y: 152, w: 60, h: 90, r: 6, label: 'Water Cooler' },
         action: () => {
           window.soundManager.playWater();
           showToast('💧 Gulp, gulp... Refreshing! Stamina restored to 100%.');
@@ -204,7 +202,6 @@ const SCENES = {
         x: 438, y: 270, w: 74, h: 55,
         prompt: 'Check Coworker PC',
         promptPos: { x: 475, y: 260 },
-        glowBox: { x: 438, y: 250, w: 74, h: 62, r: 4, label: 'Coworker PC' },
         action: () => {
           window.soundManager.playInteract();
           showToast('💻 Screen shows: "git commit -m \'Fixed 10 bugs, created 20 new ones\'"');
@@ -215,7 +212,6 @@ const SCENES = {
         x: 235, y: 190, w: 85, h: 55,
         prompt: 'Read Policy Manual',
         promptPos: { x: 275, y: 180 },
-        glowBox: { x: 236, y: 92, w: 82, h: 145, r: 6, label: 'Bookshelf' },
         action: () => {
           window.soundManager.playInteract();
           showToast('📚 Rule #1: Overtime is mandatory. Rule #2: Coffee is complimentary.');
@@ -226,7 +222,6 @@ const SCENES = {
         x: 870, y: 460, w: 95, h: 90,
         prompt: 'Inspect Office Ficus',
         promptPos: { x: 920, y: 450 },
-        glowBox: { x: 875, y: 465, w: 90, h: 95, r: 8, label: 'Office Ficus' },
         action: () => {
           window.soundManager.playInteract();
           showToast('🌿 A thriving corporate ficus. Employee of the Month 3 times running.');
@@ -270,15 +265,13 @@ const SCENES = {
         x: 925, y: 450, w: 70, h: 80,
         prompt: 'Exit to Main Hall',
         promptPos: { x: 955, y: 435 },
-        glowBox: { x: 935, y: 410, w: 65, h: 120, r: 6, label: 'Exit Door' },
         action: () => exitToMainHall()
       },
       {
         id: 'talk_to_boss',
         x: 390, y: 440, w: 120, h: 90,
-        prompt: 'Talk to Boss',
+        prompt: 'Talk to Anakin Skywalker',
         promptPos: { x: 450, y: 410 },
-        glowBox: { x: 414, y: 345, w: 72, h: 146, r: 8, label: 'Boss' },
         action: () => startBossDialogue()
       },
       {
@@ -286,7 +279,6 @@ const SCENES = {
         x: 570, y: 440, w: 140, h: 95,
         prompt: 'Inspect Moving Boxes',
         promptPos: { x: 640, y: 430 },
-        glowBox: { x: 570, y: 405, w: 140, h: 95, r: 6, label: 'Boxes' },
         action: () => {
           window.soundManager.playInteract();
           showToast('📦 Box labeled: "CONFIDENTIAL: Plans to replace everyone with AI Agents"');
@@ -297,7 +289,6 @@ const SCENES = {
         x: 710, y: 440, w: 75, h: 95,
         prompt: 'Executive Sparkling Water',
         promptPos: { x: 745, y: 430 },
-        glowBox: { x: 712, y: 330, w: 68, h: 145, r: 6, label: 'Water Cooler' },
         action: () => {
           window.soundManager.playWater();
           showToast('✨ Sssip... Ultra-purified Alpine glacier water! Tastes like luxury.');
@@ -308,7 +299,6 @@ const SCENES = {
         x: 795, y: 440, w: 85, h: 95,
         prompt: 'Search File Cabinet',
         promptPos: { x: 835, y: 430 },
-        glowBox: { x: 792, y: 355, w: 85, h: 130, r: 6, label: 'Filing Cabinet' },
         action: () => {
           window.soundManager.playInteract();
           showToast('🗄️ Found: "Projected 500% profits, employee bonus pool: $0.00"');
@@ -419,7 +409,7 @@ function setupEventListeners() {
   window.addEventListener('keydown', (e) => handleKey(e, true));
   window.addEventListener('keyup', (e) => handleKey(e, false));
 
-  // Canvas Click-to-Move & Object Click Interaction
+  // Canvas Click-to-Move
   canvas.addEventListener('click', (e) => {
     window.soundManager.unlock();
     const rect = canvas.getBoundingClientRect();
@@ -427,23 +417,6 @@ function setupEventListeners() {
     const scaleY = CANVAS_HEIGHT / rect.height;
     const targetX = (e.clientX - rect.left) * scaleX;
     const targetY = (e.clientY - rect.top) * scaleY;
-
-    // Check if clicked directly on an interactable object
-    const scene = SCENES[state.currentScene];
-    if (scene && scene.triggers) {
-      for (const trig of scene.triggers) {
-        if (trig.glowBox) {
-          const b = trig.glowBox;
-          if (targetX >= b.x && targetX <= b.x + b.w && targetY >= b.y && targetY <= b.y + b.h) {
-            if (state.activePrompt === trig) {
-              handleInteract();
-              return;
-            }
-          }
-        }
-      }
-    }
-
     state.clickTarget = { x: targetX, y: targetY };
     state.clickPulse = { x: targetX, y: targetY, timer: 0.45 };
   });
@@ -617,17 +590,17 @@ function startBossDialogue() {
 
   if (state.boss.talkedCount === 1) {
     openDialogue(
-      'Boss Sterling',
+      'Anakin Skywalker',
       assets.bossPortrait.src,
-      'HENDERSON! Who authorized you to step into my executive suite?! Did you finalize the Q3 profitability spreadsheet?!',
+      'HENDERSON! Who authorized you to step into my executive suite?! I don\'t like sand... or late quarterly reports! Did you finalize the Q3 profitability spreadsheet?!',
       [
         {
-          label: 'Yes sir, profits are up 42% across all departments!',
+          label: 'Yes Lord Skywalker, profits are up 42% across all galactic sectors!',
           onSelect: () => {
             openDialogue(
-              'Boss Sterling',
+              'Anakin Skywalker',
               assets.bossPortrait.src,
-              'Outstanding! As your reward, you have earned the privilege to work Saturday. Now get back to the main hall!',
+              'Most impressive. You are granted a seat on the executive council, but we do not grant you the rank of Senior VP! Now get back to the main hall!',
               [{ label: 'Right away, sir!', onSelect: () => closeDialogue() }]
             );
           }
@@ -636,9 +609,9 @@ function startBossDialogue() {
           label: 'Actually sir, I came to ask about that promised salary raise...',
           onSelect: () => {
             openDialogue(
-              'Boss Sterling',
+              'Anakin Skywalker',
               assets.bossPortrait.src,
-              'A RAISE?! In this macroeconomic climate?! I just ordered a solid mahogany yacht! Do you want the company to go bankrupt?!',
+              'A RAISE?! You were the chosen one! It was said that you would destroy the budget deficit, not increase it! You underestimate my power to deny vacation!',
               [{ label: 'Understood, back to my cubicle...', onSelect: () => closeDialogue() }]
             );
           }
@@ -647,9 +620,9 @@ function startBossDialogue() {
           label: 'The coffee machine in the hall is out of beans.',
           onSelect: () => {
             openDialogue(
-              'Boss Sterling',
+              'Anakin Skywalker',
               assets.bossPortrait.src,
-              'THIS IS A CODE RED EMERGENCY! Fix it immediately! Drink water until then!',
+              'THIS IS OUTRAGEOUS! IT\'S UNFAIR! I brought peace, freedom, justice, and security to this office, but who drank all the espresso?! Fix it immediately!',
               [{ label: 'On it, boss!', onSelect: () => closeDialogue() }]
             );
           }
@@ -659,14 +632,14 @@ function startBossDialogue() {
   } else {
     // Secondary dialogues
     const randomLines = [
-      'Don\'t just loiter around my desk, Henderson! Deadlines don\'t meet themselves!',
-      'Did you try the executive sparkling water? Don\'t touch it, it\'s for board members only!',
-      'Those confidential boxes on the floor? Pretend you didn\'t see them.',
-      'Remember Henderson: in this office, work-life balance means 90% work, 10% life!'
+      'Don\'t make me destroy you with mandatory overtime, Henderson! Deadlines don\'t meet themselves!',
+      'Did you try the executive sparkling water? It\'s for Jedi Council members only!',
+      'From my point of view, the marketing department is evil!',
+      'Remember Henderson: in this office, if you\'re not with me, then you\'re my enemy!'
     ];
     const line = randomLines[Math.floor(Math.random() * randomLines.length)];
-    openDialogue('Boss Sterling', assets.bossPortrait.src, line, [
-      { label: 'Back to work!', onSelect: () => closeDialogue() }
+    openDialogue('Anakin Skywalker', assets.bossPortrait.src, line, [
+      { label: 'May the force be with you, sir!', onSelect: () => closeDialogue() }
     ]);
   }
 }
@@ -879,6 +852,8 @@ function update(dt) {
 function updateTriggers() {
   const scene = SCENES[state.currentScene];
   const p = state.player;
+  const promptEl = document.getElementById('interaction-prompt');
+  const promptTextEl = document.getElementById('prompt-text');
 
   let foundTrigger = null;
 
@@ -894,8 +869,23 @@ function updateTriggers() {
     }
   }
 
-  // Active interactable object receives bright white highlight + star
   state.activePrompt = foundTrigger;
+
+  if (foundTrigger && !state.isDialogueOpen && !state.isTransitioning) {
+    promptTextEl.textContent = foundTrigger.prompt;
+    promptEl.classList.remove('hidden');
+
+    // Position prompt near target object or player
+    const scaleX = canvas.clientWidth / CANVAS_WIDTH;
+    const scaleY = canvas.clientHeight / CANVAS_HEIGHT;
+    const px = (foundTrigger.promptPos ? foundTrigger.promptPos.x : p.x) * scaleX;
+    const py = (foundTrigger.promptPos ? foundTrigger.promptPos.y - 40 : p.y - p.height - 25) * scaleY;
+
+    promptEl.style.left = `${px}px`;
+    promptEl.style.top = `${py}px`;
+  } else {
+    promptEl.classList.add('hidden');
+  }
 }
 
 // ==========================================
@@ -915,6 +905,8 @@ function render() {
   // 2. Draw Scene-Specific Interactive Decor / Characters
   if (state.currentScene === 'BOSS_CABINET') {
     renderBossInCabinet();
+  } else if (state.currentScene === 'OFFICE_HALL') {
+    renderDoorGlow();
   }
 
   // 3. Draw Player Character
@@ -923,17 +915,14 @@ function render() {
   // 4. Draw Foreground Elements (e.g. if character walks behind desk)
   renderForeground();
 
-  // 5. Draw White Glow for All Interactable Objects
-  renderInteractableGlows();
-
-  // 6. Draw Click Target Pulse
+  // 5. Draw Click Target Pulse
   if (state.clickPulse && state.clickPulse.timer > 0) {
     state.clickPulse.timer -= 0.016;
     const progress = 1 - Math.max(0, state.clickPulse.timer / 0.45);
     const radius = 6 + progress * 16;
     const alpha = Math.max(0, 1 - progress);
     ctx.save();
-    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.strokeStyle = `rgba(245, 158, 11, ${alpha})`;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(state.clickPulse.x, state.clickPulse.y, radius, 0, Math.PI * 2);
@@ -942,123 +931,28 @@ function render() {
   }
 }
 
-// Helper: Rounded Rectangle Path
-function drawRoundedRect(c, x, y, w, h, r) {
-  if (r === undefined) r = 6;
-  c.beginPath();
-  c.moveTo(x + r, y);
-  c.lineTo(x + w - r, y);
-  c.quadraticCurveTo(x + w, y, x + w, y + r);
-  c.lineTo(x + w, y + h - r);
-  c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  c.lineTo(x + r, y + h);
-  c.quadraticCurveTo(x, y + h, x, y + h - r);
-  c.lineTo(x, y + r);
-  c.quadraticCurveTo(x, y, x + r, y);
-  c.closePath();
-}
-
-// Helper: 4-Point Star Sparkle
-function drawFourPointStar(c, cx, cy, outerR, innerR) {
-  c.beginPath();
-  for (let i = 0; i < 4; i++) {
-    const angle = (i * Math.PI) / 2;
-    c.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);
-    const halfAngle = angle + Math.PI / 4;
-    c.lineTo(cx + Math.cos(halfAngle) * innerR, cy + Math.sin(halfAngle) * innerR);
-  }
-  c.closePath();
-}
-
-// System: White Glow around Every Interactable Object
-function renderInteractableGlows() {
-  const scene = SCENES[state.currentScene];
-  if (!scene || !scene.triggers) return;
-
+function renderDoorGlow() {
+  // Animated glow highlight around the boss's door
   const time = performance.now() * 0.003;
+  const pulse = (Math.sin(time) + 1) * 0.5;
 
-  scene.triggers.forEach((trig, idx) => {
-    if (!trig.glowBox) return;
+  ctx.save();
+  ctx.strokeStyle = `rgba(245, 158, 11, ${0.25 + pulse * 0.45})`;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#f59e0b';
+  ctx.shadowBlur = 10 + pulse * 8;
+  ctx.strokeRect(462, 36, 100, 175);
 
-    const box = trig.glowBox;
-    const isNearby = state.activePrompt === trig;
-
-    ctx.save();
-
-    if (isNearby) {
-      // High-intensity pulsating white glow when player is near interactable
-      const pulse = (Math.sin(time * 5) + 1) * 0.5; // 0 to 1
-
-      // 1. Soft inner translucent wash
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.08 + pulse * 0.08})`;
-      drawRoundedRect(ctx, box.x, box.y, box.w, box.h, box.r || 6);
-      ctx.fill();
-
-      // 2. Bright white outline with glow shadow
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 14 + pulse * 10;
-      ctx.strokeStyle = `rgba(255, 255, 255, ${0.85 + pulse * 0.15})`;
-      ctx.lineWidth = 2.5;
-      drawRoundedRect(ctx, box.x, box.y, box.w, box.h, box.r || 6);
-      ctx.stroke();
-
-      // 3. Crisp white corner brackets for indie-game polish
-      const cornerLen = Math.min(10, Math.min(box.w, box.h) / 3);
-      ctx.shadowBlur = 8;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3;
-
-      // Top-Left corner
-      ctx.beginPath();
-      ctx.moveTo(box.x, box.y + cornerLen);
-      ctx.lineTo(box.x, box.y);
-      ctx.lineTo(box.x + cornerLen, box.y);
-      ctx.stroke();
-
-      // Top-Right corner
-      ctx.beginPath();
-      ctx.moveTo(box.x + box.w - cornerLen, box.y);
-      ctx.lineTo(box.x + box.w, box.y);
-      ctx.lineTo(box.x + box.w, box.y + cornerLen);
-      ctx.stroke();
-
-      // Bottom-Left corner
-      ctx.beginPath();
-      ctx.moveTo(box.x, box.y + box.h - cornerLen);
-      ctx.lineTo(box.x, box.y + box.h);
-      ctx.lineTo(box.x + cornerLen, box.y + box.h);
-      ctx.stroke();
-
-      // Bottom-Right corner
-      ctx.beginPath();
-      ctx.moveTo(box.x + box.w - cornerLen, box.y + box.h);
-      ctx.lineTo(box.x + box.w, box.y + box.h);
-      ctx.lineTo(box.x + box.w, box.y + box.h - cornerLen);
-      ctx.stroke();
-
-      // 4. Floating 4-pointed diamond star above object
-      const starCx = box.x + box.w / 2;
-      const starCy = box.y - 12 + Math.sin(time * 4) * 3;
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 12;
-      drawFourPointStar(ctx, starCx, starCy, 6.5, 2.2);
-      ctx.fill();
-    } else {
-      // Subtle ambient white glow around all interactable objects
-      const ambientPulse = Math.sin(time * 2 + idx * 1.3) * 0.5 + 0.5;
-      const alpha = 0.22 + ambientPulse * 0.18;
-
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.45)';
-      ctx.shadowBlur = 5 + ambientPulse * 3;
-      ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-      ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, box.x, box.y, box.w, box.h, box.r || 6);
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  });
+  // Floating Arrow indicator pointing to door
+  const arrowY = 32 + Math.sin(time * 1.5) * 4;
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.moveTo(512, arrowY + 12);
+  ctx.lineTo(504, arrowY);
+  ctx.lineTo(520, arrowY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 }
 
 function renderBossInCabinet() {
@@ -1079,6 +973,15 @@ function renderBossInCabinet() {
     const breath = Math.sin(performance.now() * 0.003) * 1.5;
     ctx.drawImage(assets.bossCharacter, bossX - bossW / 2, bossY - bossH + breath, bossW, bossH);
   }
+
+  // Animated exit arrow on the right doorway
+  const time = performance.now() * 0.003;
+  const arrowX = 935 + Math.sin(time * 2) * 4;
+  ctx.save();
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = '10px "Press Start 2P", monospace';
+  ctx.fillText('EXIT ▶', arrowX, 435);
+  ctx.restore();
 }
 
 function renderPlayer() {
