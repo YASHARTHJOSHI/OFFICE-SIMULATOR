@@ -272,6 +272,58 @@
         xp: 95,
         completed: false
       }
+    ],
+    char5: [ // Yasharth: Principal Architect / Full-Stack Mastermind
+      {
+        id: 'task_y1',
+        priority: 'P0',
+        category: 'Architecture',
+        title: 'Design zero-copy WebAssembly rendering pipeline',
+        description: 'Implement SIMD-accelerated rasterization with shared array buffers for 120fps graphics.',
+        location: 'Big Workplace • Architecture Board',
+        xp: 210,
+        completed: false
+      },
+      {
+        id: 'task_y2',
+        priority: 'P1',
+        category: 'Full-Stack',
+        title: 'Deploy real-time peer replication engine',
+        description: 'Optimize WebRTC data channel packet delta encoding for sub-10ms peer synchronization.',
+        location: 'Assigned PC • Architecture Tool',
+        xp: 170,
+        completed: false
+      },
+      {
+        id: 'task_y3',
+        priority: 'P1',
+        category: 'Security',
+        title: 'Audit cryptographic token auth on corporate intranet',
+        description: 'Implement HMAC-SHA256 session signatures and CSRF protection for employee services.',
+        location: 'Dev Pod 5 • Workstation',
+        xp: 140,
+        completed: false
+      },
+      {
+        id: 'task_y4',
+        priority: 'P2',
+        category: 'AI Engine',
+        title: 'Fine-tune local LLM inference context cache',
+        description: 'Deploy KV-cache quantization to reduce token dispatch latency during coworker banter.',
+        location: 'Acme R&D Innovation Hub',
+        xp: 115,
+        completed: false
+      },
+      {
+        id: 'task_y5',
+        priority: 'P2',
+        category: 'Infra',
+        title: 'Enforce Graphite CI/CD zero-downtime rolling deploys',
+        description: 'Configure automated canary verification and instant rollback gates for cloud clusters.',
+        location: 'Boss Cabinet • Strategy Desk',
+        xp: 95,
+        completed: false
+      }
     ]
   };
 
@@ -654,7 +706,8 @@
         char1: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char1)),
         char2: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char2)),
         char3: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char3)),
-        char4: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char4))
+        char4: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char4)),
+        char5: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char5))
       };
 
       // Character Phone Profiles
@@ -706,6 +759,18 @@
           widgetPill: '3.4M REQ/S',
           widgetBody: '• Model 70B training at 98.4% efficiency<br>• Edge consensus pipeline active',
           tones: [440, 880]
+        },
+        char5: {
+          id: 'char5',
+          name: 'Yasharth',
+          role: 'Principal Architect',
+          carrier: 'GRAPHITE 5G',
+          deviceName: 'Graphite Titan Pro',
+          themeClass: 'phone-char5',
+          widgetTitle: '🕷️ Graphite 26 Core Matrix',
+          widgetPill: '120 FPS / 0.2ms',
+          widgetBody: '• Distributed WebAssembly kernel: Operational<br>• Real-time peer delta synchronization online',
+          tones: [523, 1046]
         }
       };
     }

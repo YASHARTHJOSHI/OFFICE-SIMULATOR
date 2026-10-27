@@ -85,6 +85,20 @@ class MultiplayerEngine {
         claimedBy: null,
         claimedByName: null,
         isLocked: false
+      },
+      {
+        id: 'char5',
+        name: 'Yasharth',
+        role: 'Principal Architect',
+        desc: 'Glasses, beard, Graphite 26 tee & Spider-Man back print with developer lanyard. Full-stack mastermind.',
+        avatar: 'assets/char5_avatar.png?v=1',
+        idleSprite: 'assets/char5_idle.png?v=1',
+        backSprite: 'assets/char5_back.png?v=1',
+        spritesheet: 'assets/char5_spritesheet.png?v=1',
+        available: true,
+        claimedBy: null,
+        claimedByName: null,
+        isLocked: false
       }
     ];
 

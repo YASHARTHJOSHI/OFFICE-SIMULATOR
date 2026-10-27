@@ -153,10 +153,11 @@
 
     if (player && userName) {
       const charNames = {
-        char1: 'Yasharth (Lead Dev)',
-        char2: 'Priya (Fullstack Dev)',
-        char3: 'Dev (Frontend Arch)',
-        char4: 'Josh (AI Engineer)'
+        char1: 'Vikram (Tech Lead)',
+        char2: 'Neha (Strategic Planner)',
+        char3: 'Kabir (Research Lead)',
+        char4: 'Josh (Lead Architect)',
+        char5: 'Yasharth (Principal Architect)'
       };
       userName.textContent = charNames[player.charId] || player.name || 'Yasharth';
       if (userRole) userRole.textContent = 'Assigned Workstation #1 • OmniCorp';
@@ -755,7 +756,8 @@
     // Dynamic player avatar
     const myAv = winEl.querySelector('#wa-my-avatar');
     if (myAv && window.state && window.state.player) {
-      if (window.state.player.charId === 'char4') myAv.src = 'assets/char4_avatar.png';
+      if (window.state.player.charId === 'char5') myAv.src = 'assets/char5_avatar.png';
+      else if (window.state.player.charId === 'char4') myAv.src = 'assets/char4_avatar.png';
       else if (window.state.player.charId === 'char1') myAv.src = 'assets/char1_avatar.png';
       else if (window.state.player.charId === 'char2') myAv.src = 'assets/char2_avatar.png';
       else if (window.state.player.charId === 'char3') myAv.src = 'assets/char3_avatar.png';
@@ -2053,7 +2055,8 @@ git add . && git commit -m "another day another feature"`;
         char1: 'vikram.techlead@omnicorp.internal',
         char2: 'neha.planner@omnicorp.internal',
         char3: 'kabir.research@omnicorp.internal',
-        char4: 'josh.architect@omnicorp.internal'
+        char4: 'josh.architect@omnicorp.internal',
+        char5: 'yasharth.architect@omnicorp.internal'
       };
       userEmailEl.textContent = emailMap[charId] || 'yasharth.dev@omnicorp.internal';
     }

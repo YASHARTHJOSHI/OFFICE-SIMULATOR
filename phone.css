@@ -615,6 +615,27 @@
   border: 1px solid #10b981;
 }
 
+/* --- CHAR 5: YASHARTH (Principal Architect / Graphite 26) --- */
+.phone-char5 .phone-body {
+  background: linear-gradient(145deg, #18181b, #27272a, #dc2626);
+  box-shadow: 0 25px 60px -15px rgba(220, 38, 38, 0.5), 0 0 0 3px #ef4444;
+}
+.phone-char5 .phone-screen {
+  background: radial-gradient(circle at 50% 20%, #450a0a 0%, #18181b 50%, #09090b 100%);
+}
+.phone-char5 .hand-finger, .phone-char5 .phone-hand-thumb {
+  background: #d4a373;
+}
+.phone-char5 .phone-hand-cuff {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.phone-char5 .widget-stat-pill {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  border: 1px solid #ef4444;
+}
+
 /* Camera Flash Snapshot Effect */
 .camera-flash-overlay {
   position: absolute;

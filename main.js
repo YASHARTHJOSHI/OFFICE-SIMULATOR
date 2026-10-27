@@ -140,6 +140,13 @@ registerAsset('char1DiningSitting', 'assets/char1_dining_sitting.png?v=4');
 registerAsset('char2DiningSitting', 'assets/char2_dining_sitting.png?v=4');
 registerAsset('char3DiningSitting', 'assets/char3_dining_sitting.png?v=4');
 registerAsset('char4DiningSitting', 'assets/char4_dining_sitting.png?v=7');
+registerAsset('char5Back', 'assets/char5_back.png?v=1');
+registerAsset('char5Spritesheet', 'assets/char5_spritesheet.png?v=1');
+registerAsset('char5Avatar', 'assets/char5_avatar.png?v=1');
+registerAsset('char5Idle', 'assets/char5_idle.png?v=1');
+registerAsset('char5Sitting', 'assets/char5_seated_desk.png?v=1');
+registerAsset('char5SeatedDesk', 'assets/char5_seated_desk.png?v=1');
+registerAsset('char5DiningSitting', 'assets/char5_dining_sitting.png?v=1');
 
 // Foreground occlusion props (for computer monitors & depth sorting)
 registerAsset('fgComputerCodeMonitor', 'assets/fg_computer_code_monitor.png?v=1');
@@ -2567,7 +2574,9 @@ function renderPlayer() {
   // If sitting in chair, render character naturally!
   if (p.isSitting) {
     let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
-    if (p.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
+    if (p.charId === 'char5' && assets.char5SeatedDesk && assets.char5SeatedDesk.complete && assets.char5SeatedDesk.width > 0) {
+      sitImg = assets.char5SeatedDesk;
+    } else if (p.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
       sitImg = assets.char4SeatedDesk;
     } else if (p.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
       sitImg = assets.char3SeatedDesk;
@@ -2575,6 +2584,8 @@ function renderPlayer() {
       sitImg = assets.char2SeatedDesk;
     } else if (assets.char1SeatedDesk && assets.char1SeatedDesk.complete && assets.char1SeatedDesk.width > 0) {
       sitImg = assets.char1SeatedDesk;
+    } else if (p.charId === 'char5' && assets.char5Sitting && assets.char5Sitting.complete && assets.char5Sitting.width > 0) {
+      sitImg = assets.char5Sitting;
     } else if (p.charId === 'char4' && assets.char4Sitting && assets.char4Sitting.complete && assets.char4Sitting.width > 0) {
       sitImg = assets.char4Sitting;
     } else if (p.charId === 'char3' && assets.char3Sitting && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
@@ -2619,7 +2630,9 @@ function renderPlayer() {
 
   // 2. Sprite Animation Frame
   let sheet = assets.char1Spritesheet;
-  if (p.charId === 'char4' && assets.char4Spritesheet && assets.char4Spritesheet.complete && assets.char4Spritesheet.width > 0) {
+  if (p.charId === 'char5' && assets.char5Spritesheet && assets.char5Spritesheet.complete && assets.char5Spritesheet.width > 0) {
+    sheet = assets.char5Spritesheet;
+  } else if (p.charId === 'char4' && assets.char4Spritesheet && assets.char4Spritesheet.complete && assets.char4Spritesheet.width > 0) {
     sheet = assets.char4Spritesheet;
   } else if (p.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
     sheet = assets.char3Spritesheet;
@@ -2663,7 +2676,8 @@ function renderPlayer() {
     }
   } else if (p.direction === 'up') {
     let backImg = assets.char1Back || assets.charBack;
-    if (p.charId === 'char4' && assets.char4Back && assets.char4Back.complete) backImg = assets.char4Back;
+    if (p.charId === 'char5' && assets.char5Back && assets.char5Back.complete) backImg = assets.char5Back;
+    else if (p.charId === 'char4' && assets.char4Back && assets.char4Back.complete) backImg = assets.char4Back;
     else if (p.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
     else if (p.charId === 'char2' && assets.char2Back && assets.char2Back.complete) backImg = assets.char2Back;
     else if (p.charId === 'char1' && assets.char1Back && assets.char1Back.complete) backImg = assets.char1Back;
@@ -2672,6 +2686,8 @@ function renderPlayer() {
     } else if (assets.charIdle.complete) {
       ctx.drawImage(assets.charIdle, px, py, pw, ph);
     }
+  } else if (p.charId === 'char5' && assets.char5Idle && assets.char5Idle.complete) {
+    ctx.drawImage(assets.char5Idle, px, py, pw, ph);
   } else if (p.charId === 'char4' && assets.char4Idle && assets.char4Idle.complete) {
     ctx.drawImage(assets.char4Idle, px, py, pw, ph);
   } else if (assets.charIdle.complete) {
@@ -2699,7 +2715,9 @@ function renderSingleRemotePlayer(peer) {
   try {
     if (peer.isSitting && currentScene !== 'CAFETERIA') {
       let sitImg = assets.char1SeatedDesk || assets.char1Sitting;
-        if (peer.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
+        if (peer.charId === 'char5' && assets.char5SeatedDesk && assets.char5SeatedDesk.complete && assets.char5SeatedDesk.width > 0) {
+          sitImg = assets.char5SeatedDesk;
+        } else if (peer.charId === 'char4' && assets.char4SeatedDesk && assets.char4SeatedDesk.complete && assets.char4SeatedDesk.width > 0) {
           sitImg = assets.char4SeatedDesk;
         } else if (peer.charId === 'char3' && assets.char3SeatedDesk && assets.char3SeatedDesk.complete && assets.char3SeatedDesk.width > 0) {
           sitImg = assets.char3SeatedDesk;
@@ -2707,6 +2725,8 @@ function renderSingleRemotePlayer(peer) {
           sitImg = assets.char2SeatedDesk;
         } else if (assets.char1SeatedDesk && assets.char1SeatedDesk.complete && assets.char1SeatedDesk.width > 0) {
           sitImg = assets.char1SeatedDesk;
+        } else if (peer.charId === 'char5' && assets.char5Sitting && assets.char5Sitting.complete && assets.char5Sitting.width > 0) {
+          sitImg = assets.char5Sitting;
         } else if (peer.charId === 'char4' && assets.char4Sitting && assets.char4Sitting.complete && assets.char4Sitting.width > 0) {
           sitImg = assets.char4Sitting;
         } else if (peer.charId === 'char3' && assets.char3Sitting && assets.char3Sitting.complete && assets.char3Sitting.width > 0) {
@@ -2740,7 +2760,9 @@ function renderSingleRemotePlayer(peer) {
 
       // 2. Sprite Sheet
       let sheet = assets.char1Spritesheet;
-      if (peer.charId === 'char4' && assets.char4Spritesheet && assets.char4Spritesheet.complete && assets.char4Spritesheet.width > 0) {
+      if (peer.charId === 'char5' && assets.char5Spritesheet && assets.char5Spritesheet.complete && assets.char5Spritesheet.width > 0) {
+        sheet = assets.char5Spritesheet;
+      } else if (peer.charId === 'char4' && assets.char4Spritesheet && assets.char4Spritesheet.complete && assets.char4Spritesheet.width > 0) {
         sheet = assets.char4Spritesheet;
       } else if (peer.charId === 'char3' && assets.char3Spritesheet.complete && assets.char3Spritesheet.width > 0) {
         sheet = assets.char3Spritesheet;
@@ -2784,13 +2806,16 @@ function renderSingleRemotePlayer(peer) {
         }
       } else if (peer.direction === 'up') {
         let backImg = assets.char1Back || assets.charBack;
-        if (peer.charId === 'char4' && assets.char4Back && assets.char4Back.complete) backImg = assets.char4Back;
+        if (peer.charId === 'char5' && assets.char5Back && assets.char5Back.complete) backImg = assets.char5Back;
+        else if (peer.charId === 'char4' && assets.char4Back && assets.char4Back.complete) backImg = assets.char4Back;
         else if (peer.charId === 'char3' && assets.char3Back && assets.char3Back.complete) backImg = assets.char3Back;
         else if (peer.charId === 'char2' && assets.char2Back && assets.char2Back.complete) backImg = assets.char2Back;
         else if (peer.charId === 'char1' && assets.char1Back && assets.char1Back.complete) backImg = assets.char1Back;
         if (backImg && backImg.complete && backImg.width > 0) {
           ctx.drawImage(backImg, px, py, pw, ph);
         }
+      } else if (peer.charId === 'char5' && assets.char5Idle && assets.char5Idle.complete) {
+        ctx.drawImage(assets.char5Idle, px, py, pw, ph);
       } else if (peer.charId === 'char4' && assets.char4Idle && assets.char4Idle.complete) {
         ctx.drawImage(assets.char4Idle, px, py, pw, ph);
       }

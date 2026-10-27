@@ -1017,7 +1017,7 @@ kbd {
    MULTIPLAYER LOBBY MODAL
    ========================================================= */
 .mp-lobby-card {
-  width: min(840px, 95vw);
+  width: min(940px, 96vw);
   max-height: 90vh;
   background: #111827;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -1191,11 +1191,17 @@ kbd {
 
 .character-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.85rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 860px) {
+  .character-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
   .character-grid {
     grid-template-columns: repeat(2, 1fr);
   }
