@@ -57,7 +57,8 @@ const assets = {
   npc_nehaFront: new Image(),
   npc_nehaBack: new Image(),
   cafeteriaRoom: new Image(),
-  cafeteriaDoor: new Image()
+  cafeteriaDoor: new Image(),
+  bigWorkplace: new Image()
 };
 
 let isGameInitialized = false;
@@ -175,6 +176,7 @@ registerAsset('npc_nehaBack', 'assets/npc_neha_back.png?v=12');
 // Cafeteria & Lounge Assets
 registerAsset('cafeteriaRoom', 'assets/cafeteria_room.png');
 registerAsset('cafeteriaDoor', 'assets/cafeteria_door.png');
+registerAsset('bigWorkplace', 'assets/big_workplace.png?v=4');
 
 // ==========================================
 // GAME STATE & CONSTANTS
@@ -783,7 +785,7 @@ const SCENES = {
       {
         id: 'door_to_big_workplace',
         x: 900, y: 310, w: 110, h: 120,
-        prompt: 'Enter Big Workplace 🏢 [E / Space]',
+        prompt: 'Enter R&D Mega-Hub 🏢 [E / Space]',
         promptPos: { x: 950, y: 340 },
         action: () => enterBigWorkplace()
       }
@@ -791,123 +793,156 @@ const SCENES = {
   },
 
   BIG_WORKPLACE: {
-    name: 'Mega Tech Workplace & Innovation Lab',
-    badge: 'Big Workplace',
-    objective: 'Explore the high-tech engineering pods, collaborate with developers, or draw on the Paper.js Innovation Board',
-    bg: () => (window.workplacePaper ? window.workplacePaper.getCanvas() : null),
+    name: 'Acme R&D Innovation Mega-Hub',
+    badge: 'R&D Mega-Hub',
+    objective: 'Global Telemetry Intelligence (All-Hands): Inspect architecture whiteboards, collaborate with developers, or attend Stage Presentation',
+    bg: () => (assets.bigWorkplace && assets.bigWorkplace.complete && assets.bigWorkplace.naturalWidth > 0 ? assets.bigWorkplace : (window.workplacePaper ? window.workplacePaper.getCanvas() : null)),
     playerScale: 0.58,
     playerWidth: 42,
     playerHeight: 90,
-    spawn: { x: 120, y: 380, dir: 'right' },
+    spawn: { x: 80, y: 380, dir: 'right' },
     foregroundProps: [],
     obstacles: [
-      // Top panoramic glass window barrier
-      { x: 0, y: 0, w: CANVAS_WIDTH, h: 220, label: 'Panoramic Window Wall' },
+      // Top panoramic glass window wall & back developer desks barrier
+      { x: 0, y: 0, w: CANVAS_WIDTH, h: 200, label: 'Panoramic Window Wall & Back Desks' },
       // Bottom room boundary
       { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom Boundary' },
-      // Left boundary (leaving open corridor at y: 320-440 for Cafeteria entrance)
-      { x: 0, y: 0, w: 18, h: 320, label: 'Left Wall Upper' },
-      { x: 0, y: 440, w: 18, h: 140, label: 'Left Wall Lower' },
+      // Left boundary (leaving corridor open at y: 330-430 for Cafeteria entrance)
+      { x: 0, y: 0, w: 20, h: 330, label: 'Left Wall Upper' },
+      { x: 0, y: 430, w: 20, h: 150, label: 'Left Wall Lower' },
       // Right boundary wall
       { x: 1008, y: 0, w: 16, h: CANVAS_HEIGHT, label: 'Right Wall' },
 
-      // Pod A: Mobile & Frontend Workstations
-      { x: 175, y: 295, w: 150, h: 65, label: 'Pod A Desk Surface' },
-      // Pod B: Core AI Engine Workstations
-      { x: 475, y: 295, w: 150, h: 65, label: 'Pod B Desk Surface' },
-      // Pod C: Cloud & SRE Workstations
-      { x: 775, y: 295, w: 150, h: 65, label: 'Pod C Desk Surface' },
+      // Central Rolling Whiteboards Partition & Collaborating Team
+      { x: 60, y: 220, w: 580, h: 110, label: 'Whiteboards & Architecture Partition' },
 
-      // Central Collaboration Table base
-      { x: 425, y: 425, w: 110, h: 45, label: 'Collaboration Table Base' },
-      // Quantum Server Rack in bottom-right corner
-      { x: 920, y: 430, w: 75, h: 90, label: 'Quantum Server Chassis' },
-      // Velvet Ideation Sofa in bottom-left corner
-      { x: 50, y: 440, w: 75, h: 60, label: 'Velvet Sofa Base' }
+      // Foreground Developer Workstation Pods
+      { x: 40, y: 440, w: 190, h: 80, label: 'Dev Pod 1 (Frontend & Systems)' },
+      { x: 245, y: 440, w: 190, h: 80, label: 'Dev Pod 2 (Core AI & Engine)' },
+      { x: 450, y: 440, w: 185, h: 80, label: 'Dev Pod 3 (Telemetry & Cloud)' },
+
+      // Right Raised Stage Presentation Area
+      { x: 740, y: 220, w: 260, h: 180, label: 'Stage Keynote Screen' },
+      { x: 690, y: 350, w: 35, h: 65, label: 'Water Cooler' },
+      { x: 915, y: 470, w: 75, h: 75, label: 'Stage Lectern' }
     ],
 
     triggers: [
       // Exit Doorway back to Cafeteria
       {
         id: 'door_back_to_cafe',
-        x: 0, y: 320, w: 80, h: 120,
+        x: 0, y: 330, w: 75, h: 100,
         prompt: 'Return to Cafeteria [E / Space]',
-        promptPos: { x: 70, y: 380 },
+        promptPos: { x: 60, y: 380 },
         action: () => exitBigWorkplaceToCafeteria()
       },
-      // Paper.js Smart Vector Whiteboard
+      // 1. Architecture Flowchart Whiteboard (Interactive Paper.js Studio trigger)
       {
-        id: 'paper_vector_board',
-        x: 420, y: 195, w: 185, h: 55,
-        prompt: '🎨 Open Paper.js Innovation Board [E]',
-        promptPos: { x: 512, y: 180 },
+        id: 'board_architecture',
+        x: 70, y: 270, w: 175, h: 70,
+        prompt: '📐 Inspect Architecture Flowchart [E]',
+        promptPos: { x: 155, y: 270 },
         action: () => {
           window.soundManager.playInteract();
           if (window.workplacePaper) window.workplacePaper.openStudio();
+          else showToast('📐 Architecture: Event-driven Telemetry pipeline synced across 4 global edge clusters.');
         }
       },
-      // Pod A Workstation Interaction
+      // 2. Microservices Code Whiteboard
       {
-        id: 'pod_a_pc',
-        x: 180, y: 350, w: 140, h: 60,
-        prompt: 'Inspect Mobile Dev Pod [E]',
-        promptPos: { x: 250, y: 340 },
+        id: 'board_code',
+        x: 265, y: 270, w: 140, h: 70,
+        prompt: '💻 Inspect Microservices Engine Spec [E]',
+        promptPos: { x: 335, y: 270 },
         action: () => {
           window.soundManager.playInteract();
-          showToast('📱 Pod A: Flutter & WebAssembly pipeline compiling flawlessly!');
+          showToast('💻 <EXTENDS:CODE>: Latency down to 0.8ms. Zero packet loss on high-throughput queue!');
         }
       },
-      // Pod B Workstation Interaction
+      // 3. Sprint Planning Whiteboard
       {
-        id: 'pod_b_pc',
-        x: 480, y: 350, w: 140, h: 60,
-        prompt: 'Inspect AI Engine Pod [E]',
-        promptPos: { x: 550, y: 340 },
+        id: 'board_sprint',
+        x: 415, y: 270, w: 140, h: 70,
+        prompt: '📋 Review All-Hands Sprint Roadmap [E]',
+        promptPos: { x: 485, y: 270 },
         action: () => {
           window.soundManager.playInteract();
-          showToast('🧠 Pod B: 70B parameter model training at 98.4% efficiency!');
+          showToast('📋 Sprint Board: 94% telemetry tasks resolved! Release candidate approved.');
         }
       },
-      // Pod C Workstation Interaction
+      // 4. ACME Metrics Stage Presentation
       {
-        id: 'pod_c_pc',
-        x: 780, y: 350, w: 140, h: 60,
-        prompt: 'Inspect Cloud Systems Pod [E]',
-        promptPos: { x: 850, y: 340 },
+        id: 'stage_presentation',
+        x: 770, y: 260, w: 220, h: 150,
+        prompt: '📊 Attend ACME Keynote Presentation [E]',
+        promptPos: { x: 880, y: 290 },
         action: () => {
           window.soundManager.playInteract();
-          showToast('☁️ Pod C: Kubernetes cluster healthy across 12 global regions.');
+          showToast('📊 Keynote: "Telemetry throughput reached 3.4M req/sec at 99.999% uptime!"');
         }
       },
-      // Central Hologram Collaboration Hub
+      // 5. Water Cooler Station
       {
-        id: 'collab_hub',
-        x: 430, y: 440, w: 100, h: 60,
-        prompt: 'Activate Hologram Projector [E]',
-        promptPos: { x: 480, y: 430 },
+        id: 'water_cooler',
+        x: 690, y: 350, w: 50, h: 75,
+        prompt: '💧 Chat at Water Cooler [E]',
+        promptPos: { x: 715, y: 345 },
         action: () => {
           window.soundManager.playInteract();
-          showToast('✨ Holographic roadmap projected in true 3D vector space!');
+          if (window.pixelEngine && window.pixelEngine.particles) {
+            window.pixelEngine.particles.spawnWaterSparkles(715, 360);
+          }
+          showToast('💧 Intern: "Did you catch that telemetry curve? The team crushed Q3 goals!"');
         }
       },
-      // Quantum Server Cluster
+      // 6. Espresso & Coffee Bar
       {
-        id: 'quantum_servers',
-        x: 915, y: 440, w: 85, h: 70,
-        prompt: 'Inspect Quantum Compute Rack [E]',
-        promptPos: { x: 955, y: 430 },
+        id: 'coffee_bar',
+        x: 730, y: 145, w: 90, h: 55,
+        prompt: '☕ Brew R&D Espresso [E]',
+        promptPos: { x: 775, y: 145 },
         action: () => {
           window.soundManager.playInteract();
-          showToast('⚡ Quantum Cores chilled at 0.015 Kelvin. Zero quantum decoherence.');
+          if (window.pixelEngine && window.pixelEngine.particles) {
+            window.pixelEngine.particles.spawnCoffeeSteam(775, 145);
+          }
+          showToast('☕ Double shot espresso pulled! Developer focus accelerated.');
         }
       },
-      // Ideation Lounge Sofa
+      // 7. Snack Vending Machine
       {
-        id: 'lounge_sofa',
-        x: 50, y: 450, w: 75, h: 60,
-        prompt: 'Relax in Ideation Lounge [E / C]',
-        promptPos: { x: 85, y: 440 },
-        action: () => toggleSitInChair(85, 480, 'up', 85, 520)
+        id: 'vending_machine',
+        x: 870, y: 145, w: 75, h: 55,
+        prompt: '🍫 Buy Brain Fuel Snack [E]',
+        promptPos: { x: 905, y: 145 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('🍫 Dispensed Nitro Crunch Protein Bar!');
+        }
+      },
+      // 8. Dev Pod 1 Sitting Trigger
+      {
+        id: 'dev_pod_1',
+        x: 90, y: 480, w: 90, h: 70,
+        prompt: 'Sit at Dev Pod 1 [E / C]',
+        promptPos: { x: 135, y: 470 },
+        action: () => toggleSitInChair(135, 500, 'up', 135, 540)
+      },
+      // 9. Dev Pod 2 Sitting Trigger
+      {
+        id: 'dev_pod_2',
+        x: 295, y: 480, w: 90, h: 70,
+        prompt: 'Sit at Dev Pod 2 [E / C]',
+        promptPos: { x: 340, y: 470 },
+        action: () => toggleSitInChair(340, 500, 'up', 340, 540)
+      },
+      // 10. Dev Pod 3 Sitting Trigger
+      {
+        id: 'dev_pod_3',
+        x: 500, y: 480, w: 90, h: 70,
+        prompt: 'Sit at Dev Pod 3 [E / C]',
+        promptPos: { x: 545, y: 470 },
+        action: () => toggleSitInChair(545, 500, 'up', 545, 540)
       }
     ]
   }
@@ -1670,7 +1705,7 @@ function enterBigWorkplace() {
   overlay.classList.add('active');
 
   setTimeout(() => {
-    switchScene('BIG_WORKPLACE', 120, 380, 'right');
+    switchScene('BIG_WORKPLACE', 80, 380, 'right');
     if (window.workplacePaper) window.workplacePaper.init();
     window.soundManager.playDoorClose();
 
@@ -1679,7 +1714,7 @@ function enterBigWorkplace() {
       setTimeout(() => {
         overlay.classList.add('hidden');
         state.isTransitioning = false;
-        showToast('✨ Welcome to the Big Workplace & Paper.js Innovation Hub!');
+        showToast('✨ Welcome to the Acme R&D Innovation Mega-Hub!');
       }, 350);
     }, 200);
   }, 350);
@@ -1971,7 +2006,7 @@ function render() {
   if (bg && (bg.complete || bg instanceof HTMLCanvasElement)) {
     ctx.drawImage(bg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
-  if (state.currentScene === 'BIG_WORKPLACE' && window.workplacePaper) {
+  if (state.currentScene === 'BIG_WORKPLACE' && window.workplacePaper && (!assets.bigWorkplace || !assets.bigWorkplace.complete)) {
     window.workplacePaper.render(ctx);
   }
 
@@ -2295,7 +2330,7 @@ function renderCafeteriaDetails() {
   drawRoomPortalBadge(80, 235, 'MAIN HALL', 'left', isNearHall);
 
   // 2. Room Portal Badge pointing to Big Workplace (connected on right after Cafeteria)
-  drawRoomPortalBadge(960, 355, 'BIG WORKPLACE', 'right', isNearWorkplace);
+  drawRoomPortalBadge(960, 355, 'R&D MEGA-HUB', 'right', isNearWorkplace);
 
   // Subtle animated coffee steam over espresso machine
   const time = performance.now() * 0.003;
@@ -2313,10 +2348,38 @@ function renderCafeteriaDetails() {
 
 function renderBigWorkplaceDetails() {
   const p = state.player;
-  const isNearCafe = p && Math.hypot(p.x - 70, p.y - 380) < 105;
+  const isNearCafe = p && Math.hypot(p.x - 60, p.y - 380) < 100;
 
   // Room Portal Badge pointing back to Cafeteria
   drawRoomPortalBadge(60, 380, 'CAFETERIA', 'left', isNearCafe);
+
+  // PixelEngine Dynamic Particle Effects
+  if (window.pixelEngine && window.pixelEngine.particles) {
+    // Warm espresso steam
+    if (Math.random() < 0.22) {
+      window.pixelEngine.particles.spawnCoffeeSteam(775, 140);
+    }
+    // Water cooler droplets
+    if (Math.random() < 0.12) {
+      window.pixelEngine.particles.spawnWaterSparkles(715, 360);
+    }
+  }
+
+  // Subtle pulsing glow on CRT monitors & stage screen
+  const now = performance.now();
+  const pulse = (Math.sin(now * 0.0035) + 1) * 0.5;
+
+  ctx.save();
+  // Green terminal glow on foreground CRT monitors
+  ctx.fillStyle = `rgba(16, 185, 129, ${0.05 + pulse * 0.04})`;
+  ctx.fillRect(105, 445, 42, 32);
+  ctx.fillRect(310, 445, 42, 32);
+  ctx.fillRect(515, 445, 42, 32);
+
+  // Soft cyan stage presentation glow
+  ctx.fillStyle = `rgba(6, 182, 212, ${0.04 + pulse * 0.03})`;
+  ctx.fillRect(780, 220, 215, 195);
+  ctx.restore();
 }
 
 function renderBossInCabinet() {
