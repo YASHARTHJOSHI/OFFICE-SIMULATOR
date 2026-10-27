@@ -187,17 +187,8 @@ html, body {
    ========================================================= */
 #interaction-prompt {
   display: none !important;
-}
-
-.key-badge {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #000;
-  font-family: var(--font-retro);
-  font-size: 0.65rem;
-  padding: 0.2rem 0.45rem;
-  border-radius: 4px;
-  font-weight: 700;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /* =========================================================
