@@ -2475,4 +2475,406 @@ kbd {
   white-space: nowrap;
 }
 
+/* ==========================================
+   TICKET TRIAGE INTERACTIVE MINI-GAME STYLES
+   ========================================== */
+.quest-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  background: rgba(11, 17, 32, 0.7);
+  padding: 0.35rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mode-pill {
+  flex: 1;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mode-pill:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-pill.active {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35));
+  border-color: #f59e0b;
+  color: #fef08a;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.triage-game-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.triage-alert-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.15);
+}
+
+.triage-alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-retro);
+  font-size: 0.68rem;
+  color: #fca5a5;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.pulsing-red-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulse-red 1.2s infinite alternate;
+}
+
+@keyframes pulse-red {
+  from { opacity: 0.4; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+.triage-alert-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.sev-tag {
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.sev-tag.unassigned { background: #334155; color: #94a3b8; }
+.sev-tag.p0 { background: #ef4444; color: #fff; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+
+.triage-ticket-body {
+  position: relative;
+  background: rgba(0, 0, 0, 0.45);
+  border-left: 3px solid #ef4444;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+.triage-ticket-msg {
+  font-size: 0.84rem;
+  color: #f8fafc;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.triage-step-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.triage-step-card:hover {
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.step-num {
+  font-family: var(--font-retro);
+  font-size: 0.62rem;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.step-header h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  flex: 1;
+  margin-left: 0.65rem;
+}
+
+.step-score {
+  font-family: var(--font-retro);
+  font-size: 0.68rem;
+  color: #38bdf8;
+}
+
+.step-subtitle {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0 0 0.85rem;
+}
+
+.severity-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.65rem;
+}
+
+.sev-btn {
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.sev-btn:hover {
+  background: rgba(51, 65, 85, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.sev-btn.selected {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(30, 41, 59, 0.9));
+  border-color: #ef4444;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+}
+
+.sev-code {
+  font-family: var(--font-retro);
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+.sev-code.p0 { background: #ef4444; color: #fff; }
+.sev-code.p1 { background: #f97316; color: #fff; }
+.sev-code.p2 { background: #eab308; color: #000; }
+.sev-code.p3 { background: #10b981; color: #fff; }
+
+.sev-info strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #f1f5f9;
+}
+.sev-info small {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.diagnostics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.65rem;
+}
+
+.diag-card {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.diag-card:hover {
+  background: rgba(51, 65, 85, 0.8);
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.diag-card.selected-correct {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+}
+
+.diag-card.selected-trap {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+}
+
+.diag-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.diag-text strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #f8fafc;
+  margin-bottom: 2px;
+}
+.diag-text small {
+  font-size: 0.69rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.response-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.resp-card {
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.resp-card:hover {
+  background: rgba(51, 65, 85, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateX(4px);
+}
+
+.resp-card.selected-gold {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(30, 41, 59, 0.95));
+  border-color: #f59e0b;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+}
+
+.resp-card.selected-warn {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+}
+
+.resp-tag {
+  display: inline-block;
+  font-family: var(--font-retro);
+  font-size: 0.62rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 0.45rem;
+}
+.resp-tag.gold { background: rgba(245, 158, 11, 0.25); color: #fef08a; border: 1px solid #f59e0b; }
+.resp-tag.warn { background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444; }
+
+.resp-body {
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  line-height: 1.45;
+  font-style: italic;
+  margin: 0;
+}
+
+.step-feedback {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+.step-feedback.success {
+  background: rgba(16, 185, 129, 0.15);
+  border-left: 3px solid #10b981;
+  color: #a7f3d0;
+}
+.step-feedback.warning {
+  background: rgba(239, 68, 68, 0.15);
+  border-left: 3px solid #ef4444;
+  color: #fca5a5;
+}
+
+.triage-game-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(11, 17, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.9rem 1.15rem;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+}
+
+.game-score-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.score-label {
+  font-family: var(--font-retro);
+  font-size: 0.65rem;
+  color: #94a3b8;
+}
+
+.score-num {
+  font-family: var(--font-retro);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #f59e0b;
+}
+
+.score-max {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.rank-pill {
+  font-family: var(--font-retro);
+  font-size: 0.58rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #334155;
+  color: #94a3b8;
+  margin-left: 6px;
+}
+.rank-pill.gold {
+  background: #f59e0b;
+  color: #000;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+
+.btn-game-submit {
+  padding: 0.75rem 1.35rem;
+  font-size: 0.74rem;
+}
+.btn-game-submit.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 

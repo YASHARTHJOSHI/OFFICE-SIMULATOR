@@ -431,31 +431,192 @@
         <div class="modal-body quest-modal-body">
           <!-- Tab 1: Challenge & Rubric Evaluation View -->
           <div id="quest-tab-challenge" class="quest-tab-content active">
-            <!-- Scenario Box -->
-            <div class="scenario-box">
-              <div class="scenario-label">WORKPLACE SCENARIO</div>
-              <p id="quest-scenario-text" class="scenario-text"></p>
-            </div>
-
-            <!-- Challenge Prompt & Template Toggle -->
-            <div class="challenge-guidance">
-              <div class="guidance-header">
-                <span class="guidance-title">YOUR MISSION</span>
-                <button id="btn-toggle-template" class="btn-subtle-pill">📋 Insert Template</button>
-              </div>
-              <p id="quest-prompt-text" class="guidance-desc"></p>
-            </div>
-
-            <!-- Input Draft Area -->
-            <div class="quest-input-wrap">
-              <label for="quest-draft-input">YOUR DRAFT RESPONSE:</label>
-              <textarea id="quest-draft-input" rows="6" placeholder="Type your professional response or draft here..."></textarea>
-            </div>
-
-            <div class="quest-submit-row">
-              <button id="btn-submit-eval" class="btn-pixel-primary btn-eval">
-                <span class="btn-eval-icon">🚀</span> SUBMIT TO AI FOR EVALUATION
+            <!-- Mode Toggle: Interactive Game Mode vs Custom Draft Mode -->
+            <div id="quest-mode-toggle" class="quest-mode-toggle">
+              <button id="mode-pill-game" class="mode-pill active" type="button" onclick="window.setQuestChallengeMode('game')">
+                🎮 Interactive Simulation
               </button>
+              <button id="mode-pill-draft" class="mode-pill" type="button" onclick="window.setQuestChallengeMode('draft')">
+                ✍️ Custom Draft Mode
+              </button>
+            </div>
+
+            <!-- INTERACTIVE TRIAGE MINI-GAME VIEW -->
+            <div id="triage-game-view" class="triage-game-container">
+              <!-- Urgent Ticket Banner -->
+              <div class="triage-alert-banner">
+                <div class="triage-alert-header">
+                  <div class="triage-alert-badge">
+                    <span class="pulsing-red-dot"></span>
+                    <span>ACTIVE ESCALATION • HIGH SEVERITY</span>
+                  </div>
+                  <div class="triage-alert-meta">
+                    TICKET <span class="sev-tag">#INC-8924</span> • ACME CORP • 14,000+ AFFECTED
+                  </div>
+                </div>
+                <div class="triage-ticket-body">
+                  "Dashboard is completely broken with 502 Bad Gateway errors on payments! Fix this immediately or we cancel our annual $450k enterprise contract today!"
+                  <div class="ticket-author">— Mark Sterling (VP of Tech, Acme Corp)</div>
+                </div>
+              </div>
+
+              <!-- ROUND 1: SEVERITY TRIAGE -->
+              <div class="triage-step-card" id="step-card-sev">
+                <div class="step-header">
+                  <div>
+                    <span class="step-num">STEP 1</span>
+                    <strong style="color: #f8fafc; font-size: 0.88rem;">Classify Incident Severity</strong>
+                  </div>
+                  <span id="step1-score-tag" class="step-score">+0 / 25 pts</span>
+                </div>
+                <p class="step-desc">Evaluate the business revenue and SLA blast radius to classify this ticket:</p>
+                <div class="severity-options-grid">
+                  <button type="button" class="sev-btn" data-sev="P0" onclick="window.handleSelectSeverity('P0')">
+                    <span class="sev-code p0">P0</span>
+                    <div class="sev-info">
+                      <div class="sev-title">Critical / Blocker</div>
+                      <div class="sev-sub">Enterprise customer churn, total payment downtime, immediate war room.</div>
+                    </div>
+                  </button>
+                  <button type="button" class="sev-btn" data-sev="P1" onclick="window.handleSelectSeverity('P1')">
+                    <span class="sev-code p1">P1</span>
+                    <div class="sev-info">
+                      <div class="sev-title">High Priority</div>
+                      <div class="sev-sub">Major feature degraded, but temporary manual workaround exists.</div>
+                    </div>
+                  </button>
+                  <button type="button" class="sev-btn" data-sev="P2" onclick="window.handleSelectSeverity('P2')">
+                    <span class="sev-code p2">P2</span>
+                    <div class="sev-info">
+                      <div class="sev-title">Medium Priority</div>
+                      <div class="sev-sub">Non-critical bug, partial reporting inaccuracy, next sprint candidate.</div>
+                    </div>
+                  </button>
+                  <button type="button" class="sev-btn" data-sev="P3" onclick="window.handleSelectSeverity('P3')">
+                    <span class="sev-code p3">P3</span>
+                    <div class="sev-info">
+                      <div class="sev-title">Low / Cosmetic</div>
+                      <div class="sev-sub">Minor UI alignment glitch, typo in documentation or tooltip.</div>
+                    </div>
+                  </button>
+                </div>
+                <div id="step1-feedback" class="step-feedback hidden"></div>
+              </div>
+
+              <!-- ROUND 2: ROOT-CAUSE DIAGNOSTICS DECK -->
+              <div class="triage-step-card" id="step-card-diag">
+                <div class="step-header">
+                  <div>
+                    <span class="step-num">STEP 2</span>
+                    <strong style="color: #f8fafc; font-size: 0.88rem;">Root-Cause Diagnostics Deck</strong>
+                  </div>
+                  <span id="step2-score-tag" class="step-score">+0 / 35 pts</span>
+                </div>
+                <p class="step-desc">Pick the 3 best diagnostic actions to pinpoint the root cause (Avoid rookie traps!):</p>
+                <div class="diagnostics-grid" id="diagnostics-grid">
+                  <div class="diag-card" data-idx="0" onclick="window.handleToggleDiagnostic(0)">
+                    <div class="diag-icon">🔍</div>
+                    <div class="diag-text">Inspect Sentry & Datadog APM for 502 spike & upstream gateway timeouts.</div>
+                  </div>
+                  <div class="diag-card" data-idx="1" onclick="window.handleToggleDiagnostic(1)">
+                    <div class="diag-icon">🌐</div>
+                    <div class="diag-text">Verify blast radius: Is it isolated to Acme's SAML/SSO tenant or global platform?</div>
+                  </div>
+                  <div class="diag-card" data-idx="2" onclick="window.handleToggleDiagnostic(2)">
+                    <div class="diag-icon">⏱️</div>
+                    <div class="diag-text">Spin up an internal 30-minute status sync with DevOps & on-call engineers.</div>
+                  </div>
+                  <div class="diag-card trap" data-idx="3" onclick="window.handleToggleDiagnostic(3)">
+                    <div class="diag-icon">🤦</div>
+                    <div class="diag-text">Trap: Reply "It works fine on my local machine, please clear your browser cache."</div>
+                  </div>
+                  <div class="diag-card trap" data-idx="4" onclick="window.handleToggleDiagnostic(4)">
+                    <div class="diag-icon">💣</div>
+                    <div class="diag-text">Trap: Promise the VP that it will be 100% fixed in exactly 5 minutes without checking logs.</div>
+                  </div>
+                  <div class="diag-card trap" data-idx="5" onclick="window.handleToggleDiagnostic(5)">
+                    <div class="diag-icon">😴</div>
+                    <div class="diag-text">Trap: Reassign the ticket to the intern's backlog and leave for an extended lunch break.</div>
+                  </div>
+                </div>
+                <div id="step2-feedback" class="step-feedback hidden"></div>
+              </div>
+
+              <!-- ROUND 3: EXECUTIVE COMMS STRATEGY -->
+              <div class="triage-step-card" id="step-card-strat">
+                <div class="step-header">
+                  <div>
+                    <span class="step-num">STEP 3</span>
+                    <strong style="color: #f8fafc; font-size: 0.88rem;">Executive Response Strategy</strong>
+                  </div>
+                  <span id="step3-score-tag" class="step-score">+0 / 40 pts</span>
+                </div>
+                <p class="step-desc">Select how to communicate with Mark Sterling (VP) and Account Management:</p>
+                <div class="response-cards-grid">
+                  <div class="resp-card" data-strat="lead" onclick="window.handleSelectStrategy('lead')">
+                    <span class="resp-tag gold">★ RECOMMENDED • LEAD TECH STRATEGY (+40 PTS)</span>
+                    <p class="resp-body">
+                      "Hi Mark, we understand the critical impact on Acme Corp's operations. This has been escalated to a P0 incident under ticket #INC-8924. Our senior backend and infrastructure leads are actively investigating the 502 gateway timeouts. We will provide our next direct status update within 30 minutes (by 2:45 PM EST). In parallel, could your team confirm if any specific workspace user IDs are failing?"
+                    </p>
+                  </div>
+                  <div class="resp-card" data-strat="cowboy" onclick="window.handleSelectStrategy('cowboy')">
+                    <span class="resp-tag warn">⚠️ COWBOY CODER STRATEGY (+10 PTS)</span>
+                    <p class="resp-body">
+                      "Hey Mark, yeah we pushed a hotfix 15 minutes ago that might have broke payments lol. I'm reverting main right now, don't worry we got this covered!"
+                    </p>
+                  </div>
+                  <div class="resp-card" data-strat="bureaucrat" onclick="window.handleSelectStrategy('bureaucrat')">
+                    <span class="resp-tag warn">⛔ CORPORATE BUREAUCRAT (+0 PTS)</span>
+                    <p class="resp-body">
+                      "Dear Valued Customer, please submit a standard Form 84-B via our tiered ticketing portal. Normal SLA response times for standard requests are 3 to 5 business days."
+                    </p>
+                  </div>
+                </div>
+                <div id="step3-feedback" class="step-feedback hidden"></div>
+              </div>
+
+              <!-- TRIAGE MINI-GAME FOOTER -->
+              <div class="triage-game-footer">
+                <div class="game-score-pill">
+                  <span class="score-label">TRIAGE SCORE:</span>
+                  <span id="game-current-score" class="score-num">0</span>
+                  <span class="score-max">/ 100</span>
+                  <span id="game-rank-badge" class="rank-pill">NOVICE</span>
+                </div>
+                <button type="button" id="btn-submit-game-eval" class="btn-pixel-primary btn-game-submit disabled" onclick="window.handleFinalizeGameTriage()">
+                  ⚡ LOCK IN TRIAGE & RESOLVE INCIDENT
+                </button>
+              </div>
+            </div>
+
+            <!-- STANDARD DRAFT VIEW (FALLBACK / OTHER QUESTS) -->
+            <div id="standard-draft-view" class="standard-draft-container">
+              <!-- Scenario Box -->
+              <div class="scenario-box">
+                <div class="scenario-label">WORKPLACE SCENARIO</div>
+                <p id="quest-scenario-text" class="scenario-text"></p>
+              </div>
+
+              <!-- Challenge Prompt & Template Toggle -->
+              <div class="challenge-guidance">
+                <div class="guidance-header">
+                  <span class="guidance-title">YOUR MISSION</span>
+                  <button id="btn-toggle-template" class="btn-subtle-pill">📋 Insert Template</button>
+                </div>
+                <p id="quest-prompt-text" class="guidance-desc"></p>
+              </div>
+
+              <!-- Input Draft Area -->
+              <div class="quest-input-wrap">
+                <label for="quest-draft-input">YOUR DRAFT RESPONSE:</label>
+                <textarea id="quest-draft-input" rows="6" placeholder="Type your professional response or draft here..."></textarea>
+              </div>
+
+              <div class="quest-submit-row">
+                <button id="btn-submit-eval" class="btn-pixel-primary btn-eval">
+                  <span class="btn-eval-icon">🚀</span> SUBMIT TO AI FOR EVALUATION
+                </button>
+              </div>
             </div>
 
             <!-- AI Evaluation Results Section -->

@@ -2430,6 +2430,358 @@ function renderClassicDashboard() {
   updateHUDQuestTracker();
 }
 
+// --- TICKET TRIAGE INTERACTIVE MINI-GAME STATE & LOGIC ---
+let triageGameState = {
+  severity: null,
+  selectedDiagnostics: new Set(),
+  strategy: null,
+  score: 0
+};
+
+const DIAGNOSTICS_DATA = [
+  { id: 0, points: 12, isTrap: false, name: "Sentry & APM traces" },
+  { id: 1, points: 12, isTrap: false, name: "Blast radius tenant check" },
+  { id: 2, points: 11, isTrap: false, name: "30-min sync with DevOps" },
+  { id: 3, points: -15, isTrap: true, name: "Works on local machine trap" },
+  { id: 4, points: -15, isTrap: true, name: "5-minute promise trap" },
+  { id: 5, points: -20, isTrap: true, name: "Pass to intern trap" }
+];
+
+const STRATEGY_DATA = {
+  lead: {
+    points: 40,
+    text: "Hi Mark, we understand the critical impact on Acme Corp's operations. This has been escalated to a P0 incident under ticket #INC-8924. Our senior backend and infrastructure leads are actively investigating the 502 gateway timeouts. We will provide our next direct status update within 30 minutes (by 2:45 PM EST). In parallel, could your team confirm if any specific workspace user IDs are failing?"
+  },
+  cowboy: {
+    points: 10,
+    text: "Hey Mark, yeah we pushed a hotfix 15 minutes ago that might have broke payments lol. I'm reverting main right now, don't worry we got this covered!"
+  },
+  bureaucrat: {
+    points: 0,
+    text: "Dear Valued Customer, please submit a standard Form 84-B via our tiered ticketing portal. Normal SLA response times for standard requests are 3 to 5 business days."
+  }
+};
+
+function initTriageGame() {
+  triageGameState = {
+    severity: null,
+    selectedDiagnostics: new Set(),
+    strategy: null,
+    score: 0
+  };
+
+  // Reset Round 1
+  document.querySelectorAll('.sev-btn').forEach(btn => btn.classList.remove('selected'));
+  const s1Tag = document.getElementById('step1-score-tag');
+  if (s1Tag) { s1Tag.textContent = '+0 / 25 pts'; s1Tag.className = 'step-score'; }
+  const s1Feed = document.getElementById('step1-feedback');
+  if (s1Feed) { s1Feed.className = 'step-feedback hidden'; s1Feed.textContent = ''; }
+
+  // Reset Round 2
+  document.querySelectorAll('.diag-card').forEach(c => {
+    c.classList.remove('selected-pro', 'selected-trap');
+  });
+  const s2Tag = document.getElementById('step2-score-tag');
+  if (s2Tag) { s2Tag.textContent = '+0 / 35 pts'; s2Tag.className = 'step-score'; }
+  const s2Feed = document.getElementById('step2-feedback');
+  if (s2Feed) { s2Feed.className = 'step-feedback hidden'; s2Feed.textContent = ''; }
+
+  // Reset Round 3
+  document.querySelectorAll('.resp-card').forEach(c => {
+    c.classList.remove('selected-gold', 'selected-warn');
+  });
+  const s3Tag = document.getElementById('step3-score-tag');
+  if (s3Tag) { s3Tag.textContent = '+0 / 40 pts'; s3Tag.className = 'step-score'; }
+  const s3Feed = document.getElementById('step3-feedback');
+  if (s3Feed) { s3Feed.className = 'step-feedback hidden'; s3Feed.textContent = ''; }
+
+  // Reset Footer
+  const scoreNum = document.getElementById('game-current-score');
+  if (scoreNum) scoreNum.textContent = '0';
+  const rankBadge = document.getElementById('game-rank-badge');
+  if (rankBadge) { rankBadge.textContent = 'NOVICE'; rankBadge.className = 'rank-pill'; }
+  const btnSubmit = document.getElementById('btn-submit-game-eval');
+  if (btnSubmit) btnSubmit.classList.add('disabled');
+}
+
+function setQuestChallengeMode(mode) {
+  const pillGame = document.getElementById('mode-pill-game');
+  const pillDraft = document.getElementById('mode-pill-draft');
+  const gameView = document.getElementById('triage-game-view');
+  const draftView = document.getElementById('standard-draft-view');
+
+  if (mode === 'game') {
+    if (pillGame) pillGame.classList.add('active');
+    if (pillDraft) pillDraft.classList.remove('active');
+    if (gameView) gameView.classList.remove('hidden');
+    if (draftView) draftView.classList.add('hidden');
+  } else {
+    if (pillDraft) pillDraft.classList.add('active');
+    if (pillGame) pillGame.classList.remove('active');
+    if (draftView) draftView.classList.remove('hidden');
+    if (gameView) gameView.classList.add('hidden');
+  }
+}
+
+function handleSelectSeverity(sev) {
+  triageGameState.severity = sev;
+  document.querySelectorAll('.sev-btn').forEach(btn => {
+    if (btn.getAttribute('data-sev') === sev) {
+      btn.classList.add('selected');
+    } else {
+      btn.classList.remove('selected');
+    }
+  });
+
+  if (window.soundManager) {
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+  }
+
+  const s1Tag = document.getElementById('step1-score-tag');
+  const s1Feed = document.getElementById('step1-feedback');
+
+  if (sev === 'P0') {
+    if (s1Tag) { s1Tag.textContent = '+25 / 25 pts'; s1Tag.className = 'step-score success'; }
+    if (s1Feed) {
+      s1Feed.className = 'step-feedback success';
+      s1Feed.textContent = '✅ SPOT ON! Total gateway breakdown during transactions with VIP churn threat is a textbook P0 Blocker. Incident commander paging active!';
+    }
+  } else {
+    const pts = sev === 'P1' ? 10 : (sev === 'P2' ? 5 : 0);
+    if (s1Tag) { s1Tag.textContent = `+${pts} / 25 pts`; s1Tag.className = 'step-score warn'; }
+    if (s1Feed) {
+      s1Feed.className = 'step-feedback warning';
+      s1Feed.textContent = `⚠️ Caution: Classifying $450k revenue churn & payment downtime as ${sev} risks breaching enterprise customer SLAs. P0 is the true severity!`;
+    }
+  }
+
+  updateTriageGameScore();
+}
+
+function handleToggleDiagnostic(idx) {
+  const card = document.querySelector(`.diag-card[data-idx="${idx}"]`);
+  if (!card) return;
+
+  if (triageGameState.selectedDiagnostics.has(idx)) {
+    triageGameState.selectedDiagnostics.delete(idx);
+    card.classList.remove('selected-pro', 'selected-trap');
+  } else {
+    if (triageGameState.selectedDiagnostics.size >= 3) {
+      if (typeof showToast === 'function') {
+        showToast('⚠️ Maximum 3 diagnostic cards allowed! Click an existing card to unselect.');
+      }
+      return;
+    }
+    triageGameState.selectedDiagnostics.add(idx);
+    if (idx <= 2) {
+      card.classList.add('selected-pro');
+    } else {
+      card.classList.add('selected-trap');
+    }
+  }
+
+  if (window.soundManager) {
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+  }
+
+  // Calculate Round 2 points
+  let r2Points = 0;
+  let hasTrap = false;
+  triageGameState.selectedDiagnostics.forEach(i => {
+    const item = DIAGNOSTICS_DATA[i];
+    if (item) {
+      r2Points += item.points;
+      if (item.isTrap) hasTrap = true;
+    }
+  });
+  r2Points = Math.max(0, Math.min(35, r2Points));
+
+  const s2Tag = document.getElementById('step2-score-tag');
+  const s2Feed = document.getElementById('step2-feedback');
+
+  if (s2Tag) {
+    s2Tag.textContent = `+${r2Points} / 35 pts`;
+    s2Tag.className = r2Points === 35 ? 'step-score success' : 'step-score';
+  }
+
+  if (s2Feed) {
+    if (triageGameState.selectedDiagnostics.size === 0) {
+      s2Feed.className = 'step-feedback hidden';
+    } else if (hasTrap) {
+      s2Feed.className = 'step-feedback warning';
+      s2Feed.textContent = '⚠️ Anti-Pattern Alert: You selected a rookie trap! Real engineers never blame the client without logs or make wild promises.';
+    } else if (triageGameState.selectedDiagnostics.size === 3) {
+      s2Feed.className = 'step-feedback success';
+      s2Feed.textContent = '✅ FLAWLESS DIAGNOSTIC SUITE! Full APM telemetry inspection, tenant blast-radius isolation, and synchronized DevOps war room established!';
+    } else {
+      s2Feed.className = 'step-feedback success';
+      s2Feed.textContent = `Selected ${triageGameState.selectedDiagnostics.size} / 3 diagnostic actions. Pick ${3 - triageGameState.selectedDiagnostics.size} more!`;
+    }
+  }
+
+  updateTriageGameScore();
+}
+
+function handleSelectStrategy(stratId) {
+  triageGameState.strategy = stratId;
+  const strat = STRATEGY_DATA[stratId];
+  if (!strat) return;
+
+  document.querySelectorAll('.resp-card').forEach(c => {
+    const id = c.getAttribute('data-strat');
+    if (id === stratId) {
+      if (stratId === 'lead') {
+        c.classList.add('selected-gold');
+        c.classList.remove('selected-warn');
+      } else {
+        c.classList.add('selected-warn');
+        c.classList.remove('selected-gold');
+      }
+    } else {
+      c.classList.remove('selected-gold', 'selected-warn');
+    }
+  });
+
+  if (window.soundManager) {
+    window.soundManager.unlock();
+    window.soundManager.playInteract();
+  }
+
+  // Auto-sync into the draft textarea for consistency
+  const draftIn = document.getElementById('quest-draft-input');
+  if (draftIn) draftIn.value = strat.text;
+
+  const s3Tag = document.getElementById('step3-score-tag');
+  const s3Feed = document.getElementById('step3-feedback');
+
+  if (s3Tag) {
+    s3Tag.textContent = `+${strat.points} / 40 pts`;
+    s3Tag.className = strat.points === 40 ? 'step-score success' : 'step-score warn';
+  }
+
+  if (s3Feed) {
+    if (stratId === 'lead') {
+      s3Feed.className = 'step-feedback success';
+      s3Feed.textContent = '🌟 MASTERFUL EXECUTIVE STRATEGY! De-escalates VP anxiety with calm authority, commits to a tight 30-min update cadence, and requests specific debug info.';
+    } else if (stratId === 'cowboy') {
+      s3Feed.className = 'step-feedback warning';
+      s3Feed.textContent = '⚠️ High Risk: Blindly rolling back main branch without verifying root causes often causes split-brain database states and worse outages!';
+    } else {
+      s3Feed.className = 'step-feedback warning';
+      s3Feed.textContent = '⛔ Catastrophic Error: Giving a canned 3-5 business day response to an escalated $450k client guarantees contract termination.';
+    }
+  }
+
+  updateTriageGameScore();
+}
+
+function updateTriageGameScore() {
+  let s1 = 0;
+  if (triageGameState.severity === 'P0') s1 = 25;
+  else if (triageGameState.severity === 'P1') s1 = 10;
+  else if (triageGameState.severity === 'P2') s1 = 5;
+
+  let s2 = 0;
+  triageGameState.selectedDiagnostics.forEach(i => {
+    const item = DIAGNOSTICS_DATA[i];
+    if (item) s2 += item.points;
+  });
+  s2 = Math.max(0, Math.min(35, s2));
+
+  let s3 = 0;
+  if (triageGameState.strategy && STRATEGY_DATA[triageGameState.strategy]) {
+    s3 = STRATEGY_DATA[triageGameState.strategy].points;
+  }
+
+  const total = Math.max(0, Math.min(100, s1 + s2 + s3));
+  triageGameState.score = total;
+
+  const scoreNum = document.getElementById('game-current-score');
+  if (scoreNum) scoreNum.textContent = total;
+
+  const rankBadge = document.getElementById('game-rank-badge');
+  if (rankBadge) {
+    if (total >= 95) {
+      rankBadge.textContent = 'STAFF TECH LEAD';
+      rankBadge.className = 'rank-pill gold';
+    } else if (total >= 70) {
+      rankBadge.textContent = 'SENIOR ENGINEER';
+      rankBadge.className = 'rank-pill';
+    } else if (total >= 40) {
+      rankBadge.textContent = 'MID-LEVEL DEV';
+      rankBadge.className = 'rank-pill';
+    } else {
+      rankBadge.textContent = 'NOVICE';
+      rankBadge.className = 'rank-pill';
+    }
+  }
+
+  const btnSubmit = document.getElementById('btn-submit-game-eval');
+  const isReady = (triageGameState.severity !== null) && 
+                  (triageGameState.selectedDiagnostics.size === 3) && 
+                  (triageGameState.strategy !== null);
+
+  if (btnSubmit) {
+    if (isReady) {
+      btnSubmit.classList.remove('disabled');
+    } else {
+      btnSubmit.classList.add('disabled');
+    }
+  }
+}
+
+function handleFinalizeGameTriage() {
+  const isReady = (triageGameState.severity !== null) && 
+                  (triageGameState.selectedDiagnostics.size === 3) && 
+                  (triageGameState.strategy !== null);
+
+  if (!isReady) {
+    if (typeof showToast === 'function') {
+      showToast('⚠️ Complete Step 1, pick 3 diagnostics in Step 2, and select your Strategy in Step 3!');
+    }
+    return;
+  }
+
+  const finalScore = triageGameState.score;
+  const evalData = {
+    totalScore: finalScore,
+    clarity: Math.round(finalScore * 0.25),
+    completeness: Math.round(finalScore * 0.25),
+    tone: Math.round(finalScore * 0.25),
+    nextAction: Math.round(finalScore * 0.25),
+    summary: finalScore >= 80 
+      ? "🎯 Outstanding live incident triage! You accurately classified the P0 blocker, avoided rookie traps, validated APM telemetry, and dispatched an executive update."
+      : "Incident triage concluded with notable procedural vulnerabilities. Review P0 escalation protocols to protect client SLAs.",
+    strengths: "Decisive incident severity tagging, clear 30-minute check-in SLA, disciplined telemetry debugging.",
+    improvements: finalScore < 100 ? "Avoid dismissive communication or unverified production hotfixes." : "Flawless incident execution — ready for Staff Engineer escalation duties!",
+    exemplaryRewrite: "Hi Mark, we have triaged this as a P0 blocker (INC-8924). War room is active on APM 502 traces. Next status update in 30 minutes."
+  };
+
+  if (window.aiAgent && currentQuestId) {
+    window.aiAgent.scores[currentQuestId] = {
+      score: finalScore,
+      completed: finalScore >= 70,
+      feedback: evalData.summary,
+      details: evalData
+    };
+    if (typeof window.aiAgent.saveScores === 'function') {
+      window.aiAgent.saveScores();
+    }
+  }
+
+  displayEvaluationResults(evalData);
+}
+
+// Expose to window for inline onclick attributes
+window.initTriageGame = initTriageGame;
+window.setQuestChallengeMode = setQuestChallengeMode;
+window.handleSelectSeverity = handleSelectSeverity;
+window.handleToggleDiagnostic = handleToggleDiagnostic;
+window.handleSelectStrategy = handleSelectStrategy;
+window.handleFinalizeGameTriage = handleFinalizeGameTriage;
+
 function openQuestModal(questId, npcId) {
   if (!window.aiAgent) return;
   const quest = window.aiAgent.quests[questId];
@@ -2459,6 +2811,17 @@ function openQuestModal(questId, npcId) {
   if (prText) prText.textContent = quest.defaultPrompt;
   const draftIn = document.getElementById('quest-draft-input');
   if (draftIn) draftIn.value = '';
+
+  // Handle game mode vs draft mode toggle
+  const modeToggle = document.getElementById('quest-mode-toggle');
+  if (questId === 'quest_ticket_triage') {
+    if (modeToggle) modeToggle.style.display = 'flex';
+    setQuestChallengeMode('game');
+    initTriageGame();
+  } else {
+    if (modeToggle) modeToggle.style.display = 'none';
+    setQuestChallengeMode('draft');
+  }
 
   // Hide previous results
   const resBox = document.getElementById('quest-eval-results');
