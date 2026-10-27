@@ -18,7 +18,9 @@ const assets = {
   bossCharacter: new Image(),
   cornerOffice: new Image(),
   doorSlightlyOpen: new Image(),
-  doorLightSpill: new Image()
+  doorLightSpill: new Image(),
+  partnerCharacter: new Image(),
+  partnerPortrait: new Image()
 };
 
 let assetsLoadedCount = 0;
@@ -50,6 +52,8 @@ assets.bossCharacter.src = 'assets/boss_character.png?v=3';
 assets.cornerOffice.src = 'assets/corner_office.png';
 assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=5';
 assets.doorLightSpill.src = 'assets/door_light_spill.png?v=3';
+assets.partnerCharacter.src = 'assets/partner_character.png';
+assets.partnerPortrait.src = 'assets/partner_portrait.png';
 
 // Setup load listeners
 Object.keys(assets).forEach(key => {
@@ -344,6 +348,7 @@ const SCENES = {
       // Back-wall furniture bases (y <= 472 so foreground floor is 100% open and walkable!)
       { x: 35, y: 440, w: 60, h: 30, label: 'Coat Rack' },
       { x: 175, y: 440, w: 220, h: 30, label: 'Mahogany Desk' },
+      { x: 310, y: 468, w: 30, h: 20, label: 'Senior Partner' },
       { x: 530, y: 440, w: 180, h: 30, label: 'Coffee Table' },
       { x: 715, y: 440, w: 65, h: 30, label: 'Ficus Plant' },
       { x: 795, y: 440, w: 85, h: 30, label: 'Filing Cabinet' },
@@ -358,6 +363,13 @@ const SCENES = {
         prompt: 'Exit to Main Hall',
         promptPos: { x: 955, y: 435 },
         action: () => exitCornerOfficeToMainHall()
+      },
+      {
+        id: 'talk_to_partner',
+        x: 275, y: 440, w: 100, h: 90,
+        prompt: 'Talk to Senior Partner',
+        promptPos: { x: 325, y: 410 },
+        action: () => startPartnerDialogue()
       },
       {
         id: 'corner_coat_rack',
@@ -749,6 +761,66 @@ function startBossDialogue() {
   }
 }
 
+// Senior Partner Dialogue Tree
+function startPartnerDialogue() {
+  if (!state.partner) state.partner = { talkedCount: 0 };
+  state.partner.talkedCount++;
+
+  if (state.partner.talkedCount === 1) {
+    openDialogue(
+      'Senior Partner',
+      assets.partnerPortrait.src,
+      'Henderson! Good to see someone from the main hall actually making progress. Lord Skywalker has been screaming about quarterly budget spreadsheets all morning...',
+      [
+        {
+          label: 'Lord Skywalker demanded 500% profits and denied my vacation...',
+          onSelect: () => {
+            openDialogue(
+              'Senior Partner',
+              assets.partnerPortrait.src,
+              'Classic Anakin. Don\'t let his dark side intimidate you. Take a sip of the jasmine tea—it keeps us sane around here.',
+              [{ label: 'Thank you, I appreciate that!', onSelect: () => closeDialogue() }]
+            );
+          }
+        },
+        {
+          label: 'What are you investigating on the whiteboard?',
+          onSelect: () => {
+            openDialogue(
+              'Senior Partner',
+              assets.partnerPortrait.src,
+              'Classified corporate intrigue. Someone\'s been tampering with the mainframe audit logs after hours. Keep your eyes open.',
+              [{ label: 'I\'ll stay vigilant.', onSelect: () => closeDialogue() }]
+            );
+          }
+        },
+        {
+          label: 'Is there any coffee left in this building?',
+          onSelect: () => {
+            openDialogue(
+              'Senior Partner',
+              assets.partnerPortrait.src,
+              'Only in Anakin\'s suite, and I wouldn\'t dare touch his espresso beans. Help yourself to our vintage tea set over there.',
+              [{ label: 'Sounds refreshing, thanks!', onSelect: () => closeDialogue() }]
+            );
+          }
+        }
+      ]
+    );
+  } else {
+    const randomLines = [
+      'Stay sharp, Henderson. Corporate politics is a dangerous game.',
+      'The CRT terminal has the encrypted audit files if you want to inspect them.',
+      'If Anakin starts choking anyone in HR again, let me know immediately.',
+      'Have you tried the jasmine green tea? Freshly brewed from the gardens.'
+    ];
+    const line = randomLines[Math.floor(Math.random() * randomLines.length)];
+    openDialogue('Senior Partner', assets.partnerPortrait.src, line, [
+      { label: 'Back to work!', onSelect: () => closeDialogue() }
+    ]);
+  }
+}
+
 // ==========================================
 // SCENE SWITCHING & DOOR TRANSITIONS
 // ==========================================
@@ -1085,6 +1157,8 @@ function render() {
   if (state.activePrompt && state.activePrompt.promptPos && state.activePrompt.id !== 'door_to_boss' && state.activePrompt.id !== 'corner_office_entrance') {
     if (state.activePrompt.id === 'talk_to_boss') {
       drawGoldenTriangle(450, 320);
+    } else if (state.activePrompt.id === 'talk_to_partner') {
+      drawGoldenTriangle(325, 320);
     } else {
       drawGoldenTriangle(state.activePrompt.promptPos.x, state.activePrompt.promptPos.y - 20);
     }
@@ -1157,6 +1231,24 @@ function renderBossInCabinet() {
 }
 
 function renderCornerOffice() {
+  // In the Corner Office, render Partner full body standing at the marked place (x: 325, y: 485)
+  if (assets.partnerCharacter && assets.partnerCharacter.complete) {
+    const partnerW = 71;
+    const partnerH = 142;
+    const partnerX = 325;
+    const partnerY = 485;
+
+    // Soft shadow beneath partner feet
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(partnerX, partnerY - 2, 26, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Subtle idle breathing animation
+    const breath = Math.sin(performance.now() * 0.003) * 1.5;
+    ctx.drawImage(assets.partnerCharacter, partnerX - partnerW / 2, partnerY - partnerH + breath, partnerW, partnerH);
+  }
+
   // Floating Golden Triangle indicator pointing to right exit doorway
   drawGoldenTriangle(965, 415);
 }
