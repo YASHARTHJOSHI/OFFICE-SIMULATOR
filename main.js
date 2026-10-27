@@ -3468,6 +3468,18 @@ function updateHUDQuestTracker() {
       openQuestModal(activeQuestId, npc.id);
     };
   }
+
+  // Sync retro manila folder header tab
+  const tabLabel = document.getElementById('obj-tab-label');
+  if (tabLabel) {
+    tabLabel.textContent = `📁 TASK #${(questIdx + 1)}`;
+  }
+  const objTracker = document.getElementById('objective-tracker');
+  if (objTracker) {
+    objTracker.onclick = () => {
+      openQuestModal(activeQuestId, npc.id);
+    };
+  }
 }
 
 // OfficePager 3000 (Simulated Chat Inbox)
