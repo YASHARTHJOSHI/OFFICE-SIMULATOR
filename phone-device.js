@@ -30,6 +30,39 @@
     model: 'openai/gpt-oss-120b'
   };
 
+  // Helper to determine difficulty rating and corresponding money reward for any task
+  const getTaskDifficultyAndMoney = (task) => {
+    if (!task) return { difficulty: 'MED', diffClass: 'p1', diffBadge: 'P1 MED', money: 350 };
+    const prio = (task.priority || '').toUpperCase();
+    const diff = (task.difficulty || '').toUpperCase();
+
+    // Critical / P0 / Urgent -> HARD ($500)
+    if (prio === 'P0' || diff === 'HARD' || diff === 'CRITICAL' || diff === 'URGENT') {
+      return {
+        difficulty: 'HARD',
+        diffClass: 'p0',
+        diffBadge: 'P0 HARD',
+        money: Number(task.rewardMoney) || 500
+      };
+    }
+    // High / P1 -> MEDIUM ($350)
+    if (prio === 'P1' || diff === 'MED' || diff === 'MEDIUM' || diff === 'HIGH') {
+      return {
+        difficulty: 'MED',
+        diffClass: 'p1',
+        diffBadge: 'P1 MED',
+        money: Number(task.rewardMoney) || 350
+      };
+    }
+    // Normal / P2 -> EASY ($200)
+    return {
+      difficulty: 'EASY',
+      diffClass: 'p2',
+      diffBadge: 'P2 EASY',
+      money: Number(task.rewardMoney) || 200
+    };
+  };
+
   // Curated Fallback SWE Tasks per Character Role (used instantly on boot or offline)
   const DEFAULT_SWE_TASKS = {
     char1: [ // Vikram: Tech Lead / Backend Specialist
@@ -1268,6 +1301,8 @@ Respond ONLY with a valid JSON array of objects. Do not include markdown code ti
 Each object must have these exact keys:
 - "id": unique string (e.g. "hr_sprint_${sprintNum}_1")
 - "priority": one of "P0", "P1", "P2" (make 1 P0, 2 P1, 1-2 P2)
+- "difficulty": "HARD" for P0, "MED" for P1, "EASY" for P2
+- "rewardMoney": 500 for P0, 350 for P1, 200 for P2
 - "category": short category string like "Backend", "DevOps", "Architecture", "Database", "Security", or "Optimization"
 - "title": concise actionable title (6-10 words)
 - "description": 1-2 sentences of technical engineering detail
@@ -1307,16 +1342,23 @@ Each object must have these exact keys:
 
       const parsed = JSON.parse(rawContent);
       if (Array.isArray(parsed) && parsed.length >= 3) {
-        return parsed.map((item, idx) => ({
-          id: item.id || `hr_groq_${sprintNum}_${charId}_${Date.now()}_${idx}`,
-          priority: (item.priority && item.priority.toUpperCase()) || (idx === 0 ? 'P0' : 'P1'),
-          category: item.category || 'Engineering',
-          title: item.title || 'Engineering Task Directive',
-          description: item.description || 'Implement assigned ticket according to sprint specifications.',
-          location: item.location || 'Assigned Desk PC',
-          xp: Number(item.xp) || (160 - idx * 15),
-          completed: false
-        }));
+        return parsed.map((item, idx) => {
+          const prio = (item.priority && item.priority.toUpperCase()) || (idx === 0 ? 'P0' : 'P1');
+          const diff = item.difficulty || (prio === 'P0' ? 'HARD' : (prio === 'P1' ? 'MED' : 'EASY'));
+          const cash = Number(item.rewardMoney) || (prio === 'P0' ? 500 : (prio === 'P1' ? 350 : 200));
+          return {
+            id: item.id || `hr_groq_${sprintNum}_${charId}_${Date.now()}_${idx}`,
+            priority: prio,
+            difficulty: diff,
+            rewardMoney: cash,
+            category: item.category || 'Engineering',
+            title: item.title || 'Engineering Task Directive',
+            description: item.description || 'Implement assigned ticket according to sprint specifications.',
+            location: item.location || 'Assigned Desk PC',
+            xp: Number(item.xp) || (160 - idx * 15),
+            completed: false
+          };
+        });
       }
 
       throw new Error('Parsed response was not a valid task array');
@@ -1333,7 +1375,7 @@ Each object must have these exact keys:
       }
 
       container.innerHTML = tasks.map((t) => {
-        const pClass = (t.priority || 'P1').toLowerCase();
+        const rewardInfo = getTaskDifficultyAndMoney(t);
         return `
           <div class="swe-task-card ${t.completed ? 'completed' : ''}" data-task-id="${t.id}">
             <div class="swe-task-header">
@@ -1345,7 +1387,8 @@ Each object must have these exact keys:
               </div>
             </div>
             <div class="swe-task-badge-row">
-              <span class="prio-tag prio-${pClass}">${t.priority || 'P1'}</span>
+              <span class="diff-tag diff-${rewardInfo.diffClass}">${rewardInfo.diffBadge}</span>
+              <span class="money-tag">💵 +$${rewardInfo.money}</span>
               <span class="cat-tag">${t.category || 'Tech'}</span>
               <span class="xp-tag">+${t.xp} XP</span>
             </div>
@@ -1371,6 +1414,7 @@ Each object must have these exact keys:
 
       const currentSprint = this.sprintRound;
       const bonusXp = 300;
+      const bonusMoney = 1000;
 
       // Award sprint completion milestone bonus
       if (window.state && window.state.player) {
@@ -1379,11 +1423,11 @@ Each object must have these exact keys:
         if (scoreEl) scoreEl.textContent = window.state.player.score;
       }
       if (typeof window.addCorporateFunds === 'function') {
-        window.addCorporateFunds(600);
+        window.addCorporateFunds(bonusMoney);
       }
 
       if (typeof window.showToast === 'function') {
-        window.showToast(`🏆 SPRINT #${currentSprint} COMPLETED! +${bonusXp} XP Bonus! Amit (HR) is assigning new sprint tasks...`);
+        window.showToast(`🏆 SPRINT #${currentSprint} COMPLETED! +${bonusXp} XP & 💵 +$${bonusMoney.toLocaleString()} Milestone Bonus! Amit (HR) is assigning new sprint tasks...`);
       }
 
       this.sprintRound++;
@@ -1417,10 +1461,14 @@ Each object must have these exact keys:
         }
       }
 
-      // Award XP Toast
+      // Calculate difficulty & money reward
+      const rewardInfo = getTaskDifficultyAndMoney(task);
+      const moneyReward = rewardInfo.money;
+
+      // Award XP & Money Toast
       if (typeof window.showToast === 'function') {
         if (task.completed) {
-          window.showToast(`⭐ +${task.xp} XP: Completed "${task.title}"!`);
+          window.showToast(`⭐ +${task.xp} XP & 💵 +$${moneyReward} Cash Reward [${rewardInfo.diffBadge}]! Completed "${task.title}".`);
           // Update game score/XP and corporate funds if player state exists
           if (window.state && window.state.player) {
             window.state.player.score = (window.state.player.score || 0) + task.xp;
@@ -1428,12 +1476,12 @@ Each object must have these exact keys:
             if (scoreEl) scoreEl.textContent = window.state.player.score;
           }
           if (typeof window.addCorporateFunds === 'function') {
-            window.addCorporateFunds(task.xp * 2);
+            window.addCorporateFunds(moneyReward);
           }
         } else {
-          window.showToast(`↩️ Marked "${task.title}" as pending.`);
+          window.showToast(`↩️ Marked "${task.title}" as pending (-$${moneyReward}).`);
           if (typeof window.addCorporateFunds === 'function') {
-            window.addCorporateFunds(-(task.xp * 2));
+            window.addCorporateFunds(-moneyReward);
           }
         }
       }

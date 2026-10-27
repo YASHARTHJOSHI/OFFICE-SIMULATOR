@@ -1899,9 +1899,10 @@ git add . && git commit -m "another day another feature"`;
         date: 'Today, 10:15 AM',
         category: 'HR DIRECTIVE',
         priority: 'High',
+        difficulty: 'MED',
         taskTitle: 'Submit Sprint Retrospective to HR Manager Amit',
         xpReward: 180,
-        fundsReward: 360,
+        fundsReward: 350,
         body: `Hi team,<br><br>As part of our continuous engineering excellence initiative, please reply to this directive thread with your completed sprint summary, technical challenges encountered (e.g. Redis socket connection pooling, database query benchmarks), and key takeaways.<br><br>Once submitted, this will be formally logged into our Q4 engineering performance audit and OKR evaluation.<br><br>Best regards,<br><strong>Amit Sharma</strong><br>Head of Engineering & HR Operations`,
         suggestedReply: `Hi Amit,\n\nHere is my Q4 Engineering Sprint summary:\n- Resolved Redis ingestion connection leak and stabilized socket recycling.\n- Added idempotency key verification to payment webhook listeners.\n- Benchmarked PostgreSQL telemetry logs and optimized index coverage.\n- Completed cross-functional triage with product and design teams.\n\nAll deliverables deployed and verified on staging!\n\nBest,\nLead Engineer`,
         replies: []
@@ -1921,9 +1922,10 @@ git add . && git commit -m "another day another feature"`;
         date: 'Today, 09:42 AM',
         category: 'INCIDENT P0',
         priority: 'Urgent',
+        difficulty: 'HARD',
         taskTitle: 'Submit Post-Mortem RCA Sign-off to SRE Team',
         xpReward: 200,
-        fundsReward: 400,
+        fundsReward: 500,
         body: `<strong>[INCIDENT-4091: SEVERITY 1 - RESOLVED]</strong><br><br>The upstream checkout gateway experienced a 4-minute packet drop anomaly during peak load. SRE on-call has mitigated the traffic spike.<br><br><strong>Directive:</strong> The assigned backend engineer must submit a signed Root Cause Analysis (RCA) and mitigation plan to close this incident ticket.<br><br>SRE Escalation Command`,
         suggestedReply: `SRE Team,\n\nRoot Cause Analysis (RCA) for INCIDENT-4091:\n1. Root Cause: TCP connection pool reached maximum backlog during ingress burst due to aggressive retry policy.\n2. Remediation: Implemented exponential backoff with jitter and increased socket recycling threshold.\n3. Long-term fix: Distributed circuit-breaker pattern deployed across microservice mesh.\n\nSigned-off for ticket closure.`,
         replies: []
@@ -1943,9 +1945,10 @@ git add . && git commit -m "another day another feature"`;
         date: 'Today, 08:30 AM',
         category: 'EXECUTIVE',
         priority: 'High',
+        difficulty: 'MED',
         taskTitle: 'Send Enterprise Telemetry Report to VP Mark Sterling',
         xpReward: 170,
-        fundsReward: 340,
+        fundsReward: 350,
         body: `Engineering Team,<br><br>Before our executive board review at 2 PM, I need official confirmation on our enterprise telemetry numbers—specifically 99.99% uptime compliance and sub-millisecond ingestion latency figures.<br><br>Please confirm before noon.<br><br>Mark Sterling<br>VP of Technology & Enterprise Infrastructure`,
         suggestedReply: `Mark,\n\nConfirming our production SLA figures:\n- Cluster uptime: 99.994% across all 4 operational pods.\n- Telemetry ingestion latency: 0.82ms average (P99 at 4.1ms).\n- Queue backlog: 0 messages.\n\nAll metrics verified against production Grafana dashboards.`,
         replies: []
@@ -1965,9 +1968,10 @@ git add . && git commit -m "another day another feature"`;
         date: 'Yesterday, 04:15 PM',
         category: 'SECURITY AUDIT',
         priority: 'Normal',
+        difficulty: 'EASY',
         taskTitle: 'Send mTLS Security Sign-off to InfoSec Lead Neha',
         xpReward: 150,
-        fundsReward: 300,
+        fundsReward: 200,
         body: `Hi,<br><br>Our quarterly SOC2 Type II compliance audit is closing today. I need your formal sign-off confirming all workload certificate authorities and service mesh secrets have been rotated to 12-hour automated cycles.<br><br>Thanks,<br>Neha Patel`,
         suggestedReply: `Hi Neha,\n\nConfirming security compliance:\n- Workload mTLS certificates now auto-rotate via SPIFFE/SPIRE every 12 hours.\n- Vault secrets verified with zero plaintext keys in repositories.\n- Branch protection and signed commits enforced across all repos.\n\nSign-off approved.`,
         replies: []
@@ -1987,9 +1991,10 @@ git add . && git commit -m "another day another feature"`;
         date: 'Yesterday, 02:10 PM',
         category: 'DEVOPS',
         priority: 'Normal',
+        difficulty: 'EASY',
         taskTitle: 'Submit Deployment Approval Token to DevOps Cluster',
         xpReward: 160,
-        fundsReward: 320,
+        fundsReward: 250,
         body: `Canary v2.4 passed automated synthetic health probes (p99 latency 1.1ms, 0 error rate over 10,000 requests).<br><br><strong>Action:</strong> Lead engineer sign-off required to promote canary to 100% fleet traffic.<br><br>Reply with approval token: <code>ACK_DEPLOY_PROD_CANARY</code>.`,
         suggestedReply: `ACK_DEPLOY_PROD_CANARY\n\nVerified canary telemetry logs. Error rate is 0.00%. Approved for 100% production rollout.`,
         replies: []
@@ -2140,6 +2145,7 @@ git add . && git commit -m "another day another feature"`;
             <div class="pc-mail-item-preview">${escapeHtml(previewSnippet)}</div>
             <div class="pc-mail-tag-row">
               ${tagHtml}
+              ${m.isTask ? `<span class="mail-status-tag tag-reward">💵 +$${m.fundsReward}</span>` : ''}
               <span class="mail-status-tag tag-category">${m.category || 'Direct'}</span>
             </div>
           </div>
@@ -2180,7 +2186,7 @@ git add . && git commit -m "another day another feature"`;
                 <div class="task-banner-heading">⚡ Active Simulation Task Directive</div>
                 <div class="task-banner-desc">Reply to this email with the requested engineering deliverables to complete this task.</div>
               </div>
-              <div class="task-reward-pill">+${email.xpReward} XP &amp; +$${email.fundsReward}</div>
+              <div class="task-reward-pill">+${email.xpReward} XP &amp; 💵 +$${email.fundsReward} Cash</div>
             </div>
           `;
         } else {
@@ -2364,7 +2370,8 @@ git add . && git commit -m "another day another feature"`;
 
         // Show Toast
         if (window.showToast) {
-          window.showToast(`⭐ +${xp} XP & +$${funds}: Completed "${email.taskTitle || email.subject}"!`);
+          const diffBadge = email.priority === 'Urgent' ? 'P0 HARD' : (email.priority === 'High' ? 'P1 MED' : 'P2 EASY');
+          window.showToast(`⭐ +${xp} XP & 💵 +$${funds} Cash Reward [${diffBadge}]! Completed "${email.taskTitle || email.subject}".`);
         }
 
         // Sync with Smartphone Tasks

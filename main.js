@@ -3734,7 +3734,22 @@ function displayEvaluationResults(data) {
   if (data.totalScore >= 60) {
     window.soundManager.unlock();
     window.soundManager.playQuestComplete();
-    showToast(`⚔️ VICTORY! Score: ${data.totalScore}/100! Next mission unlocked.`);
+
+    // Reward corporate funds according to difficulty / performance tier
+    let questMoney = 200;
+    let diffLabel = 'TIER B (EASY)';
+    if (data.totalScore >= 90) {
+      questMoney = 500;
+      diffLabel = 'TIER S (HARD)';
+    } else if (data.totalScore >= 75) {
+      questMoney = 350;
+      diffLabel = 'TIER A (MED)';
+    }
+    if (typeof window.addCorporateFunds === 'function') {
+      window.addCorporateFunds(questMoney);
+    }
+
+    showToast(`⚔️ VICTORY! Score: ${data.totalScore}/100 [${diffLabel}]! 💵 +$${questMoney} Corporate Funds Earned!`);
 
     if (nextBanner) nextBanner.classList.remove('hidden');
 
@@ -3859,7 +3874,7 @@ function setupQuestEventListeners() {
 // Global Corporate Funds Handler
 window.addCorporateFunds = function(amount = 100) {
   if (!state || !state.player) return;
-  state.player.money = (state.player.money || 2500) + amount;
+  state.player.money = Math.max(0, (state.player.money || 2500) + amount);
   const valEl = document.getElementById('hud-money-val');
   if (valEl) {
     valEl.textContent = '$' + state.player.money.toLocaleString();
@@ -3869,7 +3884,11 @@ window.addCorporateFunds = function(amount = 100) {
   if (badge) {
     const floatEl = document.createElement('span');
     floatEl.className = 'hud-money-float';
-    floatEl.textContent = `+$${amount}`;
+    floatEl.textContent = amount >= 0 ? `+$${amount}` : `-$${Math.abs(amount)}`;
+    if (amount < 0) {
+      floatEl.style.color = '#f87171';
+      floatEl.style.textShadow = '0 0 10px #ef4444, 0 2px 4px rgba(0, 0, 0, 0.8)';
+    }
     badge.appendChild(floatEl);
     setTimeout(() => floatEl.remove(), 750);
   }
