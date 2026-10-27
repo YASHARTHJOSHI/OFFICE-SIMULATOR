@@ -107,7 +107,7 @@ registerAsset('partnerPortrait', 'assets/partner_portrait.png');
 registerAsset('char1Spritesheet', 'assets/char1_spritesheet.png');
 registerAsset('char2Spritesheet', 'assets/char2_spritesheet.png');
 registerAsset('char3Spritesheet', 'assets/char3_spritesheet.png?v=2');
-registerAsset('char4Spritesheet', 'assets/char4_spritesheet.png?v=7');
+registerAsset('char4Spritesheet', 'assets/char4_spritesheet.png?v=9');
 registerAsset('char1Avatar', 'assets/char1_avatar.png');
 registerAsset('char2Avatar', 'assets/char2_avatar.png');
 registerAsset('char3Avatar', 'assets/char3_avatar.png?v=2');

@@ -80,7 +80,7 @@ class MultiplayerEngine {
         avatar: 'assets/char4_avatar.png?v=7',
         idleSprite: 'assets/char4_idle.png?v=7',
         backSprite: 'assets/char4_back.png?v=7',
-        spritesheet: 'assets/char4_spritesheet.png?v=7',
+        spritesheet: 'assets/char4_spritesheet.png?v=9',
         available: true,
         claimedBy: null,
         claimedByName: null,
