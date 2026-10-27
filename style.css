@@ -5724,3 +5724,585 @@ kbd {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* =========================================================
+   WATER COOLER PRECISION DISPENSER MINIGAME MODAL
+   ========================================================= */
+.wc-modal-card {
+  width: min(440px, 94vw);
+  background: radial-gradient(circle at 50% 12%, #1e293b 0%, #0f172a 85%);
+  border: 2px solid rgba(56, 189, 248, 0.45);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.2);
+  padding: 1.25rem 1.4rem;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  user-select: none;
+  animation: modal-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modal-pop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.wc-machine-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.6rem;
+}
+
+.wc-brand-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.wc-brand-dot {
+  width: 8px;
+  height: 8px;
+  background: #38bdf8;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #38bdf8;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.wc-brand-name {
+  font-family: var(--font-retro);
+  font-size: 0.72rem;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+}
+
+.wc-brand-sub {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+  padding-left: 0.4rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.wc-chamber {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+/* Top Water Jug Reservoir */
+.wc-reservoir {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.wc-bottle-neck {
+  width: 32px;
+  height: 8px;
+  background: #0284c7;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.wc-bottle-body {
+  width: 74px;
+  height: 38px;
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.4) 0%, rgba(14, 165, 233, 0.25) 100%);
+  border: 2px solid rgba(56, 189, 248, 0.5);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.wc-water-reservoir-fill {
+  position: absolute;
+  inset: 4px;
+  background: linear-gradient(180deg, rgba(14, 165, 233, 0.35) 0%, rgba(2, 132, 199, 0.5) 100%);
+  border-radius: 10px 10px 0 0;
+}
+
+.wc-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.wc-bubbles .bubble {
+  position: absolute;
+  bottom: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.wc-bubbles.active .bubble {
+  opacity: 1;
+  animation: bubble-rise 1.2s infinite linear;
+}
+
+.wc-bubbles .b1 { width: 5px; height: 5px; left: 30%; animation-delay: 0.1s; }
+.wc-bubbles .b2 { width: 4px; height: 4px; left: 52%; animation-delay: 0.5s; }
+.wc-bubbles .b3 { width: 6px; height: 6px; left: 68%; animation-delay: 0.9s; }
+
+@keyframes bubble-rise {
+  0% { transform: translateY(0); opacity: 0.8; }
+  100% { transform: translateY(-28px); opacity: 0; }
+}
+
+/* Chrome Dispenser Head & Taps */
+.wc-dispenser-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+  position: relative;
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 0.45rem 1rem;
+}
+
+.wc-tap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.wc-tap-lever {
+  width: 22px;
+  height: 8px;
+  border-radius: 3px;
+}
+
+.wc-tap.cold .wc-tap-lever {
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.wc-tap.hot .wc-tap-lever {
+  background: linear-gradient(135deg, #f87171, #dc2626);
+  opacity: 0.45;
+}
+
+.wc-tap-label {
+  font-family: var(--font-retro);
+  font-size: 0.55rem;
+  color: #94a3b8;
+}
+
+.wc-tap.cold .wc-tap-label {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.wc-nozzle {
+  position: relative;
+  width: 16px;
+  height: 12px;
+  background: #64748b;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #475569;
+}
+
+.wc-stream {
+  position: absolute;
+  top: 12px;
+  left: 5px;
+  width: 6px;
+  height: 52px;
+  background: linear-gradient(180deg, rgba(224, 242, 254, 0.95) 0%, rgba(56, 189, 248, 0.9) 100%);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8), 0 0 18px rgba(14, 165, 233, 0.5);
+  opacity: 0;
+  transition: opacity 0.08s ease;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.wc-stream.active {
+  opacity: 1;
+  animation: stream-flow 0.25s infinite linear;
+}
+
+@keyframes stream-flow {
+  0% { transform: scaleX(0.9) scaleY(1); }
+  50% { transform: scaleX(1.1) scaleY(1.02); }
+  100% { transform: scaleX(0.9) scaleY(1); }
+}
+
+/* Glass Station */
+.wc-glass-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  margin-top: 0.2rem;
+}
+
+.wc-glass-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.wc-glass {
+  width: 140px;
+  height: 165px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top: none;
+  border-radius: 0 0 18px 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 16px rgba(56, 189, 248, 0.12), 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+.wc-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 6px;
+  width: 6px;
+  height: 90%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.wc-water-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.85) 0%, rgba(2, 132, 199, 0.95) 100%);
+  border-radius: 0 0 15px 15px;
+  transition: height 0.04s linear;
+  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.4);
+}
+
+.wc-water-fill.success {
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.85) 0%, rgba(5, 150, 105, 0.95) 100%);
+  box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.wc-water-fill.overflow {
+  background: linear-gradient(180deg, rgba(248, 113, 113, 0.85) 0%, rgba(220, 38, 38, 0.95) 100%);
+}
+
+.wc-water-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 6px #fff;
+}
+
+/* Glass Measurements */
+.wc-glass-mark {
+  position: absolute;
+  left: 0;
+  width: 18px;
+  border-bottom: 1.5px dashed rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.wc-glass-mark span {
+  position: absolute;
+  left: 22px;
+  top: -8px;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.wc-glass-mark.m100 { bottom: 98%; }
+.wc-glass-mark.m75  { bottom: 75%; }
+.wc-glass-mark.m50  { bottom: 50%; }
+.wc-glass-mark.m25  { bottom: 25%; }
+
+/* Target Line Overlay */
+.wc-target-line {
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  height: 3px;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.6);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  transition: bottom 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wc-target-badge {
+  background: #ef4444;
+  color: #fff;
+  font-family: var(--font-retro);
+  font-size: 0.58rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-right: -10px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.wc-target-line.success {
+  background: #10b981;
+  box-shadow: 0 0 12px #10b981, 0 0 25px rgba(16, 185, 129, 0.8);
+}
+
+.wc-target-line.success .wc-target-badge {
+  background: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.9);
+}
+
+.wc-target-line.mismatch {
+  background: #f59e0b;
+  box-shadow: 0 0 12px #f59e0b, 0 0 25px rgba(245, 158, 11, 0.8);
+}
+
+.wc-target-line.mismatch .wc-target-badge {
+  background: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.9);
+}
+
+/* Stainless Drip Tray */
+.wc-drip-tray {
+  width: 170px;
+  height: 14px;
+  background: #475569;
+  border: 1px solid #64748b;
+  border-radius: 0 0 8px 8px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wc-tray-grill {
+  width: 150px;
+  height: 6px;
+  background: repeating-linear-gradient(90deg, #1e293b 0px, #1e293b 4px, #475569 4px, #475569 7px);
+  border-radius: 3px;
+}
+
+/* Fill Readout */
+.wc-readout {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.wc-readout-label {
+  font-family: var(--font-retro);
+  font-size: 0.58rem;
+  color: #94a3b8;
+}
+
+.wc-fill-percent {
+  font-family: var(--font-retro);
+  font-size: 0.75rem;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.wc-fill-percent.success {
+  color: #10b981;
+}
+
+.wc-fill-percent.mismatch {
+  color: #ef4444;
+}
+
+/* Status Feedback Banner */
+.wc-status-banner {
+  width: 100%;
+  border-radius: 12px;
+  padding: 0.65rem 0.9rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.wc-status-banner h4 {
+  font-family: var(--font-retro);
+  font-size: 0.72rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.wc-status-banner p {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.wc-status-banner.ready {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.wc-status-banner.ready h4 {
+  color: #38bdf8;
+}
+
+.wc-status-banner.success {
+  background: rgba(6, 78, 59, 0.5);
+  border: 1px solid #10b981;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+}
+
+.wc-status-banner.success h4 {
+  color: #34d399;
+}
+
+.wc-status-banner.success p {
+  color: #a7f3d0;
+}
+
+.wc-status-banner.mismatch {
+  background: rgba(127, 29, 29, 0.45);
+  border: 1px solid #ef4444;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.wc-status-banner.mismatch h4 {
+  color: #f87171;
+}
+
+.wc-status-banner.mismatch p {
+  color: #fecaca;
+}
+
+/* Controls & Buttons */
+.wc-controls-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.wc-btn-dispense {
+  width: 100%;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #f8fafc;
+  border: 2px solid #38bdf8;
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+  outline: none;
+}
+
+.wc-btn-dispense:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(2, 132, 199, 0.5);
+}
+
+.wc-btn-dispense:active:not(:disabled),
+.wc-btn-dispense.active {
+  transform: translateY(2px);
+  background: linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%);
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.4);
+}
+
+.wc-btn-dispense:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.wc-btn-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.wc-btn-text {
+  font-family: var(--font-retro);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.wc-btn-sub {
+  font-size: 0.65rem;
+  color: #bae6fd;
+}
+
+/* Result Actions (Try Again & Exit) */
+.wc-result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  animation: fade-in 0.25s ease;
+}
+
+.wc-btn-primary {
+  flex: 1;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-retro);
+  font-size: 0.72rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wc-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.55);
+}
+
+.wc-btn-secondary {
+  flex: 1;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-family: var(--font-retro);
+  font-size: 0.72rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.wc-btn-secondary:hover {
+  transform: translateY(-2px);
+  background: rgba(51, 65, 85, 0.95);
+}
+
+

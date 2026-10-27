@@ -379,11 +379,15 @@ const SCENES = {
       {
         id: 'hall_water_cooler',
         x: 935, y: 180, w: 75, h: 65,
-        prompt: 'Drink Ice Cold Water',
+        prompt: '💧 Fill Water Glass [E]',
         promptPos: { x: 975, y: 170 },
         action: () => {
-          window.soundManager.playWater();
-          showToast('💧 Gulp, gulp... Refreshing! Stamina restored to 100%.');
+          if (window.waterCoolerGame) {
+            window.waterCoolerGame.open();
+          } else {
+            window.soundManager.playWater();
+            showToast('💧 Gulp, gulp... Refreshing! Stamina restored to 100%.');
+          }
         }
       },
       // Assigned Workstation (Marked Laptop & Red Mug on Left Upper Desk)
@@ -542,11 +546,15 @@ const SCENES = {
       {
         id: 'cabinet_water',
         x: 710, y: 440, w: 75, h: 95,
-        prompt: 'Executive Sparkling Water',
+        prompt: '💧 Executive Filtered Water [E]',
         promptPos: { x: 745, y: 430 },
         action: () => {
-          window.soundManager.playWater();
-          showToast('✨ Sssip... Ultra-purified Alpine glacier water! Tastes like luxury.');
+          if (window.waterCoolerGame) {
+            window.waterCoolerGame.open();
+          } else {
+            window.soundManager.playWater();
+            showToast('✨ Sssip... Ultra-purified Alpine glacier water! Tastes like luxury.');
+          }
         }
       },
       {
@@ -940,11 +948,15 @@ const SCENES = {
         prompt: '💧 Hydrate at Water Cooler [E]',
         promptPos: { x: 735, y: 350 },
         action: () => {
-          window.soundManager.playInteract();
-          if (window.pixelEngine && window.pixelEngine.particles) {
-            window.pixelEngine.particles.spawnWaterSparkles(735, 360);
+          if (window.waterCoolerGame) {
+            window.waterCoolerGame.open();
+          } else {
+            window.soundManager.playInteract();
+            if (window.pixelEngine && window.pixelEngine.particles) {
+              window.pixelEngine.particles.spawnWaterSparkles(735, 360);
+            }
+            showToast('💧 Refreshing ice-cold water! "Did you see that telemetry curve on stage? Incredible work!"');
           }
-          showToast('💧 Refreshing ice-cold water! "Did you see that telemetry curve on stage? Incredible work!"');
         }
       },
       // 8. Espresso & Coffee Bar
@@ -1063,6 +1075,13 @@ function setupEventListeners() {
   const handleKey = (e, isDown) => {
     const tag = (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '');
     if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) return;
+
+    if (window.waterCoolerGame && window.waterCoolerGame.isOpen) {
+      if (isDown && (e.key === 'Escape' || e.code === 'Escape')) {
+        window.waterCoolerGame.close();
+      }
+      return;
+    }
 
     window.soundManager.unlock();
     const k = (e.key || '').toLowerCase();
@@ -1869,7 +1888,7 @@ function checkCollision(x, y, scene) {
 let lastTime = performance.now();
 
 function update(dt) {
-  if (state.isDialogueOpen || state.isTransitioning) {
+  if (state.isDialogueOpen || state.isTransitioning || (window.waterCoolerGame && window.waterCoolerGame.isOpen)) {
     state.player.isMoving = false;
     return;
   }

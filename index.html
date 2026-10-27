@@ -840,6 +840,116 @@
         <div class="pc-tray-peek" title="Show Desktop"></div>
       </div>
     </div>
+  <!-- =========================================================
+       WATER COOLER PRECISION DISPENSER MINIGAME MODAL
+       ========================================================= -->
+  <div id="water-cooler-modal" class="modal hidden">
+    <div class="modal-card wc-modal-card">
+      <!-- Water Cooler Machine Top Header -->
+      <div class="wc-machine-header">
+        <div class="wc-brand-tag">
+          <span class="wc-brand-dot"></span>
+          <span class="wc-brand-name">AQUA-CHILL 3000™</span>
+          <span class="wc-brand-sub">PRECISION HYDRATION</span>
+        </div>
+        <button id="wc-btn-close-modal" class="modal-close" title="Exit (Esc)">&times;</button>
+      </div>
+
+      <!-- Main Cooler Display Chamber -->
+      <div class="wc-chamber">
+        <!-- Top Water Jug Reservoir with Bubbles -->
+        <div class="wc-reservoir">
+          <div class="wc-bottle-neck"></div>
+          <div class="wc-bottle-body">
+            <div class="wc-water-reservoir-fill"></div>
+            <div id="wc-bottle-bubbles" class="wc-bubbles">
+              <span class="bubble b1"></span>
+              <span class="bubble b2"></span>
+              <span class="bubble b3"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dispenser Spout & Faucets -->
+        <div class="wc-dispenser-head">
+          <div class="wc-tap cold active">
+            <div class="wc-tap-lever"></div>
+            <span class="wc-tap-label">COLD</span>
+          </div>
+          <div class="wc-nozzle">
+            <!-- Animated Water Stream flowing into glass -->
+            <div id="wc-water-stream" class="wc-stream"></div>
+          </div>
+          <div class="wc-tap hot">
+            <div class="wc-tap-lever"></div>
+            <span class="wc-tap-label">ROOM</span>
+          </div>
+        </div>
+
+        <!-- Filling Station with Precision Glass -->
+        <div class="wc-glass-station">
+          <!-- Glass Cup Container -->
+          <div class="wc-glass-wrap">
+            <div class="wc-glass" id="wc-glass">
+              <!-- Water Fill -->
+              <div id="wc-water-fill" class="wc-water-fill">
+                <div class="wc-water-surface"></div>
+                <div class="wc-water-ripples"></div>
+              </div>
+
+              <!-- Measurement Level Lines -->
+              <div class="wc-glass-mark m100"><span>100%</span></div>
+              <div class="wc-glass-mark m75"><span>75%</span></div>
+              <div class="wc-glass-mark m50"><span>50%</span></div>
+              <div class="wc-glass-mark m25"><span>25%</span></div>
+
+              <!-- Dynamic Target Fill Line -->
+              <div id="wc-target-line" class="wc-target-line">
+                <div class="wc-target-laser"></div>
+                <span id="wc-target-badge" class="wc-target-badge">TARGET: 70%</span>
+              </div>
+            </div>
+
+            <!-- Stainless Steel Drip Grill -->
+            <div class="wc-drip-tray">
+              <div class="wc-tray-grill"></div>
+            </div>
+          </div>
+
+          <!-- Current Fill readout -->
+          <div class="wc-readout">
+            <span class="wc-readout-label">CURRENT FILL:</span>
+            <span id="wc-fill-percent" class="wc-fill-percent">0%</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Feedback Status Banner -->
+        <div id="wc-status-banner" class="wc-status-banner ready">
+          <h4 id="wc-status-title">FILL THE GLASS</h4>
+          <p id="wc-status-desc">Press and HOLD to pour water. Release exactly on the marked level!</p>
+        </div>
+
+        <!-- Dispense Button (Hold) -->
+        <div class="wc-controls-row">
+          <button id="wc-dispense-btn" class="wc-btn-dispense" title="Hold Spacebar, E, or Click to Pour">
+            <span class="btn-ripple"></span>
+            <span class="wc-btn-icon">💧</span>
+            <span class="wc-btn-text">HOLD TO DISPENSE</span>
+            <small class="wc-btn-sub">[Space / E / Click]</small>
+          </button>
+        </div>
+
+        <!-- Result Options (Try Again & Exit) -->
+        <div id="wc-result-actions" class="wc-result-actions hidden">
+          <button id="wc-btn-try-again" class="wc-btn-secondary">
+            <span>🔄 Try Again</span>
+          </button>
+          <button id="wc-btn-exit" class="wc-btn-primary">
+            <span>🚪 Exit</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="peerjs.min.js"></script>
@@ -851,6 +961,7 @@
   <script src="paper.min.js"></script>
   <script src="workplace-paper.js"></script>
   <script src="phone-device.js"></script>
+  <script src="water-cooler.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
