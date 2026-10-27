@@ -283,163 +283,184 @@ class MultiplayerEngine {
    * Handle messages received from any transport
    */
   handleIncomingMessage(msg) {
-    if (!msg || !msg.type || msg.senderId === this.localPlayer.id) return;
+    try {
+      if (!msg || !msg.type || msg.senderId === this.localPlayer.id) return;
 
-    switch (msg.type) {
-      case 'PEER_DISCOVERY': {
-        if (msg.peerId && msg.peerId !== this.peerId && !this.connections.has(msg.peerId)) {
-          this.connectToPeer(msg.peerId);
+      // De-duplicate repeated packets (e.g. if received over both BC and WebRTC)
+      const msgKey = `${msg.senderId}_${msg.type}_${msg.timestamp || 0}`;
+      if (!this.recentMsgKeys) this.recentMsgKeys = new Set();
+      if (this.recentMsgKeys.has(msgKey)) return;
+      this.recentMsgKeys.add(msgKey);
+      if (this.recentMsgKeys.size > 250) this.recentMsgKeys.clear();
+
+      switch (msg.type) {
+        case 'PEER_DISCOVERY': {
+          if (msg.peerId && msg.peerId !== this.peerId && !this.connections.has(msg.peerId)) {
+            this.connectToPeer(msg.peerId);
+          }
+          break;
         }
-        break;
-      }
-      case 'JOIN': {
-        const p = msg.player;
-        this.peers.set(p.id, {
-          id: p.id,
-          name: p.name,
-          charId: p.charId,
-          x: p.x || 512,
-          y: p.y || 245,
-          targetX: p.x || 512,
-          targetY: p.y || 245,
-          direction: p.direction || 'down',
-          isMoving: !!p.isMoving,
-          animFrame: p.animFrame || 0,
-          scene: p.scene || 'OFFICE_HALL',
-          lastSeen: Date.now()
-        });
+        case 'JOIN': {
+          const p = msg.player;
+          if (!p || !p.id) break;
+          const validX = Number.isFinite(p.x) ? p.x : 512;
+          const validY = Number.isFinite(p.y) ? p.y : 245;
 
-        if (p.charId) {
-          this.setCharacterClaim(p.charId, p.id, p.name);
-        }
+          this.peers.set(p.id, {
+            id: p.id,
+            name: p.name || 'Colleague',
+            charId: p.charId || null,
+            x: validX,
+            y: validY,
+            targetX: validX,
+            targetY: validY,
+            direction: p.direction || 'down',
+            isMoving: !!p.isMoving,
+            animFrame: typeof p.animFrame === 'number' ? p.animFrame : 0,
+            scene: p.scene || 'OFFICE_HALL',
+            isSitting: !!p.isSitting,
+            lastSeen: Date.now()
+          });
 
-        // Respond with our current state so new player learns about us
-        this.broadcast({
-          type: 'PRESENCE',
-          senderId: this.localPlayer.id,
-          player: this.localPlayer
-        });
+          if (p.charId) {
+            this.setCharacterClaim(p.charId, p.id, p.name);
+          }
 
-        if (this.isHost) {
+          // Respond with our current state so new player learns about us
           this.broadcast({
-            type: 'SYNC_CLAIMS',
+            type: 'PRESENCE',
             senderId: this.localPlayer.id,
-            claims: this.getClaimsPayload()
+            player: this.localPlayer
           });
-        }
 
-        if (this.onToast) {
-          this.onToast(`👋 ${p.name} joined the room!`);
-        }
-        if (this.onLobbyUpdate) this.onLobbyUpdate();
-        break;
-      }
-
-      case 'PRESENCE': {
-        const p = msg.player;
-        const existing = this.peers.get(p.id) || {};
-        this.peers.set(p.id, {
-          ...existing,
-          id: p.id,
-          name: p.name,
-          charId: p.charId,
-          x: p.x,
-          y: p.y,
-          targetX: p.x,
-          targetY: p.y,
-          direction: p.direction,
-          isMoving: !!p.isMoving,
-          animFrame: p.animFrame,
-          scene: p.scene,
-          lastSeen: Date.now()
-        });
-
-        if (p.charId) {
-          this.setCharacterClaim(p.charId, p.id, p.name);
-        }
-        if (this.onLobbyUpdate) this.onLobbyUpdate();
-        break;
-      }
-
-      case 'CLAIM_CHAR': {
-        const { charId, playerId, playerName } = msg;
-        this.setCharacterClaim(charId, playerId, playerName);
-
-        // If local player was holding this character, conflict resolution:
-        if (this.localPlayer.charId === charId && playerId !== this.localPlayer.id) {
-          // If the other player claimed it first (or host takes priority), release
-          if (!this.isHost) {
-            this.localPlayer.charId = null;
-            if (this.onToast) {
-              this.onToast(`⚠️ ${playerName} selected this character first. Please choose another!`);
-            }
+          if (this.isHost) {
+            this.broadcast({
+              type: 'SYNC_CLAIMS',
+              senderId: this.localPlayer.id,
+              claims: this.getClaimsPayload()
+            });
           }
-        }
-        if (this.onLobbyUpdate) this.onLobbyUpdate();
-        break;
-      }
 
-      case 'RELEASE_CHAR': {
-        const { charId, playerId } = msg;
-        const char = this.characters.find(c => c.id === charId);
-        if (char && char.claimedBy === playerId) {
-          char.claimedBy = null;
-          char.claimedByName = null;
-          char.available = true;
-        }
-        if (this.onLobbyUpdate) this.onLobbyUpdate();
-        break;
-      }
-
-      case 'SYNC_CLAIMS': {
-        if (Array.isArray(msg.claims)) {
-          msg.claims.forEach(item => {
-            const char = this.characters.find(c => c.id === item.charId);
-            if (char) {
-              char.claimedBy = item.claimedBy;
-              char.claimedByName = item.claimedByName;
-              char.available = !item.claimedBy;
-            }
-          });
-        }
-        if (this.onLobbyUpdate) this.onLobbyUpdate();
-        break;
-      }
-
-      case 'UPDATE_POS': {
-        const p = this.peers.get(msg.senderId);
-        if (p) {
-          p.targetX = msg.x;
-          p.targetY = msg.y;
-          p.direction = msg.direction;
-          p.isMoving = msg.isMoving;
-          p.animFrame = msg.animFrame;
-          p.scene = msg.scene;
-          p.isSitting = !!msg.isSitting;
-          p.lastSeen = Date.now();
-        }
-        break;
-      }
-
-      case 'LEAVE': {
-        const p = this.peers.get(msg.senderId);
-        if (p) {
-          // Release their claimed character
-          this.characters.forEach(c => {
-            if (c.claimedBy === msg.senderId) {
-              c.claimedBy = null;
-              c.claimedByName = null;
-              c.available = true;
-            }
-          });
           if (this.onToast) {
-            this.onToast(`🚶 ${p.name} left the room.`);
+            this.onToast(`👋 ${p.name || 'Colleague'} joined the room!`);
           }
-          this.peers.delete(msg.senderId);
           if (this.onLobbyUpdate) this.onLobbyUpdate();
+          break;
         }
-        break;
+
+        case 'PRESENCE': {
+          const p = msg.player;
+          if (!p || !p.id) break;
+          const existing = this.peers.get(p.id) || {};
+          const validX = Number.isFinite(p.x) ? p.x : (Number.isFinite(existing.x) ? existing.x : 512);
+          const validY = Number.isFinite(p.y) ? p.y : (Number.isFinite(existing.y) ? existing.y : 245);
+
+          this.peers.set(p.id, {
+            ...existing,
+            id: p.id,
+            name: p.name || existing.name || 'Colleague',
+            charId: p.charId || existing.charId || null,
+            x: validX,
+            y: validY,
+            targetX: validX,
+            targetY: validY,
+            direction: p.direction || existing.direction || 'down',
+            isMoving: !!p.isMoving,
+            animFrame: typeof p.animFrame === 'number' ? p.animFrame : 0,
+            scene: p.scene || existing.scene || 'OFFICE_HALL',
+            isSitting: typeof p.isSitting === 'boolean' ? p.isSitting : !!existing.isSitting,
+            lastSeen: Date.now()
+          });
+
+          if (p.charId) {
+            this.setCharacterClaim(p.charId, p.id, p.name);
+          }
+          if (this.onLobbyUpdate) this.onLobbyUpdate();
+          break;
+        }
+
+        case 'CLAIM_CHAR': {
+          const { charId, playerId, playerName } = msg;
+          this.setCharacterClaim(charId, playerId, playerName);
+
+          // If local player was holding this character, conflict resolution:
+          if (this.localPlayer.charId === charId && playerId !== this.localPlayer.id) {
+            if (!this.isHost) {
+              this.localPlayer.charId = null;
+              if (this.onToast) {
+                this.onToast(`⚠️ ${playerName} selected this character first. Please choose another!`);
+              }
+            }
+          }
+          if (this.onLobbyUpdate) this.onLobbyUpdate();
+          break;
+        }
+
+        case 'RELEASE_CHAR': {
+          const { charId, playerId } = msg;
+          const char = this.characters.find(c => c.id === charId);
+          if (char && char.claimedBy === playerId) {
+            char.claimedBy = null;
+            char.claimedByName = null;
+            char.available = true;
+          }
+          if (this.onLobbyUpdate) this.onLobbyUpdate();
+          break;
+        }
+
+        case 'SYNC_CLAIMS': {
+          if (Array.isArray(msg.claims)) {
+            msg.claims.forEach(item => {
+              const char = this.characters.find(c => c.id === item.charId);
+              if (char) {
+                char.claimedBy = item.claimedBy;
+                char.claimedByName = item.claimedByName;
+                char.available = !item.claimedBy;
+              }
+            });
+          }
+          if (this.onLobbyUpdate) this.onLobbyUpdate();
+          break;
+        }
+
+        case 'UPDATE_POS': {
+          const p = this.peers.get(msg.senderId);
+          if (p) {
+            if (Number.isFinite(msg.x)) p.targetX = msg.x;
+            if (Number.isFinite(msg.y)) p.targetY = msg.y;
+            if (!Number.isFinite(p.x)) p.x = p.targetX;
+            if (!Number.isFinite(p.y)) p.y = p.targetY;
+            if (msg.direction) p.direction = msg.direction;
+            p.isMoving = !!msg.isMoving;
+            if (typeof msg.animFrame === 'number') p.animFrame = msg.animFrame;
+            if (msg.scene) p.scene = msg.scene;
+            if (typeof msg.isSitting === 'boolean') p.isSitting = msg.isSitting;
+            p.lastSeen = Date.now();
+          }
+          break;
+        }
+
+        case 'LEAVE': {
+          const p = this.peers.get(msg.senderId);
+          if (p) {
+            this.characters.forEach(c => {
+              if (c.claimedBy === msg.senderId) {
+                c.claimedBy = null;
+                c.claimedByName = null;
+                c.available = true;
+              }
+            });
+            if (this.onToast) {
+              this.onToast(`🚶 ${p.name || 'Colleague'} left the room.`);
+            }
+            this.peers.delete(msg.senderId);
+            if (this.onLobbyUpdate) this.onLobbyUpdate();
+          }
+          break;
+        }
       }
+    } catch (err) {
+      console.warn('[Multiplayer] Incoming message processing error:', err);
     }
   }
 
@@ -560,13 +581,16 @@ class MultiplayerEngine {
    */
   updateRemotePlayers(dt) {
     if (!this.active) return;
-    const lerpFactor = Math.min(1, dt * 18);
+    const lerpFactor = Math.min(1, Math.max(0, dt * 18));
 
     this.peers.forEach(peer => {
-      if (typeof peer.targetX === 'number' && typeof peer.targetY === 'number') {
-        peer.x += (peer.targetX - peer.x) * lerpFactor;
-        peer.y += (peer.targetY - peer.y) * lerpFactor;
-      }
+      if (!Number.isFinite(peer.x)) peer.x = Number.isFinite(peer.targetX) ? peer.targetX : 512;
+      if (!Number.isFinite(peer.y)) peer.y = Number.isFinite(peer.targetY) ? peer.targetY : 245;
+      if (!Number.isFinite(peer.targetX)) peer.targetX = peer.x;
+      if (!Number.isFinite(peer.targetY)) peer.targetY = peer.y;
+
+      peer.x += (peer.targetX - peer.x) * lerpFactor;
+      peer.y += (peer.targetY - peer.y) * lerpFactor;
     });
   }
 

@@ -1261,6 +1261,8 @@ function updateTriggers() {
 // RENDER LOOP
 // ==========================================
 function render() {
+  // Guarantee context transform is completely reset to identity on every single frame
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -1473,7 +1475,6 @@ function renderPlayer() {
   ctx.fill();
 
   // 2. Sprite Animation Frame
-  // Pick active spritesheet based on chosen character!
   let sheet = assets.char1Spritesheet;
   if (p.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
     sheet = assets.char2Spritesheet;
@@ -1505,9 +1506,11 @@ function renderPlayer() {
     const sy = row * frameH;
 
     if (isFlipped) {
+      ctx.save();
       ctx.translate(px + pw, py);
       ctx.scale(-1, 1);
       ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
+      ctx.restore();
     } else {
       ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
     }
@@ -1530,119 +1533,131 @@ function renderRemotePlayers() {
     // Only render if peer is currently in the same scene
     if (peer.scene !== currentScene) return;
 
-    const px = peer.x - pw / 2;
-    const py = peer.y - ph;
+    // Safety checks for coordinates to prevent NaN crashes
+    const posX = Number.isFinite(peer.x) ? peer.x : (Number.isFinite(peer.targetX) ? peer.targetX : 512);
+    const posY = Number.isFinite(peer.y) ? peer.y : (Number.isFinite(peer.targetY) ? peer.targetY : 245);
 
-    if (peer.isSitting) {
-      let sitImg = assets.char1Sitting;
-      if (peer.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
-        sitImg = assets.char2Sitting;
-      } else if (assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
-        sitImg = assets.char1Sitting;
-      }
+    const px = Math.round(posX - pw / 2);
+    const py = Math.round(posY - ph);
 
-      if (sitImg && sitImg.complete && sitImg.width > 0) {
-        const scale = scene.playerScale || 0.55;
-        const sw = Math.round(sitImg.width * scale);
-        const sh = Math.round(sitImg.height * scale);
-        const sx = Math.round(peer.x - sw / 2);
-        const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.003) * 1.5;
-        const sy = Math.round(peer.y - sh + breath);
+    ctx.save();
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    try {
+      if (peer.isSitting) {
+        let sitImg = assets.char1Sitting;
+        if (peer.charId === 'char2' && assets.char2Sitting.complete && assets.char2Sitting.width > 0) {
+          sitImg = assets.char2Sitting;
+        } else if (assets.char1Sitting.complete && assets.char1Sitting.width > 0) {
+          sitImg = assets.char1Sitting;
+        }
+
+        if (sitImg && sitImg.complete && sitImg.width > 0) {
+          const scale = scene.playerScale || 0.55;
+          const sw = Math.round(sitImg.width * scale);
+          const sh = Math.round(sitImg.height * scale);
+          const sx = Math.round(posX - sw / 2);
+          const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.003) * 1.5;
+          const sy = Math.round(posY - sh + breath);
+
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+          ctx.beginPath();
+          ctx.ellipse(posX, posY - 1, sw * 0.46, 6, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.drawImage(sitImg, sx, sy, sw, sh);
+
+          if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.15) {
+            window.pixelEngine.particles.spawnTypingParticles(posX, posY - sh * 0.42);
+          }
+        }
+      } else {
+        // 1. Soft Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
         ctx.beginPath();
-        ctx.ellipse(peer.x, peer.y - 1, sw * 0.46, 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(posX, posY - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.drawImage(sitImg, sx, sy, sw, sh);
+        // 2. Sprite Sheet
+        let sheet = assets.char1Spritesheet;
+        if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
+          sheet = assets.char2Spritesheet;
+        } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
+          sheet = assets.char1Spritesheet;
+        } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
+          sheet = assets.spritesheet;
+        }
 
-        if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.15) {
-          window.pixelEngine.particles.spawnTypingParticles(peer.x, peer.y - sh * 0.42);
+        if (sheet && sheet.complete && sheet.width > 0) {
+          const frameW = 74;
+          const frameH = 157;
+          let row = 0;
+          let isFlipped = false;
+
+          if (peer.direction === 'down') {
+            row = 0;
+          } else if (peer.direction === 'up') {
+            row = 2;
+          } else if (peer.direction === 'right') {
+            row = 1;
+          } else if (peer.direction === 'left') {
+            row = 1;
+            isFlipped = true;
+          }
+
+          const col = peer.isMoving ? (peer.animFrame % 4) : 0;
+          const sx = col * frameW;
+          const sy = row * frameH;
+
+          if (isFlipped) {
+            ctx.save();
+            ctx.translate(px + pw, py);
+            ctx.scale(-1, 1);
+            ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
+            ctx.restore();
+          } else {
+            ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
+          }
         }
       }
-    } else {
-      // 1. Soft Shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+
+      // 3. Floating Player Name Tag Pill above head
+      const tagText = peer.name || 'Colleague';
+      ctx.font = 'bold 11px Outfit, sans-serif';
+      const textWidth = ctx.measureText(tagText).width;
+      const badgeW = textWidth + 22;
+      const badgeH = 18;
+      const badgeX = posX - badgeW / 2;
+      const headTop = peer.isSitting ? (posY - Math.round(135 * (scene.playerScale || 0.55))) : py;
+      const badgeY = headTop - 14;
+
+      // Pill background
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.ellipse(peer.x, peer.y - 2, pw * 0.42, 6, 0, 0, Math.PI * 2);
+      if (ctx.roundRect) {
+        ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 9);
+      } else {
+        ctx.rect(badgeX, badgeY, badgeW, badgeH);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Online green dot
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(badgeX + 8, badgeY + badgeH / 2, 3, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Sprite Sheet
-      let sheet = assets.char1Spritesheet;
-      if (peer.charId === 'char2' && assets.char2Spritesheet.complete && assets.char2Spritesheet.width > 0) {
-        sheet = assets.char2Spritesheet;
-      } else if (peer.charId === 'char1' && assets.char1Spritesheet.complete && assets.char1Spritesheet.width > 0) {
-        sheet = assets.char1Spritesheet;
-      } else if (assets.spritesheet.complete && assets.spritesheet.width > 0) {
-        sheet = assets.spritesheet;
-      }
-
-      if (sheet && sheet.complete && sheet.width > 0) {
-        const frameW = 74;
-        const frameH = 157;
-        let row = 0;
-        let isFlipped = false;
-
-        if (peer.direction === 'down') {
-          row = 0;
-        } else if (peer.direction === 'up') {
-          row = 2;
-        } else if (peer.direction === 'right') {
-          row = 1;
-        } else if (peer.direction === 'left') {
-          row = 1;
-          isFlipped = true;
-        }
-
-        const col = peer.isMoving ? (peer.animFrame % 4) : 0;
-        const sx = col * frameW;
-        const sy = row * frameH;
-
-        if (isFlipped) {
-          ctx.translate(px + pw, py);
-          ctx.scale(-1, 1);
-          ctx.drawImage(sheet, sx, sy, frameW, frameH, 0, 0, pw, ph);
-        } else {
-          ctx.drawImage(sheet, sx, sy, frameW, frameH, px, py, pw, ph);
-        }
-      }
+      // Name text
+      ctx.fillStyle = '#f8fafc';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tagText, badgeX + 16, badgeY + badgeH / 2 + 1);
+    } catch (err) {
+      console.warn('Error rendering remote peer:', err);
+    } finally {
+      ctx.restore();
     }
-
-    // 3. Floating Player Name Tag Pill above head
-    const tagText = peer.name || 'Colleague';
-    ctx.font = 'bold 11px Outfit, sans-serif';
-    const textWidth = ctx.measureText(tagText).width;
-    const badgeW = textWidth + 22;
-    const badgeH = 18;
-    const badgeX = peer.x - badgeW / 2;
-    const headTop = peer.isSitting ? (peer.y - Math.round(135 * (scene.playerScale || 0.55))) : py;
-    const badgeY = headTop - 14;
-
-    // Pill background
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-    ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 9);
-    } else {
-      ctx.rect(badgeX, badgeY, badgeW, badgeH);
-    }
-    ctx.fill();
-    ctx.stroke();
-
-    // Online green dot
-    ctx.fillStyle = '#10b981';
-    ctx.beginPath();
-    ctx.arc(badgeX + 8, badgeY + badgeH / 2, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Name text
-    ctx.fillStyle = '#f8fafc';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(tagText, badgeX + 16, badgeY + badgeH / 2 + 1);
-
-    ctx.restore();
   });
 }
 
@@ -1971,8 +1986,12 @@ function gameLoop(now) {
   const dt = Math.min((now - lastTime) / 1000, 0.1);
   lastTime = now;
 
-  update(dt);
-  render();
+  try {
+    update(dt);
+    render();
+  } catch (err) {
+    console.error('[GameLoop] Render frame error:', err);
+  }
 
   requestAnimationFrame(gameLoop);
 }
