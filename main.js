@@ -124,14 +124,14 @@ registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
 registerAsset('char3Idle', 'assets/char3_idle.png?v=2');
 registerAsset('char4Idle', 'assets/char4_idle.png?v=7');
-registerAsset('char1Sitting', 'assets/char1_sitting.png?v=8');
-registerAsset('char2Sitting', 'assets/char2_sitting.png?v=8');
-registerAsset('char3Sitting', 'assets/char3_sitting.png?v=8');
-registerAsset('char4Sitting', 'assets/char4_seated_desk.png?v=8');
-registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=8');
-registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=8');
-registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=8');
-registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=8');
+registerAsset('char1Sitting', 'assets/char1_sitting.png?v=15');
+registerAsset('char2Sitting', 'assets/char2_sitting.png?v=15');
+registerAsset('char3Sitting', 'assets/char3_sitting.png?v=15');
+registerAsset('char4Sitting', 'assets/char4_seated_desk.png?v=15');
+registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=15');
+registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=15');
+registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=15');
+registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=15');
 registerAsset('char1DiningSitting', 'assets/char1_dining_sitting.png?v=4');
 registerAsset('char2DiningSitting', 'assets/char2_dining_sitting.png?v=4');
 registerAsset('char3DiningSitting', 'assets/char3_dining_sitting.png?v=4');
@@ -150,25 +150,25 @@ registerAsset('fgHallDeskLeft', 'assets/fg_hall_desk_left.png?v=3');
 // 4 Workplace Quest NPC Employees (Rahul, Priya, Amit, Neha)
 registerAsset('npc_rahulSpritesheet', 'assets/npc_rahul_spritesheet.png?v=12');
 registerAsset('npc_rahulPortrait', 'assets/npc_rahul_portrait.png?v=12');
-registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png?v=12');
+registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png?v=15');
 registerAsset('npc_rahulFront', 'assets/npc_rahul_front.png?v=12');
 registerAsset('npc_rahulBack', 'assets/npc_rahul_back.png?v=12');
 
 registerAsset('npc_priyaSpritesheet', 'assets/npc_priya_spritesheet.png?v=12');
 registerAsset('npc_priyaPortrait', 'assets/npc_priya_portrait.png?v=12');
-registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png?v=12');
+registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png?v=15');
 registerAsset('npc_priyaFront', 'assets/npc_priya_front.png?v=12');
 registerAsset('npc_priyaBack', 'assets/npc_priya_back.png?v=12');
 
 registerAsset('npc_amitSpritesheet', 'assets/npc_amit_spritesheet.png?v=12');
 registerAsset('npc_amitPortrait', 'assets/npc_amit_portrait.png?v=12');
-registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png?v=12');
+registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png?v=15');
 registerAsset('npc_amitFront', 'assets/npc_amit_front.png?v=12');
 registerAsset('npc_amitBack', 'assets/npc_amit_back.png?v=12');
 
 registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png?v=12');
 registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png?v=12');
-registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png?v=12');
+registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png?v=15');
 registerAsset('npc_nehaFront', 'assets/npc_neha_front.png?v=12');
 registerAsset('npc_nehaBack', 'assets/npc_neha_back.png?v=12');
 
