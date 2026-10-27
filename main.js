@@ -48,8 +48,8 @@ assets.playerPortrait.src = 'assets/player_portrait.png?v=3';
 assets.bossStanding.src = 'assets/boss_standing.png?v=3';
 assets.bossCharacter.src = 'assets/boss_character.png?v=3';
 assets.cornerOffice.src = 'assets/corner_office.png';
-assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=2';
-assets.doorLightSpill.src = 'assets/door_light_spill.png?v=2';
+assets.doorSlightlyOpen.src = 'assets/door_slightly_open.png?v=3';
+assets.doorLightSpill.src = 'assets/door_light_spill.png?v=3';
 
 // Setup load listeners
 Object.keys(assets).forEach(key => {
@@ -196,7 +196,7 @@ const SCENES = {
       },
       {
         id: 'corner_office_entrance',
-        x: 2, y: 430, w: 50, h: 130,
+        x: 0, y: 430, w: 52, h: 130,
         prompt: 'Enter Corner Office',
         promptPos: { x: 26, y: 410 },
         action: () => enterCornerOffice()
@@ -1124,27 +1124,18 @@ function renderDoorGlow() {
   // Floating Arrow indicator pointing to Boss's door
   drawGoldenTriangle(512, 32);
 
-  // 2. Slightly Opened Door in bottom-left corner (where character stands)
+  // 2. Frameless Slightly Opened Door in bottom-left corner (flush at x=0, no gaps, no frame)
   if (assets.doorSlightlyOpen && assets.doorSlightlyOpen.complete) {
-    ctx.drawImage(assets.doorSlightlyOpen, 2, 430);
+    ctx.drawImage(assets.doorSlightlyOpen, 0, 430);
   }
   if (assets.doorLightSpill && assets.doorLightSpill.complete) {
-    // Gentle ambient light pulsing from the doorway crack onto the floor
+    // Gentle ambient light pulsing from the doorway opening onto the floor
     const lightPulse = 0.82 + Math.sin(time * 2) * 0.18;
     ctx.save();
     ctx.globalAlpha = lightPulse;
-    ctx.drawImage(assets.doorLightSpill, 2, 556);
+    ctx.drawImage(assets.doorLightSpill, 0, 556);
     ctx.restore();
   }
-
-  // Soft golden glow around the slightly opened door
-  ctx.save();
-  ctx.strokeStyle = `rgba(245, 158, 11, ${0.2 + pulse * 0.35})`;
-  ctx.lineWidth = 2.5;
-  ctx.shadowColor = '#f59e0b';
-  ctx.shadowBlur = 8 + pulse * 6;
-  ctx.strokeRect(2, 430, 48, 130);
-  ctx.restore();
 
   // Floating Golden Triangle indicator pointing to the slightly opened door
   drawGoldenTriangle(26, 405);
