@@ -125,14 +125,14 @@ registerAsset('char1Idle', 'assets/char1_idle.png');
 registerAsset('char2Idle', 'assets/char2_idle.png');
 registerAsset('char3Idle', 'assets/char3_idle.png?v=2');
 registerAsset('char4Idle', 'assets/char4_idle.png?v=7');
-registerAsset('char1Sitting', 'assets/char1_sitting.png?v=15');
-registerAsset('char2Sitting', 'assets/char2_sitting.png?v=15');
-registerAsset('char3Sitting', 'assets/char3_sitting.png?v=15');
-registerAsset('char4Sitting', 'assets/char4_seated_desk.png?v=15');
-registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=15');
-registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=15');
-registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=15');
-registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=15');
+registerAsset('char1Sitting', 'assets/char1_sitting.png?v=20');
+registerAsset('char2Sitting', 'assets/char2_sitting.png?v=20');
+registerAsset('char3Sitting', 'assets/char3_sitting.png?v=20');
+registerAsset('char4Sitting', 'assets/char4_seated_desk.png?v=20');
+registerAsset('char1SeatedDesk', 'assets/char1_seated_desk.png?v=20');
+registerAsset('char2SeatedDesk', 'assets/char2_seated_desk.png?v=20');
+registerAsset('char3SeatedDesk', 'assets/char3_seated_desk.png?v=20');
+registerAsset('char4SeatedDesk', 'assets/char4_seated_desk.png?v=20');
 registerAsset('char1DiningSitting', 'assets/char1_dining_sitting.png?v=4');
 registerAsset('char2DiningSitting', 'assets/char2_dining_sitting.png?v=4');
 registerAsset('char3DiningSitting', 'assets/char3_dining_sitting.png?v=4');
@@ -151,25 +151,25 @@ registerAsset('fgHallDeskLeft', 'assets/fg_hall_desk_left.png?v=3');
 // 4 Workplace Quest NPC Employees (Rahul, Priya, Amit, Neha)
 registerAsset('npc_rahulSpritesheet', 'assets/npc_rahul_spritesheet.png?v=12');
 registerAsset('npc_rahulPortrait', 'assets/npc_rahul_portrait.png?v=12');
-registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png?v=15');
+registerAsset('npc_rahulSeated', 'assets/npc_rahul_seated.png?v=20');
 registerAsset('npc_rahulFront', 'assets/npc_rahul_front.png?v=12');
 registerAsset('npc_rahulBack', 'assets/npc_rahul_back.png?v=12');
 
 registerAsset('npc_priyaSpritesheet', 'assets/npc_priya_spritesheet.png?v=12');
 registerAsset('npc_priyaPortrait', 'assets/npc_priya_portrait.png?v=12');
-registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png?v=15');
+registerAsset('npc_priyaSeated', 'assets/npc_priya_seated.png?v=20');
 registerAsset('npc_priyaFront', 'assets/npc_priya_front.png?v=12');
 registerAsset('npc_priyaBack', 'assets/npc_priya_back.png?v=12');
 
 registerAsset('npc_amitSpritesheet', 'assets/npc_amit_spritesheet.png?v=12');
 registerAsset('npc_amitPortrait', 'assets/npc_amit_portrait.png?v=12');
-registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png?v=15');
+registerAsset('npc_amitSeated', 'assets/npc_amit_seated.png?v=20');
 registerAsset('npc_amitFront', 'assets/npc_amit_front.png?v=12');
 registerAsset('npc_amitBack', 'assets/npc_amit_back.png?v=12');
 
 registerAsset('npc_nehaSpritesheet', 'assets/npc_neha_spritesheet.png?v=12');
 registerAsset('npc_nehaPortrait', 'assets/npc_neha_portrait.png?v=12');
-registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png?v=15');
+registerAsset('npc_nehaSeated', 'assets/npc_neha_seated.png?v=20');
 registerAsset('npc_nehaFront', 'assets/npc_neha_front.png?v=12');
 registerAsset('npc_nehaBack', 'assets/npc_neha_back.png?v=12');
 
@@ -335,7 +335,7 @@ const SCENES = {
           if (window.openWorkstationPC) {
             window.openWorkstationPC();
           } else {
-            toggleSitInChair(95, 380, 'up', 145, 395);
+            toggleSitInChair(99, 393, 'up', 145, 395);
           }
         }
       },
@@ -345,35 +345,35 @@ const SCENES = {
         x: 65, y: 445, w: 85, h: 75,
         prompt: 'Sit & Work at Dev Workstation [E / C]',
         promptPos: { x: 100, y: 440 },
-        action: () => toggleSitInChair(100, 480, 'up', 100, 525)
+        action: () => toggleSitInChair(99, 498, 'up', 145, 500)
       },
       {
         id: 'workstation_bottom_left',
         x: 375, y: 475, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
         promptPos: { x: 410, y: 495 },
-        action: () => toggleSitInChair(410, 540, 'up', 410, 510)
+        action: () => toggleSitInChair(410, 546, 'up', 410, 510)
       },
       {
         id: 'workstation_bottom_right',
         x: 525, y: 475, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
         promptPos: { x: 560, y: 495 },
-        action: () => toggleSitInChair(560, 540, 'up', 560, 510)
+        action: () => toggleSitInChair(560, 552, 'up', 560, 510)
       },
       {
         id: 'workstation_top_left',
         x: 375, y: 305, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
         promptPos: { x: 409, y: 330 },
-        action: () => toggleSitInChair(409, 365, 'up', 409, 410)
+        action: () => toggleSitInChair(409, 380, 'up', 409, 410)
       },
       {
         id: 'workstation_top_right',
         x: 520, y: 305, w: 75, h: 75,
         prompt: 'Sit at Workstation [E / C]',
         promptPos: { x: 556, y: 330 },
-        action: () => toggleSitInChair(556, 365, 'up', 556, 410)
+        action: () => toggleSitInChair(558, 380, 'up', 558, 410)
       },
       {
         id: 'cubicle_pc',
@@ -2504,26 +2504,19 @@ function renderPlayer() {
 
     if (sitImg && sitImg.complete && sitImg.width > 0) {
       const scale = scene.playerScale || 0.55;
-      const isMultiFrame = sitImg.width >= 200;
-      const frameW = isMultiFrame ? Math.round(sitImg.width / 4) : sitImg.width;
-      const frameH = sitImg.height;
-      const animFrame = isMultiFrame ? (Math.floor(performance.now() / 140) % 4) : 0;
-      const sx = animFrame * frameW;
-      const sy = 0;
-
-      const dw = Math.round(frameW * scale);
-      const dh = Math.round(frameH * scale);
+      const dw = Math.round(62 * (scale / 0.55));
+      const dh = Math.round(112 * (scale / 0.55));
       const dx = Math.round(p.x - dw / 2);
       const breath = Math.sin(performance.now() * 0.005) * 1.0;
-      const dy = Math.round(p.y - dh - 5 + breath);
+      const dy = Math.round(p.y - dh + breath);
 
       ctx.save();
       if (p.direction === 'left') {
         ctx.translate(p.x, dy + dh / 2);
         ctx.scale(-1, 1);
-        ctx.drawImage(sitImg, sx, sy, frameW, frameH, -dw / 2, -dh / 2, dw, dh);
+        ctx.drawImage(sitImg, 0, 0, sitImg.width, sitImg.height, -dw / 2, -dh / 2, dw, dh);
       } else {
-        ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
+        ctx.drawImage(sitImg, 0, 0, sitImg.width, sitImg.height, dx, dy, dw, dh);
       }
       ctx.restore();
 
@@ -2673,20 +2666,13 @@ function renderSingleRemotePlayer(peer) {
 
         if (sitImg && sitImg.complete && sitImg.width > 0) {
           const scale = scene.playerScale || 0.55;
-          const isMultiFrame = sitImg.width >= 200;
-          const frameW = isMultiFrame ? Math.round(sitImg.width / 4) : sitImg.width;
-          const frameH = sitImg.height;
-          const animFrame = isMultiFrame ? (Math.floor((performance.now() + (peer.animFrame || 0) * 100) / 140) % 4) : 0;
-          const sx = animFrame * frameW;
-          const sy = 0;
-
-          const dw = Math.round(frameW * scale);
-          const dh = Math.round(frameH * scale);
+          const dw = Math.round(62 * (scale / 0.55));
+          const dh = Math.round(112 * (scale / 0.55));
           const dx = Math.round(posX - dw / 2);
           const breath = Math.sin((performance.now() + (peer.animFrame || 0) * 100) * 0.005) * 1.0;
-          const dy = Math.round(posY - dh - 5 + breath);
+          const dy = Math.round(posY - dh + breath);
 
-          ctx.drawImage(sitImg, sx, sy, frameW, frameH, dx, dy, dw, dh);
+          ctx.drawImage(sitImg, 0, 0, sitImg.width, sitImg.height, dx, dy, dw, dh);
 
           if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.2) {
             window.pixelEngine.particles.spawnTypingParticles(posX, posY - 45);

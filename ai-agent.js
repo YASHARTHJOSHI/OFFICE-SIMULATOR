@@ -105,9 +105,9 @@
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
       x: 409,
-      y: 365,
+      y: 380,
       targetX: 409,
-      targetY: 365,
+      targetY: 380,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -115,9 +115,9 @@
       stateTimer: 6000,
       scheduleState: 'DESK_WORK',
       activityLabel: '💻 Reviewing PR Architecture',
-      deskPos: { scene: 'OFFICE_HALL', x: 409, y: 365 },
+      deskPos: { scene: 'OFFICE_HALL', x: 409, y: 380 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 409, y: 365, sit: true, label: '💻 Reviewing PR Architecture' },
+        { scene: 'OFFICE_HALL', x: 409, y: 380, sit: true, label: '💻 Reviewing PR Architecture' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Water Cooler Break' },
         { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Espresso Break in Cafeteria' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '👥 Architecture Review in Conference Room' },
@@ -133,9 +133,9 @@
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
       x: 560,
-      y: 540,
+      y: 552,
       targetX: 560,
-      targetY: 540,
+      targetY: 552,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -143,9 +143,9 @@
       stateTimer: 8000,
       scheduleState: 'DESK_WORK',
       activityLabel: '📋 Triage P0 Customer Tickets',
-      deskPos: { scene: 'OFFICE_HALL', x: 560, y: 540 },
+      deskPos: { scene: 'OFFICE_HALL', x: 560, y: 552 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 560, y: 540, sit: true, label: '📋 Roadmap & Sprint Priorities' },
+        { scene: 'OFFICE_HALL', x: 560, y: 552, sit: true, label: '📋 Roadmap & Sprint Priorities' },
         { scene: 'CORNER_OFFICE', x: 600, y: 490, sit: false, label: '☕ Whiteboard & Spec Review' },
         { scene: 'CORNER_OFFICE', x: 750, y: 490, sit: false, label: '📁 Consulting HR Records' },
         { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch in Cafeteria' },
@@ -161,9 +161,9 @@
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
       x: 410,
-      y: 540,
+      y: 546,
       targetX: 410,
-      targetY: 540,
+      targetY: 546,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -171,9 +171,9 @@
       stateTimer: 7000,
       scheduleState: 'DESK_WORK',
       activityLabel: '🤝 1-on-1 Mentorship & Growth',
-      deskPos: { scene: 'OFFICE_HALL', x: 410, y: 540 },
+      deskPos: { scene: 'OFFICE_HALL', x: 410, y: 546 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 410, y: 540, sit: true, label: '🤝 Reviewing Team OKRs' },
+        { scene: 'OFFICE_HALL', x: 410, y: 546, sit: true, label: '🤝 Reviewing Team OKRs' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Drinking Water at Cooler' },
         { scene: 'OFFICE_HALL', x: 275, y: 240, sit: false, label: '📚 Reading Workplace Culture Docs' },
         { scene: 'OFFICE_HALL', x: 560, y: 540, sit: false, label: '💬 Checking in on Coworkers' },
@@ -188,10 +188,10 @@
       questId: 'quest_meeting_echo',
       primaryScene: 'OFFICE_HALL',
       scene: 'OFFICE_HALL',
-      x: 556,
-      y: 365,
-      targetX: 556,
-      targetY: 365,
+      x: 558,
+      y: 380,
+      targetX: 558,
+      targetY: 380,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -199,9 +199,9 @@
       stateTimer: 9000,
       scheduleState: 'DESK_WORK',
       activityLabel: '⚡ Standup Action Items & Jira',
-      deskPos: { scene: 'OFFICE_HALL', x: 556, y: 365 },
+      deskPos: { scene: 'OFFICE_HALL', x: 558, y: 380 },
       waypoints: [
-        { scene: 'OFFICE_HALL', x: 556, y: 365, sit: true, label: '⚡ Standup Action Items & Jira' },
+        { scene: 'OFFICE_HALL', x: 558, y: 380, sit: true, label: '⚡ Standup Action Items & Jira' },
         { scene: 'OFFICE_HALL', x: 470, y: 260, sit: false, label: '🎯 Sprint Retrospective Prep' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Quick Hydration Break' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '☕ Cross-team Sync with Priya' },
@@ -834,16 +834,13 @@ You MUST respond strictly in valid JSON format with this exact structure:
         // Render seated at desk (facing computer / up)
         const seatedImg = assets[`${npc.id}Seated`] || assets[`${npc.id}Back`] || assets.char1SeatedDesk;
         if (seatedImg && seatedImg.complete && seatedImg.width > 0) {
-          const isMulti = seatedImg.width >= 200;
-          const fw = isMulti ? Math.round(seatedImg.width / 4) : seatedImg.width;
-          const fh = seatedImg.height;
-          const anim = isMulti ? (Math.floor(now / 140) % 4) : 0;
-          const dw = Math.round(fw * sceneScale);
-          const dh = Math.round(fh * sceneScale);
+          const dw = Math.round(62 * (sceneScale / 0.55));
+          const dh = Math.round(112 * (sceneScale / 0.55));
           const dx = Math.round(posX - dw / 2);
-          const dy = Math.round(posY - dh - 5);
+          const breath = Math.sin((now + (npc.animFrame || 0) * 120) * 0.005) * 1.0;
+          const dy = Math.round(posY - dh + breath);
 
-          ctx.drawImage(seatedImg, anim * fw, 0, fw, fh, dx, dy, dw, dh);
+          ctx.drawImage(seatedImg, 0, 0, seatedImg.width, seatedImg.height, dx, dy, dw, dh);
 
           // Typing sparks from computer
           if (window.pixelEngine && window.pixelEngine.particles && Math.random() < 0.18) {
