@@ -130,12 +130,12 @@
       name: 'Priya',
       role: 'Product Manager',
       questId: 'quest_ticket_triage',
-      primaryScene: 'CORNER_OFFICE',
-      scene: 'CORNER_OFFICE',
-      x: 280,
-      y: 480,
-      targetX: 280,
-      targetY: 480,
+      primaryScene: 'OFFICE_HALL',
+      scene: 'OFFICE_HALL',
+      x: 562,
+      y: 515,
+      targetX: 562,
+      targetY: 515,
       isMoving: false,
       isSitting: true,
       direction: 'up',
@@ -143,13 +143,12 @@
       stateTimer: 8000,
       scheduleState: 'DESK_WORK',
       activityLabel: '📋 Triage P0 Customer Tickets',
-      deskPos: { scene: 'CORNER_OFFICE', x: 280, y: 480 },
+      deskPos: { scene: 'OFFICE_HALL', x: 562, y: 515 },
       waypoints: [
-        { scene: 'CORNER_OFFICE', x: 280, y: 480, sit: true, label: '📋 Roadmap & Sprint Priorities' },
-        { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '☕ Espresso & Spec Review' },
-        { scene: 'CORNER_OFFICE', x: 800, y: 480, sit: false, label: '📁 Filing Customer Feedback' },
-        { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch & Spec Review in Cafeteria' },
-        { scene: 'OFFICE_HALL', x: 562, y: 515, sit: true, label: '📝 Ticket Grooming at Desk' },
+        { scene: 'OFFICE_HALL', x: 562, y: 515, sit: true, label: '📋 Roadmap & Sprint Priorities' },
+        { scene: 'CORNER_OFFICE', x: 600, y: 490, sit: false, label: '☕ Whiteboard & Spec Review' },
+        { scene: 'CORNER_OFFICE', x: 750, y: 490, sit: false, label: '📁 Consulting HR Records' },
+        { scene: 'CAFETERIA', x: 680, y: 370, sit: true, label: '🥪 Lunch in Cafeteria' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Grabbing Ice Cold Water' }
       ],
       systemPrompt: 'You are Priya, a sharp and energetic Product Manager. You care deeply about user impact, clarifying ambiguous bug tickets, and setting clear stakeholder expectations. You hate assumptions and love structured problem-solving.'
@@ -178,7 +177,7 @@
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Drinking Water at Cooler' },
         { scene: 'OFFICE_HALL', x: 275, y: 240, sit: false, label: '📚 Reading Workplace Culture Docs' },
         { scene: 'OFFICE_HALL', x: 562, y: 515, sit: false, label: '💬 Checking in on Coworkers' },
-        { scene: 'CORNER_OFFICE', x: 350, y: 480, sit: true, label: '💼 HR 1-on-1 Mentorship' }
+        { scene: 'CORNER_OFFICE', x: 550, y: 490, sit: false, label: '💼 HR Mentorship Discussion' }
       ],
       systemPrompt: 'You are Amit, an empathetic Engineering Manager and HR leader. You believe in empowering interns and junior devs to ask for help with confidence ("Ask Without Apology"). You discourage imposter syndrome and teach structured communication.'
     },
@@ -717,6 +716,11 @@ You MUST respond strictly in valid JSON format with this exact structure:
           npc.isMoving = false;
         }
 
+        // In CORNER_OFFICE (Green Room), NPCs must never sit under any circumstances
+        if (npc.scene === 'CORNER_OFFICE') {
+          npc.isSitting = false;
+        }
+
         npc.stateTimer -= dt;
 
         // Schedule next routine when idle timer runs out
@@ -769,7 +773,8 @@ You MUST respond strictly in valid JSON format with this exact structure:
               npc.isMoving = false;
               const wp = npc.targetWP;
 
-              if (wp && wp.sit) {
+              // NPCs never sit in CORNER_OFFICE
+              if (wp && wp.sit && npc.scene !== 'CORNER_OFFICE') {
                 npc.isSitting = true;
                 npc.direction = 'up';
                 npc.scheduleState = 'DESK_WORK';
@@ -825,7 +830,7 @@ You MUST respond strictly in valid JSON format with this exact structure:
       const posY = Math.round(npc.y);
       ctx.save();
 
-      if (npc.isSitting) {
+      if (npc.isSitting && npc.scene !== 'CORNER_OFFICE') {
         // Render seated at desk
         const seatedImg = assets[`${npc.id}Seated`] || assets.char1SeatedDesk;
         if (seatedImg && seatedImg.complete && seatedImg.width > 0) {
@@ -896,7 +901,8 @@ You MUST respond strictly in valid JSON format with this exact structure:
     }
 
     renderNPCBadge(ctx, npc, posX, posY, sceneScale) {
-      const headY = npc.isSitting ? (posY - Math.round(95 * sceneScale) - 10) : (posY - Math.round(157 * sceneScale) - 10);
+      const isSeated = npc.isSitting && npc.scene !== 'CORNER_OFFICE';
+      const headY = isSeated ? (posY - Math.round(95 * sceneScale) - 10) : (posY - Math.round(157 * sceneScale) - 10);
       
       // Floating name + task badge
       const nameText = `${npc.name} (${npc.role})`;
