@@ -218,6 +218,21 @@ class PixelEngine {
       stageSpotlight.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = stageSpotlight;
       ctx.fillRect(740, 180, 284, 396);
+    } else if (currentScene === 'CONFERENCE_ROOM') {
+      // 1. Panoramic Boardroom window daylight bleed
+      const windowLight = ctx.createLinearGradient(0, 0, 0, 220);
+      windowLight.addColorStop(0, 'rgba(186, 230, 253, 0.12)');
+      windowLight.addColorStop(0.7, 'rgba(224, 242, 254, 0.04)');
+      windowLight.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = windowLight;
+      ctx.fillRect(0, 0, width, 220);
+
+      // 2. Subtle executive board table downlight
+      const tableLight = ctx.createRadialGradient(500, 350, 60, 500, 350, 260);
+      tableLight.addColorStop(0, 'rgba(254, 243, 199, 0.06)');
+      tableLight.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = tableLight;
+      ctx.fillRect(180, 220, 640, 280);
     }
 
     ctx.restore();
@@ -289,6 +304,57 @@ class PixelEngine {
     // 7. Developer Typing Code Sparks when sitting at Pod
     if (isPlayerSitting && playerY > 400 && Math.random() < 0.45) {
       this.particles.spawnTypingParticles(playerX, playerY - 14);
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Conference Room Pixel Engine Effects (Smart Board glow, sunlight beams, coffee steam)
+   */
+  renderConferenceRoomPixelEffects(ctx, playerX, playerY) {
+    const time = performance.now() * 0.002;
+    const pulse = (Math.sin(time) + 1) * 0.5;
+
+    ctx.save();
+
+    // 1. Tech Analytics Smart Board High-Tech Cyber Glow (Right Wall: 825..985, y: 85..430)
+    const smartGlow = ctx.createRadialGradient(905, 255, 30, 905, 255, 140);
+    smartGlow.addColorStop(0, `rgba(56, 189, 248, ${0.12 + pulse * 0.08})`);
+    smartGlow.addColorStop(0.7, `rgba(37, 99, 235, ${0.05 + pulse * 0.04})`);
+    smartGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = smartGlow;
+    ctx.fillRect(815, 80, 185, 360);
+
+    // Dynamic horizontal data scan beam across the Smart Board
+    const scanY = 100 + ((performance.now() * 0.06) % 310);
+    ctx.fillStyle = 'rgba(125, 211, 252, 0.25)';
+    ctx.fillRect(828, scanY, 150, 2);
+
+    // 2. Panoramic Boardroom Window Sunlight Warm Ambience
+    ctx.fillStyle = `rgba(240, 249, 255, 0.04)`;
+    ctx.fillRect(240, 70, 520, 150);
+
+    // 3. Boardroom Laptops Glowing Displays
+    ctx.fillStyle = `rgba(59, 130, 246, ${0.08 + pulse * 0.04})`;
+    ctx.fillRect(400, 335, 45, 25);
+    ctx.fillRect(575, 335, 45, 25);
+    ctx.fillRect(660, 340, 45, 25);
+    ctx.fillRect(315, 345, 45, 25);
+
+    // 4. Gourmet Coffee Station Steam Puffs
+    if (Math.random() < 0.28) {
+      this.particles.spawnCoffeeSteam(470, 225);
+    }
+
+    // 5. Water Cooler Sparkling Droplets at bottom right
+    if (Math.random() < 0.15) {
+      this.particles.spawnWaterSparkles(965, 510);
+    }
+
+    // 6. Microscopic Sunbeam Dust Motes
+    if (Math.random() < 0.3) {
+      this.particles.spawnSunbeamDust();
     }
 
     ctx.restore();

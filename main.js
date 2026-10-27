@@ -190,6 +190,8 @@ registerAsset('npc_nehaBack', 'assets/npc_neha_back.png?v=12');
 registerAsset('cafeteriaRoom', 'assets/cafeteria_room.png');
 registerAsset('cafeteriaDoor', 'assets/cafeteria_door.png');
 registerAsset('bigWorkplace', 'assets/big_workplace.png?v=36');
+registerAsset('fgProjectorScreen', 'assets/fg_projector_screen.png?v=1');
+registerAsset('conferenceRoom', 'assets/conference_room.png?v=1');
 
 // ==========================================
 // GAME STATE & CONSTANTS
@@ -810,7 +812,16 @@ const SCENES = {
     playerWidth: 42,
     playerHeight: 90,
     spawn: { x: 80, y: 380, dir: 'right' },
-    foregroundProps: [],
+    foregroundProps: [
+      {
+        x: 787,
+        y: 154,
+        w: 237,
+        h: 276,
+        sortY: 380,
+        img: () => assets.fgProjectorScreen
+      }
+    ],
     obstacles: [
       // Top panoramic glass window wall & back developer desks barrier
       { x: 0, y: 0, w: CANVAS_WIDTH, h: 140, label: 'Panoramic Windows & Back Desks' },
@@ -819,8 +830,9 @@ const SCENES = {
       // Left boundary (leaving corridor open at y: 300-420 for Cafeteria entrance)
       { x: 0, y: 0, w: 20, h: 300, label: 'Left Wall Upper' },
       { x: 0, y: 420, w: 20, h: 160, label: 'Left Wall Lower' },
-      // Right boundary wall
-      { x: 1008, y: 0, w: 16, h: CANVAS_HEIGHT, label: 'Right Wall' },
+      // Right boundary wall (open passage at y: 150-255 behind projector screen to Conference Room)
+      { x: 1008, y: 0, w: 16, h: 150, label: 'Right Wall Upper' },
+      { x: 1008, y: 255, w: 16, h: CANVAS_HEIGHT - 255, label: 'Right Wall Lower' },
 
       // Central Rolling Whiteboards Partition
       { x: 60, y: 195, w: 600, h: 110, label: 'Whiteboards & Architecture Partition' },
@@ -835,8 +847,8 @@ const SCENES = {
       // Vending Machine
       { x: 915, y: 50, w: 95, h: 100, label: 'Vending Machine' },
 
-      // Right Raised Stage Presentation Area
-      { x: 775, y: 200, w: 240, h: 120, label: 'Stage Keynote Screen' },
+      // Right Raised Stage Presentation Area (front stage face only; passage behind screen is open)
+      { x: 785, y: 255, w: 230, h: 80, label: 'Stage Keynote Screen Front' },
       { x: 735, y: 310, w: 45, h: 65, label: 'Water Cooler' },
       { x: 935, y: 430, w: 75, h: 80, label: 'Stage Lectern' }
     ],
@@ -987,6 +999,117 @@ const SCENES = {
         prompt: 'Sit at Dev Pod 3 (Cloud Telemetry) [E / C]',
         promptPos: { x: 546, y: 465 },
         action: () => toggleSitInChair(546, 490, 'up', 546, 540)
+      },
+      // 13. Doorway behind Projector Screen to Conference Room
+      {
+        id: 'door_to_conference_room',
+        x: 930, y: 155, w: 90, h: 100,
+        prompt: 'Enter Conference Room 👔 [E / Space]',
+        promptPos: { x: 965, y: 195 },
+        action: () => enterConferenceRoomFromBigWorkplace()
+      }
+    ]
+  },
+
+  CONFERENCE_ROOM: {
+    name: 'Executive Boardroom & Conference Suite',
+    badge: 'Conference Room',
+    objective: 'Executive Strategy: Review live telemetry on the Smart Board, align on roadmap whiteboard, or hold meeting at executive table',
+    bg: () => (assets.conferenceRoom && assets.conferenceRoom.complete && assets.conferenceRoom.naturalWidth > 0 ? assets.conferenceRoom : null),
+    playerScale: 0.58,
+    playerWidth: 42,
+    playerHeight: 90,
+    spawn: { x: 100, y: 340, dir: 'right' },
+    obstacles: [
+      // Top panoramic window wall and upper boundary
+      { x: 0, y: 0, w: CANVAS_WIDTH, h: 220, label: 'Panoramic Windows & Back Wall' },
+      // Bottom room boundary
+      { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom Boundary' },
+      // Left glass wall (exit doorway open at y: 280-410)
+      { x: 0, y: 0, w: 30, h: 280, label: 'Left Glass Partition Upper' },
+      { x: 0, y: 410, w: 30, h: 166, label: 'Left Glass Partition Lower' },
+      // Right room boundary wall
+      { x: 990, y: 0, w: 34, h: CANVAS_HEIGHT, label: 'Right Boundary Wall' },
+
+      // Central Mahogany Conference Table and executive chairs
+      { x: 210, y: 240, w: 580, h: 215, label: 'Mahogany Conference Table & Chairs' }
+    ],
+    triggers: [
+      // Exit Doorway back to Big Workplace (returns behind projector screen)
+      {
+        id: 'door_back_to_big_workplace',
+        x: 0, y: 280, w: 90, h: 130,
+        prompt: 'Return to R&D Mega-Hub 🏢 [E / Space]',
+        promptPos: { x: 60, y: 340 },
+        action: () => exitConferenceRoomToBigWorkplace()
+      },
+      // 1. High-Tech Analytics Smart Board
+      {
+        id: 'conf_smart_board',
+        x: 780, y: 340, w: 180, h: 150,
+        prompt: '📊 Review Live Telemetry Smart Board [E]',
+        promptPos: { x: 860, y: 350 },
+        action: () => {
+          window.soundManager.playInteract();
+          if (window.pixelEngine && window.pixelEngine.particles) {
+            window.pixelEngine.particles.spawnEmbers(860, 350);
+          }
+          showToast('📊 Smart Board: "Global telemetry load 99.98% optimal. All 4 distributed clusters synced!"');
+        }
+      },
+      // 2. Q3 Roadmap Strategy Whiteboard
+      {
+        id: 'conf_q3_whiteboard',
+        x: 620, y: 210, w: 100, h: 70,
+        prompt: '📋 Inspect Q3 Expansion Whiteboard [E]',
+        promptPos: { x: 670, y: 230 },
+        action: () => {
+          window.soundManager.playInteract();
+          showToast('📋 Q3 Plan: "Next phase: Multi-region latency replication and autonomous AI office assistant."');
+        }
+      },
+      // 3. Conference Espresso Credenza
+      {
+        id: 'conf_espresso_credenza',
+        x: 70, y: 210, w: 130, h: 80,
+        prompt: '☕ Brew Executive Blend Coffee [E]',
+        promptPos: { x: 135, y: 230 },
+        action: () => {
+          window.soundManager.playInteract();
+          if (window.pixelEngine && window.pixelEngine.particles) {
+            window.pixelEngine.particles.spawnCoffeeSteam(135, 215);
+          }
+          showToast('☕ Executive Dark Roast brewed! Focus +100% for the upcoming board meeting.');
+        }
+      },
+      // 4. Conference Board Meeting Table Sitting
+      {
+        id: 'conf_board_meeting',
+        x: 220, y: 445, w: 560, h: 70,
+        prompt: '🪑 Take Seat at Executive Table [E / C]',
+        promptPos: { x: 500, y: 460 },
+        action: () => {
+          const sitX = state.player.x < 360 ? 300 : (state.player.x > 620 ? 690 : 500);
+          toggleSitInChair(sitX, 475, 'up', sitX, 510);
+        }
+      },
+      // 5. Water Cooler Station (supports water cooler mini-game)
+      {
+        id: 'conf_water_cooler',
+        x: 880, y: 460, w: 90, h: 80,
+        prompt: '💧 Hydrate at Water Cooler [E]',
+        promptPos: { x: 925, y: 470 },
+        action: () => {
+          if (window.waterCoolerGame) {
+            window.waterCoolerGame.open();
+          } else {
+            window.soundManager.playInteract();
+            if (window.pixelEngine && window.pixelEngine.particles) {
+              window.pixelEngine.particles.spawnWaterSparkles(925, 480);
+            }
+            showToast('💧 Pure mountain spring water! "Hydration is the secret to marathon strategy sessions."');
+          }
+        }
       }
     ]
   }
@@ -1209,9 +1332,20 @@ function setupEventListeners() {
         exitBigWorkplaceToCafeteria();
         return;
       }
+      // Right: Conference Room badge behind screen (cx: 965, cy: 195)
+      if (Math.abs(targetX - 965) <= 55 && Math.abs(targetY - 195) <= 16) {
+        enterConferenceRoomFromBigWorkplace();
+        return;
+      }
       // Paper.js Whiteboard click (cx: 512, cy: 130)
       if (Math.abs(targetX - 512) <= 100 && Math.abs(targetY - 130) <= 60) {
         if (window.workplacePaper) window.workplacePaper.openStudio();
+        return;
+      }
+    } else if (state.currentScene === 'CONFERENCE_ROOM') {
+      // Left: Big Workplace badge (cx: 80, cy: 335)
+      if (Math.abs(targetX - 80) <= 55 && Math.abs(targetY - 335) <= 16) {
+        exitConferenceRoomToBigWorkplace();
         return;
       }
     }
@@ -1845,11 +1979,64 @@ function exitBigWorkplaceToCafeteria() {
   }, 350);
 }
 
+function enterConferenceRoomFromBigWorkplace() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.unlock();
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    switchScene('CONFERENCE_ROOM', 100, 340, 'right');
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('👔 Entered Executive Boardroom & Conference Suite.');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
+function exitConferenceRoomToBigWorkplace() {
+  if (state.isTransitioning) return;
+  state.isTransitioning = true;
+
+  window.soundManager.unlock();
+  window.soundManager.playDoorOpen();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.classList.remove('hidden');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    // Return behind the projector screen in Big Workplace!
+    switchScene('BIG_WORKPLACE', 970, 210, 'left');
+    window.soundManager.playDoorClose();
+
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        state.isTransitioning = false;
+        showToast('🏢 Back in Acme R&D Mega-Hub (Behind Projector Screen).');
+      }, 350);
+    }, 200);
+  }, 350);
+}
+
 // Expose navigation to window
 window.enterCafeteria = enterCafeteria;
 window.exitCafeteriaToMainHall = exitCafeteriaToMainHall;
 window.enterBigWorkplace = enterBigWorkplace;
 window.exitBigWorkplaceToCafeteria = exitBigWorkplaceToCafeteria;
+window.enterConferenceRoomFromBigWorkplace = enterConferenceRoomFromBigWorkplace;
+window.exitConferenceRoomToBigWorkplace = exitConferenceRoomToBigWorkplace;
 
 // ==========================================
 // COLLISION DETECTION & PHYSICS
@@ -2168,6 +2355,8 @@ function render() {
     renderCafeteriaDetails();
   } else if (state.currentScene === 'BIG_WORKPLACE') {
     renderBigWorkplaceDetails();
+  } else if (state.currentScene === 'CONFERENCE_ROOM') {
+    renderConferenceRoomDetails();
   }
 
   // 3. Unified Dynamic Depth Sorting (Characters, Remote Peers, NPCs, and Foreground Desk/Monitor Props)
@@ -2247,7 +2436,9 @@ function render() {
     state.activePrompt.id === 'exit_corner_to_hall' ||
     state.activePrompt.id === 'exit_cafeteria_to_hall' ||
     state.activePrompt.id === 'door_to_big_workplace' ||
-    state.activePrompt.id === 'door_back_to_cafe'
+    state.activePrompt.id === 'door_back_to_cafe' ||
+    state.activePrompt.id === 'door_to_conference_room' ||
+    state.activePrompt.id === 'door_back_to_big_workplace'
   );
   if (state.activePrompt && state.activePrompt.promptPos && !isPortalTrigger) {
     if (state.activePrompt.id === 'talk_to_boss') {
@@ -2496,13 +2687,30 @@ function renderCafeteriaDetails() {
 function renderBigWorkplaceDetails() {
   const p = state.player;
   const isNearCafe = p && Math.hypot(p.x - 60, p.y - 360) < 100;
+  const isNearConference = p && Math.hypot(p.x - 965, p.y - 195) < 110;
 
-  // Room Portal Badge pointing back to Cafeteria
+  // 1. Room Portal Badge pointing back to Cafeteria
   drawRoomPortalBadge(60, 360, 'CAFETERIA', 'left', isNearCafe);
+
+  // 2. Room Portal Badge pointing behind Projector Screen to Conference Room
+  drawRoomPortalBadge(965, 195, 'CONFERENCE', 'right', isNearConference);
 
   // PixelEngine Dynamic Particle, CRT Screen Glows & Ambient Office Lighting
   if (window.pixelEngine) {
     window.pixelEngine.renderBigWorkplacePixelEffects(ctx, p && p.sitting, p ? p.x : 0, p ? p.y : 0);
+  }
+}
+
+function renderConferenceRoomDetails() {
+  const p = state.player;
+  const isNearWorkplace = p && Math.hypot(p.x - 80, p.y - 335) < 100;
+
+  // 1. Room Portal Badge pointing back to Big Workplace
+  drawRoomPortalBadge(80, 335, 'R&D MEGA-HUB', 'left', isNearWorkplace);
+
+  // 2. PixelEngine Dynamic Particle & Ambient Lighting for Conference Room
+  if (window.pixelEngine && window.pixelEngine.renderConferenceRoomPixelEffects) {
+    window.pixelEngine.renderConferenceRoomPixelEffects(ctx, p ? p.x : 0, p ? p.y : 0);
   }
 }
 
