@@ -120,6 +120,8 @@ class MultiplayerEngine {
     this.broadcastIntervalMs = 33; // ~30 fps state broadcast
     this.onLobbyUpdate = null;
     this.onToast = null;
+    this.heartbeatTimer = null;
+    this.reconnectTimer = null;
   }
 
   // Generate a random clean room code (e.g. OFF-8392)
@@ -159,6 +161,30 @@ class MultiplayerEngine {
       senderId: this.localPlayer.id,
       player: this.localPlayer
     });
+
+    // 4. Background Heartbeat (every 2500ms) - resilient against tab idling & pauses
+    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = setInterval(() => {
+      if (!this.active) return;
+      this.broadcast({
+        type: 'HEARTBEAT',
+        senderId: this.localPlayer.id,
+        player: this.localPlayer
+      });
+    }, 2500);
+
+    // 5. Guest auto-reconnection loop: if active guest loses connection to host, reconnect
+    if (this.reconnectTimer) clearInterval(this.reconnectTimer);
+    if (!this.isHost) {
+      this.reconnectTimer = setInterval(() => {
+        if (!this.active || this.isHost) return;
+        if (this.connections.size === 0 && this.peer && !this.peer.destroyed) {
+          const cleanRoom = this.roomCode.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
+          const hostId = `offsim-${cleanRoom}-host`;
+          this.connectToPeer(hostId);
+        }
+      }, 4000);
+    }
 
     if (this.onLobbyUpdate) this.onLobbyUpdate();
   }
@@ -232,23 +258,32 @@ class MultiplayerEngine {
   }
 
   setupConnection(conn) {
-    conn.on('open', () => {
+    if (!conn) return;
+
+    const onOpen = () => {
       this.connections.set(conn.peer, conn);
       console.log('[Multiplayer] WebRTC connection established with:', conn.peer);
 
-      // Send greeting & state
-      conn.send({
-        type: 'JOIN',
-        senderId: this.localPlayer.id,
-        player: this.localPlayer
-      });
+      // Send greeting & state immediately directly to this peer
+      try {
+        conn.send({
+          type: 'JOIN',
+          senderId: this.localPlayer.id,
+          player: this.localPlayer
+        });
+      } catch (e) {
+        console.warn('[Multiplayer] Failed to send JOIN on open:', e);
+      }
 
       // If host, send current character claims to the newly joined peer
       if (this.isHost) {
-        conn.send({
-          type: 'SYNC_CLAIMS',
-          claims: this.getClaimsPayload()
-        });
+        try {
+          conn.send({
+            type: 'SYNC_CLAIMS',
+            senderId: this.localPlayer.id,
+            claims: this.getClaimsPayload()
+          });
+        } catch (e) {}
 
         // Inform other peers to connect to this new peer (mesh networking)
         this.broadcast({
@@ -258,10 +293,20 @@ class MultiplayerEngine {
       }
 
       if (this.onLobbyUpdate) this.onLobbyUpdate();
-    });
+    };
+
+    if (conn.open) {
+      onOpen();
+    } else {
+      conn.on('open', onOpen);
+    }
 
     conn.on('data', (data) => {
-      this.handleIncomingMessage(data);
+      // Ensure connection is tracked
+      if (!this.connections.has(conn.peer) && conn.open) {
+        this.connections.set(conn.peer, conn);
+      }
+      this.handleIncomingMessage(data, conn);
 
       // Host star-relay: if host receives state update from one peer, forward it to all other peers
       if (this.isHost && data && data.type) {
@@ -279,7 +324,8 @@ class MultiplayerEngine {
       if (this.onLobbyUpdate) this.onLobbyUpdate();
     });
 
-    conn.on('error', () => {
+    conn.on('error', (err) => {
+      console.warn('[Multiplayer] Conn error with:', conn.peer, err);
       this.connections.delete(conn.peer);
       this.removePeer(conn.peer, 'disconnected');
     });
@@ -316,7 +362,7 @@ class MultiplayerEngine {
   /**
    * Handle messages received from any transport
    */
-  handleIncomingMessage(msg) {
+  handleIncomingMessage(msg, conn = null) {
     try {
       if (!msg || !msg.type || msg.senderId === this.localPlayer.id) return;
 
@@ -355,6 +401,7 @@ class MultiplayerEngine {
 
           this.peers.set(p.id, {
             id: p.id,
+            connectionPeerId: conn ? conn.peer : null,
             name: p.name || 'Colleague',
             charId: p.charId || null,
             x: validX,
@@ -373,19 +420,27 @@ class MultiplayerEngine {
             this.setCharacterClaim(p.charId, p.id, p.name);
           }
 
-          // Respond with our current state so new player learns about us
-          this.broadcast({
+          // Reply with our current state directly on this connection AND broadcast
+          const replyPresence = {
             type: 'PRESENCE',
             senderId: this.localPlayer.id,
             player: this.localPlayer
-          });
+          };
+          if (conn && conn.open) {
+            try { conn.send(replyPresence); } catch (e) {}
+          }
+          this.broadcast(replyPresence);
 
           if (this.isHost) {
-            this.broadcast({
+            const claimsMsg = {
               type: 'SYNC_CLAIMS',
               senderId: this.localPlayer.id,
               claims: this.getClaimsPayload()
-            });
+            };
+            if (conn && conn.open) {
+              try { conn.send(claimsMsg); } catch (e) {}
+            }
+            this.broadcast(claimsMsg);
           }
 
           if (this.onToast) {
@@ -405,6 +460,7 @@ class MultiplayerEngine {
           this.peers.set(p.id, {
             ...existing,
             id: p.id,
+            connectionPeerId: conn ? conn.peer : (existing.connectionPeerId || null),
             name: p.name || existing.name || 'Colleague',
             charId: p.charId || existing.charId || null,
             x: validX,
@@ -420,7 +476,7 @@ class MultiplayerEngine {
           });
 
           if (p.charId) {
-            this.setCharacterClaim(p.charId, p.id, p.name);
+            this.setCharacterClaim(p.charId, p.id, p.name || existing.name);
           }
           if (this.onLobbyUpdate) this.onLobbyUpdate();
           break;
@@ -471,8 +527,33 @@ class MultiplayerEngine {
         }
 
         case 'UPDATE_POS': {
-          const p = this.peers.get(msg.senderId);
-          if (p) {
+          let p = this.peers.get(msg.senderId);
+          if (!p) {
+            // Self-heal: auto-reconstruct peer record if missed handshake or was marked stale
+            const validX = Number.isFinite(msg.x) ? msg.x : 512;
+            const validY = Number.isFinite(msg.y) ? msg.y : 245;
+            p = {
+              id: msg.senderId,
+              connectionPeerId: conn ? conn.peer : null,
+              name: msg.name || 'Colleague',
+              charId: msg.charId || null,
+              x: validX,
+              y: validY,
+              targetX: validX,
+              targetY: validY,
+              direction: msg.direction || 'down',
+              isMoving: !!msg.isMoving,
+              animFrame: typeof msg.animFrame === 'number' ? msg.animFrame : 0,
+              scene: msg.scene || 'OFFICE_HALL',
+              isSitting: !!msg.isSitting,
+              lastSeen: Date.now()
+            };
+            this.peers.set(msg.senderId, p);
+            if (msg.charId) {
+              this.setCharacterClaim(msg.charId, msg.senderId, p.name);
+            }
+            if (this.onLobbyUpdate) this.onLobbyUpdate();
+          } else {
             if (Number.isFinite(msg.x)) p.targetX = msg.x;
             if (Number.isFinite(msg.y)) p.targetY = msg.y;
             if (!Number.isFinite(p.x)) p.x = p.targetX;
@@ -482,7 +563,52 @@ class MultiplayerEngine {
             if (typeof msg.animFrame === 'number') p.animFrame = msg.animFrame;
             if (msg.scene) p.scene = msg.scene;
             if (typeof msg.isSitting === 'boolean') p.isSitting = msg.isSitting;
+            if (msg.name) p.name = msg.name;
+            if (msg.charId && !p.charId) {
+              p.charId = msg.charId;
+              this.setCharacterClaim(msg.charId, msg.senderId, p.name);
+            }
             p.lastSeen = Date.now();
+          }
+          break;
+        }
+
+        case 'HEARTBEAT': {
+          const hp = msg.player;
+          if (!hp || !hp.id) break;
+          let p = this.peers.get(hp.id);
+          if (!p) {
+            const validX = Number.isFinite(hp.x) ? hp.x : 512;
+            const validY = Number.isFinite(hp.y) ? hp.y : 245;
+            p = {
+              id: hp.id,
+              connectionPeerId: conn ? conn.peer : null,
+              name: hp.name || 'Colleague',
+              charId: hp.charId || null,
+              x: validX,
+              y: validY,
+              targetX: validX,
+              targetY: validY,
+              direction: hp.direction || 'down',
+              isMoving: !!hp.isMoving,
+              animFrame: typeof hp.animFrame === 'number' ? hp.animFrame : 0,
+              scene: hp.scene || 'OFFICE_HALL',
+              isSitting: !!hp.isSitting,
+              lastSeen: Date.now()
+            };
+            this.peers.set(hp.id, p);
+            if (hp.charId) {
+              this.setCharacterClaim(hp.charId, hp.id, p.name);
+            }
+            if (this.onLobbyUpdate) this.onLobbyUpdate();
+          } else {
+            p.lastSeen = Date.now();
+            if (hp.name) p.name = hp.name;
+            if (hp.scene) p.scene = hp.scene;
+            if (hp.charId && p.charId !== hp.charId) {
+              p.charId = hp.charId;
+              this.setCharacterClaim(hp.charId, hp.id, p.name);
+            }
           }
           break;
         }
@@ -591,6 +717,13 @@ class MultiplayerEngine {
       playerName: this.localPlayer.name
     });
 
+    // Also broadcast updated PRESENCE so all peers immediately link charId
+    this.broadcast({
+      type: 'PRESENCE',
+      senderId: this.localPlayer.id,
+      player: this.localPlayer
+    });
+
     if (this.onLobbyUpdate) this.onLobbyUpdate();
     return { success: true };
   }
@@ -614,6 +747,8 @@ class MultiplayerEngine {
     this.broadcast({
       type: 'UPDATE_POS',
       senderId: this.localPlayer.id,
+      name: this.localPlayer.name,
+      charId: this.localPlayer.charId,
       x: Math.round(playerState.x),
       y: Math.round(playerState.y),
       direction: playerState.direction,
@@ -688,7 +823,8 @@ class MultiplayerEngine {
    */
   checkStalePeers() {
     const now = Date.now();
-    const staleThreshold = 5000;
+    // 35s threshold: prevents premature peer deletion when players stand still or open menus
+    const staleThreshold = 35000;
     const staleList = [];
 
     this.peers.forEach((peer, peerId) => {
@@ -731,6 +867,15 @@ class MultiplayerEngine {
       senderId: this.localPlayer.id
     });
 
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    if (this.reconnectTimer) {
+      clearInterval(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
     if (this.bc) {
       try { this.bc.close(); } catch (e) {}
       this.bc = null;
@@ -747,7 +892,6 @@ class MultiplayerEngine {
     this.active = false;
     this.localPlayer.charId = null;
 
-    if (this.onLobbyUpdate) this.onLobbyUpdate();
   }
 }
 

@@ -2177,6 +2177,12 @@ function checkCollision(x, y, scene) {
 let lastTime = performance.now();
 
 function update(dt) {
+  // Multiplayer Real-time Synchronization (runs continuously even when dialogues or modals are active)
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    window.multiplayerEngine.broadcastPosition(state.player, state.currentScene);
+    window.multiplayerEngine.updateRemotePlayers(dt);
+  }
+
   if (state.isDialogueOpen || state.isTransitioning || (window.officeMap && window.officeMap.isOpen) || (window.waterCoolerGame && window.waterCoolerGame.isOpen)) {
     state.player.isMoving = false;
     return;
@@ -2358,12 +2364,6 @@ function update(dt) {
 
   // Trigger Zone Detection
   updateTriggers();
-
-  // Multiplayer Real-time Synchronization
-  if (window.multiplayerEngine && window.multiplayerEngine.active) {
-    window.multiplayerEngine.broadcastPosition(p, state.currentScene);
-    window.multiplayerEngine.updateRemotePlayers(dt);
-  }
 
   // Pixel Particles & Ambient Emitters Update
   if (window.pixelEngine && window.pixelEngine.particles) {
@@ -5339,6 +5339,17 @@ function setupStartMenuAndLobby() {
       mpModal.classList.add('hidden');
 
       state.player.charId = window.multiplayerEngine.localPlayer.charId;
+      window.multiplayerEngine.localPlayer.scene = state.currentScene;
+      window.multiplayerEngine.localPlayer.x = Math.round(state.player.x);
+      window.multiplayerEngine.localPlayer.y = Math.round(state.player.y);
+
+      // Immediately broadcast full updated PRESENCE so peers in office see character right away
+      window.multiplayerEngine.broadcast({
+        type: 'PRESENCE',
+        senderId: window.multiplayerEngine.localPlayer.id,
+        player: window.multiplayerEngine.localPlayer
+      });
+
       onlineBadge.classList.remove('hidden');
       onlineRoomText.textContent = `ROOM: ${window.multiplayerEngine.roomCode}`;
       onlinePlayerCount.textContent = `👥 ${1 + window.multiplayerEngine.peers.size}`;
