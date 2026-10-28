@@ -7,7 +7,7 @@ best game ever:)
 ---
 
 ## 🎮 Game Features
-
+chatbox added
 - **Pixel-Art Environments**:
   - **Main Office Hall**: 3/4 top-down view with cubicles, dual-monitor workstations, water coolers, bookshelves, clock, and the executive wooden door.
   - **Boss's Executive Cabinet**: Rich 2.5D side-view executive office with mahogany wainscoting, CRT monitor desk, filing cabinets, and moving boxes.
