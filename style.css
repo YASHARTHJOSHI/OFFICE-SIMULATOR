@@ -7754,25 +7754,101 @@ kbd {
   100% { transform: translate(-16px, -65px) scale(2.6); opacity: 0; }
 }
 
-/* Drip Station & Mug */
+/* Drip Station & Movable Glass */
 .cm-drip-station {
+  position: relative;
+  width: 100%;
+  height: 96px;
+  margin-top: 18px;
+  user-select: none;
+  touch-action: none;
+}
+
+/* Pouring Alignment Target Reticle */
+.cm-spout-guide {
+  position: absolute;
+  top: -8px;
+  right: 28%;
+  transform: translateX(50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-  margin-top: 24px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
 }
 
+.cm-spout-guide .guide-arrow {
+  color: #f59e0b;
+  font-size: 11px;
+  animation: cm-guide-bounce 0.8s infinite alternate ease-in-out;
+}
+
+.cm-spout-guide .guide-label {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 6px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+@keyframes cm-guide-bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(3px); }
+}
+
+/* Movable Ceramic Glass / Mug */
 .cm-coffee-mug {
   width: 68px;
   height: 62px;
   background: #f8fafc;
   border: 2px solid #cbd5e1;
   border-radius: 2px 2px 8px 8px;
-  position: relative;
+  position: absolute;
+  bottom: 18px;
+  left: 36%;
+  transform: translateX(-50%);
   z-index: 4;
-  margin-left: 70px; /* Aligned under right group head */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+  cursor: -webkit-grab;
+  touch-action: none;
+  user-select: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.cm-coffee-mug:active,
+.cm-coffee-mug.dragging {
+  cursor: grabbing;
+  cursor: -webkit-grabbing;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.85), 0 0 14px rgba(245, 158, 11, 0.45);
+}
+
+.cm-coffee-mug.aligned {
+  border-color: #f59e0b;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), 0 0 18px rgba(245, 158, 11, 0.65);
+}
+
+/* Drag Hint on Mug Body */
+.cm-mug-drag-hint {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: #94a3b8;
+  pointer-events: none;
+  letter-spacing: 1px;
+  opacity: 0.85;
+}
+
+.cm-coffee-mug.aligned .cm-mug-drag-hint {
+  color: #f59e0b;
 }
 
 .cm-mug-rim {
@@ -7849,7 +7925,7 @@ kbd {
   top: -24px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.9);
   border: 1px solid #f59e0b;
   border-radius: 4px;
   padding: 1px 6px;
@@ -7857,6 +7933,7 @@ kbd {
   font-size: 0.58rem;
   color: #fbbf24;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 .cm-fill-badge.ready {
@@ -7873,15 +7950,20 @@ kbd {
 
 /* Metal Slatted Drip Tray */
 .cm-drip-tray {
-  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 18px;
   background: linear-gradient(180deg, #64748b 0%, #334155 100%);
   border-radius: 4px;
   border: 1.5px solid #475569;
-  margin-top: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .cm-drip-slots {
@@ -7894,6 +7976,107 @@ kbd {
   height: 10px;
   background: #0f172a;
   border-radius: 1px;
+}
+
+/* Splash container for spills */
+.cm-splash-container {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  height: 24px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.cm-splash-drop {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #78350f;
+  border-radius: 50%;
+  animation: cm-drop-splash 0.4s forwards ease-out;
+}
+
+@keyframes cm-drop-splash {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx, 8px), -14px) scale(0.3); opacity: 0; }
+}
+
+/* Glass Slide & Alignment Controls Bar */
+.cm-slide-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 4px 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.cm-btn-slide {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #38bdf8;
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.52rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cm-btn-slide:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.cm-btn-slide:active {
+  transform: translateY(1px);
+}
+
+.cm-align-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.54rem;
+  letter-spacing: 0.4px;
+}
+
+.cm-align-status.misaligned {
+  color: #f87171;
+}
+
+.cm-align-status.misaligned .align-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+  animation: cm-dot-blink 0.8s infinite alternate;
+}
+
+.cm-align-status.aligned {
+  color: #34d399;
+}
+
+.cm-align-status.aligned .align-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+@keyframes cm-dot-blink {
+  0% { opacity: 0.4; }
+  100% { opacity: 1; }
 }
 
 /* 4. Status Banner */

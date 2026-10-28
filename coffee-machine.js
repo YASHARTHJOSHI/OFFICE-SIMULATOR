@@ -22,6 +22,14 @@
       this.lastTimestamp = 0;
       this.steamInterval = null;
 
+      // Movable Glass / Mug Tracking & Dragging
+      this.mugPos = 36; // percent across drip station (14% to 86%)
+      this.isDragging = false;
+      this.isAligned = false;
+      this.dragStartX = 0;
+      this.dragStartMugPos = 36;
+      this.mugControlsBound = false;
+
       this.init();
     }
 
@@ -43,10 +51,21 @@
       this.mugEl = document.getElementById('cm-coffee-mug');
       this.machineButton = document.getElementById('cm-machine-tap-btn');
 
+      // Movable Glass & Alignment Elements
+      this.dripStation = document.getElementById('cm-drip-station');
+      this.dripTray = document.getElementById('cm-drip-tray');
+      this.spoutGuide = document.getElementById('cm-spout-guide');
+      this.splashContainer = document.getElementById('cm-splash-container');
+      this.slideLeftBtn = document.getElementById('cm-slide-left-btn');
+      this.slideRightBtn = document.getElementById('cm-slide-right-btn');
+      this.alignStatus = document.getElementById('cm-align-status');
+      this.alignText = document.getElementById('cm-align-text');
+
       if (!this.modal) return;
 
       if (!this.eventsSetup) {
         this.setupEvents();
+        this.setupMugControls();
         this.eventsSetup = true;
       }
     }
@@ -86,7 +105,7 @@
         });
       }
 
-      // Keyboard Controls (E, Space, Enter, Escape)
+      // Keyboard Controls (E, Space, Enter, Escape, Left/Right Arrow, A/D to move glass)
       window.addEventListener('keydown', (e) => {
         if (!this.isOpen) return;
 
@@ -94,6 +113,18 @@
         if (k === 'escape') {
           e.preventDefault();
           this.close();
+          return;
+        }
+
+        // Slide glass left / right with keyboard
+        if (k === 'arrowleft' || k === 'a' || e.code === 'ArrowLeft' || e.code === 'KeyA') {
+          e.preventDefault();
+          this.setMugPos(this.mugPos - 6);
+          return;
+        }
+        if (k === 'arrowright' || k === 'd' || e.code === 'ArrowRight' || e.code === 'KeyD') {
+          e.preventDefault();
+          this.setMugPos(this.mugPos + 6);
           return;
         }
 
@@ -106,6 +137,177 @@
           }
         }
       });
+    }
+
+    setupMugControls() {
+      if (!this.mugEl || this.mugControlsBound) return;
+      this.mugControlsBound = true;
+
+      // 1. Mouse Drag on Glass
+      const onMouseDown = (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        this.isDragging = true;
+        this.dragStartX = e.clientX;
+        this.dragStartMugPos = this.mugPos;
+        this.mugEl.classList.add('dragging');
+      };
+
+      const onMouseMove = (e) => {
+        if (!this.isDragging || !this.dripStation) return;
+        const deltaX = e.clientX - this.dragStartX;
+        const stationW = this.dripStation.clientWidth || 300;
+        const deltaPercent = (deltaX / stationW) * 100;
+        this.setMugPos(this.dragStartMugPos + deltaPercent);
+      };
+
+      const onMouseUp = () => {
+        if (this.isDragging) {
+          this.isDragging = false;
+          if (this.mugEl) this.mugEl.classList.remove('dragging');
+        }
+      };
+
+      this.mugEl.addEventListener('mousedown', onMouseDown);
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+
+      // 2. Touch Drag on Glass (Mobile & Tablets)
+      const onTouchStart = (e) => {
+        if (e.touches.length !== 1) return;
+        this.isDragging = true;
+        this.dragStartX = e.touches[0].clientX;
+        this.dragStartMugPos = this.mugPos;
+        this.mugEl.classList.add('dragging');
+      };
+
+      const onTouchMove = (e) => {
+        if (!this.isDragging || !this.dripStation || e.touches.length !== 1) return;
+        const deltaX = e.touches[0].clientX - this.dragStartX;
+        const stationW = this.dripStation.clientWidth || 300;
+        const deltaPercent = (deltaX / stationW) * 100;
+        this.setMugPos(this.dragStartMugPos + deltaPercent);
+      };
+
+      const onTouchEnd = () => {
+        if (this.isDragging) {
+          this.isDragging = false;
+          if (this.mugEl) this.mugEl.classList.remove('dragging');
+        }
+      };
+
+      this.mugEl.addEventListener('touchstart', onTouchStart, { passive: true });
+      window.addEventListener('touchmove', onTouchMove, { passive: true });
+      window.addEventListener('touchend', onTouchEnd);
+
+      // 3. Click anywhere on Drip Tray / Station to slide glass to that position
+      if (this.dripTray) {
+        this.dripTray.addEventListener('click', (e) => {
+          if (this.isDragging) return;
+          const stationRect = this.dripStation.getBoundingClientRect();
+          const clickPercent = ((e.clientX - stationRect.left) / stationRect.width) * 100;
+          this.setMugPos(clickPercent);
+        });
+      }
+
+      // 4. Slide Left & Right Buttons
+      if (this.slideLeftBtn) {
+        this.slideLeftBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.setMugPos(this.mugPos - 8);
+        });
+      }
+      if (this.slideRightBtn) {
+        this.slideRightBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.setMugPos(this.mugPos + 8);
+        });
+      }
+    }
+
+    setMugPos(percent) {
+      this.mugPos = Math.max(14, Math.min(86, percent));
+      if (this.mugEl) {
+        this.mugEl.style.left = `${this.mugPos}%`;
+      }
+      this.checkAlignment();
+    }
+
+    checkAlignment() {
+      if (!this.coffeeStream || !this.mugEl) return false;
+      const streamRect = this.coffeeStream.getBoundingClientRect();
+      const mugRect = this.mugEl.getBoundingClientRect();
+
+      // If stream or mug is not visible yet, assume false
+      if (streamRect.width === 0 && !this.coffeeStream.classList.contains('active')) {
+        // Calculate based on group head parent
+        const parentHead = this.coffeeStream.closest('.cm-group-head');
+        if (parentHead) {
+          const headRect = parentHead.getBoundingClientRect();
+          const headCenter = headRect.left + headRect.width / 2;
+          const mugCenter = mugRect.left + 34;
+          const aligned = Math.abs(headCenter - mugCenter) < 28;
+          this.updateAlignmentUI(aligned);
+          return aligned;
+        }
+      }
+
+      // Center X of coffee stream
+      const streamCenterX = streamRect.left + streamRect.width / 2;
+      // Mug opening is ~60px wide (from mugRect.left + 4 to mugRect.left + 64)
+      const mugLeft = mugRect.left + 4;
+      const mugRight = mugRect.left + 64;
+
+      const aligned = (streamCenterX >= mugLeft && streamCenterX <= mugRight);
+      this.updateAlignmentUI(aligned);
+      return aligned;
+    }
+
+    updateAlignmentUI(aligned) {
+      this.isAligned = aligned;
+      if (this.mugEl) {
+        this.mugEl.classList.toggle('aligned', aligned);
+      }
+      if (this.alignStatus) {
+        this.alignStatus.className = 'cm-align-status ' + (aligned ? 'aligned' : 'misaligned');
+      }
+      if (this.alignText) {
+        this.alignText.textContent = aligned
+          ? '● ALIGNED! STREAM FLOWING INTO GLASS ☕'
+          : '⚠️ MISALIGNED • MOVE GLASS UNDER STREAM [◄ / ►]';
+      }
+    }
+
+    updateSpoutGuidePos() {
+      if (!this.coffeeStream || !this.spoutGuide || !this.dripStation) return;
+      const streamRect = this.coffeeStream.getBoundingClientRect();
+      const stationRect = this.dripStation.getBoundingClientRect();
+      if (stationRect.width > 0 && streamRect.width > 0) {
+        const relX = ((streamRect.left + streamRect.width / 2 - stationRect.left) / stationRect.width) * 100;
+        this.spoutGuide.style.left = `${relX}%`;
+        this.spoutGuide.style.right = 'auto';
+      }
+    }
+
+    spawnSpillSplash() {
+      if (!this.splashContainer || !this.coffeeStream || !this.dripStation) return;
+      if (Math.random() < 0.4) return; // rate limit
+
+      const streamRect = this.coffeeStream.getBoundingClientRect();
+      const stationRect = this.dripStation.getBoundingClientRect();
+      if (stationRect.width === 0) return;
+
+      const relX = ((streamRect.left + streamRect.width / 2 - stationRect.left) / stationRect.width) * 100;
+      const drop = document.createElement('div');
+      drop.className = 'cm-splash-drop';
+      const spread = (Math.random() - 0.5) * 22;
+      drop.style.left = `calc(${relX}% + ${spread}px)`;
+      drop.style.setProperty('--dx', `${(Math.random() - 0.5) * 18}px`);
+      this.splashContainer.appendChild(drop);
+
+      setTimeout(() => {
+        if (drop && drop.parentNode) drop.parentNode.removeChild(drop);
+      }, 420);
     }
 
     open() {
@@ -125,6 +327,11 @@
       if (window.coffeeQueueManager) {
         window.coffeeQueueManager.onPlayerEnterMachine();
       }
+
+      setTimeout(() => {
+        this.updateSpoutGuidePos();
+        this.checkAlignment();
+      }, 50);
     }
 
     close() {
@@ -157,6 +364,13 @@
       this.isFull = false;
       this.isDrunk = false;
       this.lastTimestamp = 0;
+
+      // Start mug slightly off-center (34%) so player slides it under the right spout!
+      this.setMugPos(34);
+      setTimeout(() => {
+        this.updateSpoutGuidePos();
+        this.checkAlignment();
+      }, 30);
 
       if (this.animId) {
         cancelAnimationFrame(this.animId);
@@ -206,6 +420,9 @@
       }
       if (this.steamWrap) {
         this.steamWrap.innerHTML = '';
+      }
+      if (this.splashContainer) {
+        this.splashContainer.innerHTML = '';
       }
     }
 
@@ -279,35 +496,70 @@
       this.lastTimestamp = timestamp;
 
       if (this.isBrewing && !this.isFull) {
-        this.fillProgress = Math.min(100, this.fillProgress + this.fillRate * dt);
+        const aligned = this.checkAlignment();
+        if (aligned) {
+          this.fillProgress = Math.min(100, this.fillProgress + this.fillRate * dt);
 
-        // Update liquid fill
-        if (this.coffeeFill) {
-          this.coffeeFill.style.height = `${this.fillProgress}%`;
-        }
-        if (this.fillBadge) {
-          this.fillBadge.textContent = `${Math.round(this.fillProgress)}%`;
-        }
-        if (this.cremaLayer && this.fillProgress > 15) {
-          this.cremaLayer.style.opacity = Math.min(1, (this.fillProgress - 15) / 25).toString();
-        }
+          // Update liquid fill
+          if (this.coffeeFill) {
+            this.coffeeFill.style.height = `${this.fillProgress}%`;
+          }
+          if (this.fillBadge) {
+            this.fillBadge.textContent = `${Math.round(this.fillProgress)}%`;
+            this.fillBadge.style.color = '#fbbf24';
+          }
+          if (this.cremaLayer && this.fillProgress > 15) {
+            this.cremaLayer.style.opacity = Math.min(1, (this.fillProgress - 15) / 25).toString();
+          }
 
-        // Live digital LCD display
-        if (this.lcdScreen) {
-          const bar = Math.floor(this.fillProgress / 10);
-          const barStr = '■'.repeat(bar) + '□'.repeat(10 - bar);
-          this.lcdScreen.innerHTML = `<span class="lcd-glow">● BREWING: ${Math.round(this.fillProgress)}%</span><br><span class="lcd-progress">${barStr} 9.2 BAR</span>`;
-        }
+          // Live digital LCD display
+          if (this.lcdScreen) {
+            const bar = Math.floor(this.fillProgress / 10);
+            const barStr = '■'.repeat(bar) + '□'.repeat(10 - bar);
+            this.lcdScreen.innerHTML = `<span class="lcd-glow">● POURING: ${Math.round(this.fillProgress)}%</span><br><span class="lcd-progress">${barStr} 9.2 BAR</span>`;
+          }
 
-        // Update audio pitch as container fills
-        if (window.soundManager && typeof window.soundManager.updateCoffeePourPitch === 'function') {
-          window.soundManager.updateCoffeePourPitch(this.fillProgress);
-        }
+          if (this.statusBanner) {
+            this.statusBanner.className = 'cm-status-banner brewing';
+          }
+          if (this.statusTitle) {
+            this.statusTitle.textContent = 'STREAMING DARK ROAST... ☕';
+          }
+          if (this.statusDesc) {
+            this.statusDesc.textContent = 'Glass is aligned! Rich espresso extraction pouring directly in.';
+          }
 
-        // Check if glass is 100% full
-        if (this.fillProgress >= 100) {
-          this.onBrewComplete();
-          return;
+          // Update audio pitch as container fills
+          if (window.soundManager && typeof window.soundManager.updateCoffeePourPitch === 'function') {
+            window.soundManager.updateCoffeePourPitch(this.fillProgress);
+          }
+
+          // Check if glass is 100% full
+          if (this.fillProgress >= 100) {
+            this.onBrewComplete();
+            return;
+          }
+        } else {
+          // MISALIGNED! Coffee pours onto the drip tray grill, glass doesn't fill!
+          if (this.fillBadge) {
+            this.fillBadge.textContent = 'ALIGN GLASS!';
+            this.fillBadge.style.color = '#f87171';
+          }
+          if (this.lcdScreen) {
+            this.lcdScreen.innerHTML = `<span class="lcd-glow" style="color: #f87171;">⚠️ MOVE GLASS!</span><br><span class="lcd-progress">SLIDE UNDER STREAM</span>`;
+          }
+          if (this.statusBanner) {
+            this.statusBanner.className = 'cm-status-banner ready';
+          }
+          if (this.statusTitle) {
+            this.statusTitle.textContent = '⚠️ COFFEE IS MISSING THE GLASS!';
+          }
+          if (this.statusDesc) {
+            this.statusDesc.textContent = 'Drag the glass or use Left/Right Arrow keys [◄ / ►] to move it under the stream!';
+          }
+
+          // Spawn grill splash droplets
+          this.spawnSpillSplash();
         }
       }
 

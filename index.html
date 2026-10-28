@@ -1068,9 +1068,18 @@
           <!-- Steaming Particles Wrap -->
           <div id="cm-steam-particles" class="cm-steam-particles"></div>
 
-          <!-- Ceramic Coffee Cup Resting on Metal Drip Tray -->
-          <div class="cm-drip-station">
-            <div id="cm-coffee-mug" class="cm-coffee-mug">
+          <!-- Ceramic Coffee Cup Resting on Metal Drip Tray (Interactive Movable Glass) -->
+          <div class="cm-drip-station" id="cm-drip-station">
+            <!-- Pouring Alignment Target Reticle -->
+            <div id="cm-spout-guide" class="cm-spout-guide">
+              <span class="guide-arrow">▼</span>
+              <span class="guide-label">POUR ZONE</span>
+            </div>
+
+            <!-- Movable Glass / Mug (Draggable & Keyboard Movable) -->
+            <div id="cm-coffee-mug" class="cm-coffee-mug" title="Click & Drag or use Arrow Keys to move glass under stream!">
+              <!-- Drag Hint Icon -->
+              <div class="cm-mug-drag-hint">◄ 🫲 ►</div>
               <!-- Mug Rim & Body -->
               <div class="cm-mug-rim"></div>
               <div class="cm-mug-handle"></div>
@@ -1087,11 +1096,28 @@
             </div>
 
             <!-- Stainless Steel Slotted Drip Tray Grill -->
-            <div class="cm-drip-tray">
+            <div class="cm-drip-tray" id="cm-drip-tray" title="Click anywhere on tray to slide glass here">
               <div class="cm-drip-slots">
                 <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
               </div>
             </div>
+
+            <!-- Splash droplets when stream misses glass -->
+            <div id="cm-splash-container" class="cm-splash-container"></div>
+          </div>
+
+          <!-- Glass Slide & Alignment Controls Bar -->
+          <div class="cm-slide-controls">
+            <button id="cm-slide-left-btn" class="cm-btn-slide" type="button" title="Slide glass left [Left Arrow / A]">
+              <span>◀ SLIDE LEFT [◄ / A]</span>
+            </button>
+            <div id="cm-align-status" class="cm-align-status misaligned">
+              <span class="align-dot"></span>
+              <span id="cm-align-text" class="align-text">ALIGN GLASS UNDER STREAM</span>
+            </div>
+            <button id="cm-slide-right-btn" class="cm-btn-slide" type="button" title="Slide glass right [Right Arrow / D]">
+              <span>SLIDE RIGHT [► / D] ▶</span>
+            </button>
           </div>
         </div>
 
