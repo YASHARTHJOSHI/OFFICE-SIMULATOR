@@ -167,12 +167,17 @@
           <div class="dialogue-avatar-wrap">
             <img id="dialogue-avatar" src="assets/player_portrait.png" alt="Speaker Portrait">
             <span id="dialogue-speaker" class="speaker-tag">Anakin Skywalker</span>
+            <span id="dialogue-ai-badge" class="dialogue-ai-pill hidden">⚡ GROQ AI • 120B</span>
           </div>
           <div class="dialogue-content">
             <div id="dialogue-text" class="dialogue-typing"></div>
             <div id="dialogue-choices" class="dialogue-choices-wrap"></div>
+            <div id="dialogue-ai-input-wrap" class="dialogue-ai-input-wrap hidden">
+              <input type="text" id="dialogue-ai-input" placeholder="Type custom message to speaker... [Enter]" maxlength="180" autocomplete="off" spellcheck="false" />
+              <button type="button" id="dialogue-ai-send-btn" class="dialogue-ai-send-btn">Ask ↵</button>
+            </div>
             <div class="dialogue-footer">
-              <span class="dialogue-hint">Press [▼] or [Space] to continue ▼</span>
+              <span id="dialogue-hint-text" class="dialogue-hint">Press [▼] or [Space] to continue ▼</span>
             </div>
           </div>
         </div>

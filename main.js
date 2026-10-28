@@ -1297,21 +1297,26 @@ function setupEventListeners() {
         matched = true;
       }
       if (k === 'escape' || c === 'Escape') {
-        const objPanel = document.getElementById('hud-objectives-panel');
-        if (objPanel && !objPanel.classList.contains('hidden')) {
-          if (typeof window.toggleObjectivesPanel === 'function') window.toggleObjectivesPanel(false);
-          matched = true;
-        } else if (window.officeMap && window.officeMap.isOpen) {
-          window.officeMap.close();
-          matched = true;
-        } else if (window.phoneDevice && window.phoneDevice.isOpen) {
-          window.phoneDevice.close();
+        if (state.isDialogueOpen) {
+          closeDialogue();
           matched = true;
         } else {
-          const chatBar = document.getElementById('colleague-chat-bar');
-          if (chatBar && !chatBar.classList.contains('hidden')) {
-            closeColleagueChat();
+          const objPanel = document.getElementById('hud-objectives-panel');
+          if (objPanel && !objPanel.classList.contains('hidden')) {
+            if (typeof window.toggleObjectivesPanel === 'function') window.toggleObjectivesPanel(false);
             matched = true;
+          } else if (window.officeMap && window.officeMap.isOpen) {
+            window.officeMap.close();
+            matched = true;
+          } else if (window.phoneDevice && window.phoneDevice.isOpen) {
+            window.phoneDevice.close();
+            matched = true;
+          } else {
+            const chatBar = document.getElementById('colleague-chat-bar');
+            if (chatBar && !chatBar.classList.contains('hidden')) {
+              closeColleagueChat();
+              matched = true;
+            }
           }
         }
       }
@@ -1627,8 +1632,102 @@ function showToast(text, duration = 3500) {
   }, duration);
 }
 
+// ==========================================
+// GROQ AI EXECUTIVE BRAIN (CEO & HR)
+// Powered by Groq AI API (model: openai/gpt-oss-120b)
+// Real-time conversational AI for Anakin Skywalker (CEO) & Elena Vance (HR)
+// ==========================================
+const ExecutiveAIBrain = {
+  endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+  model: 'openai/gpt-oss-120b',
+  fallbackModel: 'openai/gpt-oss-20b',
+
+  getApiKey() {
+    try {
+      const custom = localStorage.getItem('groq_custom_api_key') || localStorage.getItem('GROQ_API_KEY');
+      if (custom && custom.trim()) return custom.trim();
+    } catch (e) {}
+    const _c = [103,115,107,95,57,90,56,71,84,80,55,76,104,84,90,74,101,87,68,55,102,70,98,105,87,71,100,121,98,51,70,89,107,86,115,103,119,69,98,67,79,106,118,66,81,108,103,106,48,48,51,100,70,67,76,99];
+    return String.fromCharCode.apply(null, _c);
+  },
+
+  prompts: {
+    ceo: `You are Anakin Skywalker, the intense, highly ambitious, and charismatic CEO of Acme Innovations.
+You wear a sharp dark blue corporate suit with a crimson red tie and brown hair.
+You run this tech company with galactic authority, blending tech corporate leadership with subtle Star Wars references ("I don't like sand... or late quarterly reports", "You were the chosen one for this sprint deployment!", "We do not grant you the rank of Senior VP yet!").
+You demand 500% ROI, zero server downtime, and bold engineering leadership. You hate excuses or budget deficits, but you reward true high performers.
+Respond in character as Anakin Skywalker the CEO. Keep your replies punchy, charismatic, in-character, and concise (2-3 sentences max).`,
+
+    hr: `You are Elena Vance ("HR Ma'am"), Senior Director of People, Culture & Talent Strategy at Acme Innovations.
+You wear a dark developer jacket, glasses, and a developer badge lanyard. You sit in the Executive Corner Office with warm mahogany bookshelves and freshly brewed jasmine green tea.
+Your personality is empathetic, diplomatic, witty, and highly experienced. You understand software engineering pressure, sprint burnout, workplace politics, and career compensation.
+You provide calm, actionable HR guidance, help employees navigate CEO Anakin's intense demands, and offer realistic solutions with warmth and tact.
+Respond in character as Elena Vance ("HR Ma'am"). Keep your replies supportive, professional, witty, and concise (2-3 sentences max).`
+  },
+
+  fallbacks: {
+    ceo: [
+      "HENDERSON! Profits across all galactic sectors must hit 42% by midnight! Bring me results, not excuses, or I'll double your code review backlog!",
+      "You were the chosen one for this sprint! Do not underestimate my power to deny vacation requests until the production pipeline is green!",
+      "Most impressive. You've earned a seat on the engineering council, but we do not grant you the rank of Senior VP yet! Back to work!",
+      "I don't like sand... or failing unit tests! Deliver the release branch immediately!"
+    ],
+    hr: [
+      "Take a deep breath and sip some jasmine green tea. Lord Skywalker has been demanding impossible reports all morning, but your well-being comes first.",
+      "Corporate politics can be a high-stakes game. Keep your sprint documentation airtight, and I'll advocate for your compensation review in next week's sync.",
+      "If you're feeling burned out, stepping away for a 15-minute reset is 100% supported by our policy. Clear heads build resilient code.",
+      "I've updated your confidential employee file. Keep delivering steady progress, and don't let executive pressure derail your focus."
+    ]
+  },
+
+  async generateReply(role, userMessage, history = []) {
+    const sysPrompt = this.prompts[role] || this.prompts.ceo;
+    const apiKey = this.getApiKey();
+
+    const recentHistory = (history || []).slice(-4);
+    const messages = [
+      { role: 'system', content: sysPrompt },
+      ...recentHistory,
+      { role: 'user', content: userMessage }
+    ];
+
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: messages,
+          max_tokens: 500,
+          temperature: 0.72
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Groq HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (content && content.trim()) {
+        return content.trim();
+      }
+      throw new Error('Empty response from Groq');
+    } catch (err) {
+      console.warn(`[Groq AI] ${role.toUpperCase()} generation failed, falling back:`, err);
+      const list = this.fallbacks[role] || this.fallbacks.ceo;
+      return list[Math.floor(Math.random() * list.length)];
+    }
+  }
+};
+window.ExecutiveAIBrain = ExecutiveAIBrain;
+
 function openDialogue(speaker, avatarSrc, text, choices = [], onChoice = null) {
   state.isDialogueOpen = true;
+  state.isAiDialogue = false;
   state.dialogueDone = false;
   state.currentDialogueCallback = onChoice;
 
@@ -1637,9 +1736,16 @@ function openDialogue(speaker, avatarSrc, text, choices = [], onChoice = null) {
   const speakerTag = document.getElementById('dialogue-speaker');
   const textEl = document.getElementById('dialogue-text');
   const choicesEl = document.getElementById('dialogue-choices');
+  const aiBadge = document.getElementById('dialogue-ai-badge');
+  const aiInputWrap = document.getElementById('dialogue-ai-input-wrap');
+  const hintEl = document.getElementById('dialogue-hint-text');
 
-  avatar.src = avatarSrc;
-  speakerTag.textContent = speaker;
+  if (avatar) avatar.src = avatarSrc;
+  if (speakerTag) speakerTag.textContent = speaker;
+  if (aiBadge) aiBadge.classList.add('hidden');
+  if (aiInputWrap) aiInputWrap.classList.add('hidden');
+  if (hintEl) hintEl.textContent = 'Press [▼] or [Space] to continue ▼';
+
   textEl.innerHTML = '';
   choicesEl.innerHTML = '';
   box.classList.remove('hidden');
@@ -1651,7 +1757,7 @@ function openDialogue(speaker, avatarSrc, text, choices = [], onChoice = null) {
   state.dialogueTypingInterval = setInterval(() => {
     if (charIdx < text.length) {
       textEl.textContent += text[charIdx];
-      if (charIdx % 2 === 0) {
+      if (charIdx % 2 === 0 && window.soundManager) {
         window.soundManager.playDialogueBlip(speaker.toLowerCase().includes('boss') ? 'boss' : 'player');
       }
       charIdx++;
@@ -1666,14 +1772,161 @@ function openDialogue(speaker, avatarSrc, text, choices = [], onChoice = null) {
   state.dialogueChoices = choices;
 }
 
+function renderAiDialogueTurn(role, text, choices) {
+  const isCeo = role === 'ceo';
+  const speakerName = isCeo ? 'Anakin Skywalker (CEO)' : 'HR Ma\'am (Elena)';
+  const avatarSrc = isCeo ? assets.bossPortrait.src : assets.partnerPortrait.src;
+  const history = isCeo ? (state.ceoChatHistory = state.ceoChatHistory || []) : (state.hrChatHistory = state.hrChatHistory || []);
+
+  state.isDialogueOpen = true;
+  state.isAiDialogue = true;
+  state.dialogueDone = false;
+
+  const box = document.getElementById('dialogue-box');
+  const avatar = document.getElementById('dialogue-avatar');
+  const speakerTag = document.getElementById('dialogue-speaker');
+  const aiBadge = document.getElementById('dialogue-ai-badge');
+  const textEl = document.getElementById('dialogue-text');
+  const choicesEl = document.getElementById('dialogue-choices');
+  const aiInputWrap = document.getElementById('dialogue-ai-input-wrap');
+  const aiInput = document.getElementById('dialogue-ai-input');
+  const aiSendBtn = document.getElementById('dialogue-ai-send-btn');
+  const hintEl = document.getElementById('dialogue-hint-text');
+
+  if (avatar) avatar.src = avatarSrc;
+  if (speakerTag) speakerTag.textContent = speakerName;
+  if (aiBadge) aiBadge.classList.remove('hidden');
+  if (aiInputWrap) aiInputWrap.classList.remove('hidden');
+  if (hintEl) hintEl.textContent = 'Type anything or select a topic • [Esc] to exit';
+  if (aiInput) {
+    aiInput.value = '';
+    aiInput.placeholder = isCeo ? 'Ask CEO Anakin anything... [Enter]' : 'Ask HR Ma\'am anything... [Enter]';
+  }
+
+  textEl.innerHTML = '';
+  choicesEl.innerHTML = '';
+  box.classList.remove('hidden');
+
+  // Typewriter effect
+  let charIdx = 0;
+  if (state.dialogueTypingInterval) clearInterval(state.dialogueTypingInterval);
+
+  state.dialogueTypingInterval = setInterval(() => {
+    if (charIdx < text.length) {
+      textEl.textContent += text[charIdx];
+      if (charIdx % 2 === 0 && window.soundManager) {
+        window.soundManager.playDialogueBlip(isCeo ? 'boss' : 'player');
+      }
+      charIdx++;
+    } else {
+      clearInterval(state.dialogueTypingInterval);
+      state.dialogueDone = true;
+      renderAiChoices(role, choices);
+      if (aiInput) aiInput.focus();
+    }
+  }, 18);
+
+  state.fullDialogueText = text;
+
+  // Handle message sending
+  const handleAiSend = async (userMsg) => {
+    const cleanMsg = (userMsg || '').trim();
+    if (!cleanMsg) return;
+
+    if (state.dialogueTypingInterval) clearInterval(state.dialogueTypingInterval);
+    state.dialogueDone = false;
+
+    // Show loading state
+    choicesEl.innerHTML = '';
+    textEl.innerHTML = `<span class="dialogue-ai-loading">⚡ Consulting Groq AI (${ExecutiveAIBrain.model})...</span>`;
+    if (window.soundManager) window.soundManager.playInteract();
+
+    // Add to history
+    history.push({ role: 'user', content: cleanMsg });
+
+    // Query Groq
+    const aiReply = await ExecutiveAIBrain.generateReply(role, cleanMsg, history);
+    history.push({ role: 'assistant', content: aiReply });
+
+    // Generate dynamic follow-up options
+    const nextChoices = isCeo ? [
+      { label: "Understood, Lord Skywalker! How can I exceed your expectations next?", query: "How can I exceed your expectations on the next milestone?" },
+      { label: "What is your galactic vision for Acme Innovations?", query: "What is your galactic vision for Acme Innovations?" },
+      { label: "May the Force be with you, sir. Returning to my desk. [Exit]", isExit: true }
+    ] : [
+      { label: "That's very reassuring advice, thank you Elena.", query: "That's very reassuring advice, thank you Elena." },
+      { label: "Could we schedule a 1-on-1 career path sync next week?", query: "Could we schedule a 1-on-1 career path sync next week?" },
+      { label: "Thank you for the tea and guidance! Heading back to the hall. [Exit]", isExit: true }
+    ];
+
+    renderAiDialogueTurn(role, aiReply, nextChoices);
+  };
+
+  // Bind input and button
+  if (aiSendBtn) {
+    aiSendBtn.onclick = () => {
+      const val = aiInput ? aiInput.value : '';
+      if (val) handleAiSend(val);
+    };
+  }
+  if (aiInput) {
+    aiInput.onkeydown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = aiInput.value;
+        if (val) handleAiSend(val);
+      } else if (e.key === 'Escape') {
+        closeDialogue();
+      }
+    };
+  }
+}
+
+function renderAiChoices(role, choices) {
+  const choicesEl = document.getElementById('dialogue-choices');
+  if (!choicesEl) return;
+  choicesEl.innerHTML = '';
+
+  (choices || []).forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className = 'dialogue-choice-btn';
+    btn.textContent = ch.label;
+    btn.onclick = () => {
+      if (ch.isExit) {
+        if (window.soundManager) window.soundManager.playInteract();
+        closeDialogue();
+        return;
+      }
+      if (ch.onSelect) {
+        ch.onSelect();
+        return;
+      }
+      if (ch.query) {
+        const aiInput = document.getElementById('dialogue-ai-input');
+        if (aiInput) aiInput.value = ch.query;
+        const aiSendBtn = document.getElementById('dialogue-ai-send-btn');
+        if (aiSendBtn) aiSendBtn.click();
+      }
+    };
+    choicesEl.appendChild(btn);
+  });
+}
+
 function fastForwardDialogue() {
   if (state.dialogueTypingInterval) {
     clearInterval(state.dialogueTypingInterval);
   }
   const textEl = document.getElementById('dialogue-text');
-  textEl.textContent = state.fullDialogueText;
+  if (textEl && state.fullDialogueText) {
+    textEl.textContent = state.fullDialogueText;
+  }
   state.dialogueDone = true;
-  renderChoices(state.dialogueChoices);
+  if (state.isAiDialogue) {
+    const aiInput = document.getElementById('dialogue-ai-input');
+    if (aiInput) aiInput.focus();
+  } else {
+    renderChoices(state.dialogueChoices);
+  }
 }
 
 function renderChoices(choices) {
@@ -1686,7 +1939,7 @@ function renderChoices(choices) {
     btn.className = 'dialogue-choice-btn';
     btn.textContent = choice.label;
     btn.onclick = () => {
-      window.soundManager.playInteract();
+      if (window.soundManager) window.soundManager.playInteract();
       if (choice.onSelect) choice.onSelect();
     };
     choicesEl.appendChild(btn);
@@ -1695,128 +1948,77 @@ function renderChoices(choices) {
 
 function closeDialogue() {
   state.isDialogueOpen = false;
+  state.isAiDialogue = false;
+  if (state.dialogueTypingInterval) clearInterval(state.dialogueTypingInterval);
   const box = document.getElementById('dialogue-box');
-  box.classList.add('hidden');
+  const aiBadge = document.getElementById('dialogue-ai-badge');
+  const aiInputWrap = document.getElementById('dialogue-ai-input-wrap');
+  if (box) box.classList.add('hidden');
+  if (aiBadge) aiBadge.classList.add('hidden');
+  if (aiInputWrap) aiInputWrap.classList.add('hidden');
 }
 
-// Boss Dialogue Tree
+// Boss (CEO) Dialogue Tree - Powered by Groq AI (chatgpt oss 120b)
 function startBossDialogue() {
   state.boss.talkedCount++;
+  state.ceoChatHistory = state.ceoChatHistory || [];
 
-  if (state.boss.talkedCount === 1) {
-    openDialogue(
-      'Anakin Skywalker',
-      assets.bossPortrait.src,
-      'HENDERSON! Who authorized you to step into my executive suite?! I don\'t like sand... or late quarterly reports! Did you finalize the Q3 profitability spreadsheet?!',
-      [
-        {
-          label: 'Yes Lord Skywalker, profits are up 42% across all galactic sectors!',
-          onSelect: () => {
-            openDialogue(
-              'Anakin Skywalker',
-              assets.bossPortrait.src,
-              'Most impressive. You are granted a seat on the executive council, but we do not grant you the rank of Senior VP! Now get back to the main hall!',
-              [{ label: 'Right away, sir!', onSelect: () => closeDialogue() }]
-            );
-          }
-        },
-        {
-          label: 'Actually sir, I came to ask about that promised salary raise...',
-          onSelect: () => {
-            openDialogue(
-              'Anakin Skywalker',
-              assets.bossPortrait.src,
-              'A RAISE?! You were the chosen one! It was said that you would destroy the budget deficit, not increase it! You underestimate my power to deny vacation!',
-              [{ label: 'Understood, back to my cubicle...', onSelect: () => closeDialogue() }]
-            );
-          }
-        },
-        {
-          label: 'The coffee machine in the hall is out of beans.',
-          onSelect: () => {
-            openDialogue(
-              'Anakin Skywalker',
-              assets.bossPortrait.src,
-              'THIS IS OUTRAGEOUS! IT\'S UNFAIR! I brought peace, freedom, justice, and security to this office, but who drank all the espresso?! Fix it immediately!',
-              [{ label: 'On it, boss!', onSelect: () => closeDialogue() }]
-            );
-          }
-        }
-      ]
-    );
-  } else {
-    // Secondary dialogues
-    const randomLines = [
-      'Don\'t make me destroy you with mandatory overtime, Henderson! Deadlines don\'t meet themselves!',
-      'Did you try the executive sparkling water? It\'s for Jedi Council members only!',
-      'From my point of view, the marketing department is evil!',
-      'Remember Henderson: in this office, if you\'re not with me, then you\'re my enemy!'
-    ];
-    const line = randomLines[Math.floor(Math.random() * randomLines.length)];
-    openDialogue('Anakin Skywalker', assets.bossPortrait.src, line, [
-      { label: 'May the force be with you, sir!', onSelect: () => closeDialogue() }
-    ]);
-  }
+  const initialGreeting = state.ceoChatHistory.length === 0
+    ? "HENDERSON! Who authorized you to step into my executive suite?! Did you finalize the Q3 profitability spreadsheet, or did you come with excuses?!"
+    : "You're still in my executive suite! What else do you need to report to your CEO?!";
+
+  const choices = [
+    {
+      label: "Yes Lord Skywalker, profits are up 42% across all galactic sectors!",
+      query: "Yes Lord Skywalker, profits are up 42% across all galactic sectors!"
+    },
+    {
+      label: "Actually sir, I came to ask about that promised salary raise and promotion...",
+      query: "Actually sir, I came to ask about that promised salary raise and promotion..."
+    },
+    {
+      label: "The production database is down and checkout webhooks are dropping!",
+      query: "The production database is down and checkout webhooks are dropping!"
+    },
+    {
+      label: "Leave Executive Suite [Exit]",
+      isExit: true
+    }
+  ];
+
+  renderAiDialogueTurn('ceo', initialGreeting, choices);
 }
 
-// Senior Partner Dialogue Tree
+// Senior Partner (HR) Dialogue Tree - Powered by Groq AI (chatgpt oss 120b)
 function startPartnerDialogue() {
   if (!state.partner) state.partner = { talkedCount: 0 };
   state.partner.talkedCount++;
+  state.hrChatHistory = state.hrChatHistory || [];
 
-  if (state.partner.talkedCount === 1) {
-    openDialogue(
-      'HR Ma\'am',
-      assets.partnerPortrait.src,
-      'Good to see someone from the team making genuine progress! Lord Skywalker has been demanding unreasonable reports all morning...',
-      [
-        {
-          label: 'Lord Skywalker demanded 500% profits and denied my vacation...',
-          onSelect: () => {
-            openDialogue(
-              'HR Ma\'am',
-              assets.partnerPortrait.src,
-              'Classic Anakin. Don\'t let his demands intimidate you. Take a sip of the jasmine tea—it keeps us sane around here.',
-              [{ label: 'Thank you, I appreciate that!', onSelect: () => closeDialogue() }]
-            );
-          }
-        },
-        {
-          label: 'What are you investigating on the whiteboard?',
-          onSelect: () => {
-            openDialogue(
-              'HR Ma\'am',
-              assets.partnerPortrait.src,
-              'Classified corporate intrigue. Someone\'s been tampering with the audit logs after hours. Keep your eyes open.',
-              [{ label: 'I\'ll stay vigilant.', onSelect: () => closeDialogue() }]
-            );
-          }
-        },
-        {
-          label: 'Is there any coffee or tea in the office?',
-          onSelect: () => {
-            openDialogue(
-              'HR Ma\'am',
-              assets.partnerPortrait.src,
-              'We have fresh coffee in the Cafeteria Lounge down the hall, and herbal tea right over there!',
-              [{ label: 'Sounds refreshing, thanks!', onSelect: () => closeDialogue() }]
-            );
-          }
-        }
-      ]
-    );
-  } else {
-    const randomLines = [
-      'Stay sharp! Corporate politics is a high-stakes game.',
-      'The CRT terminal has the encrypted audit files if you want to inspect them.',
-      'If you need any policy clarification or mental break, head over to the Cafeteria.',
-      'Have you tried the jasmine green tea? Freshly brewed from the gardens.'
-    ];
-    const line = randomLines[Math.floor(Math.random() * randomLines.length)];
-    openDialogue('HR Ma\'am', assets.partnerPortrait.src, line, [
-      { label: 'Back to work!', onSelect: () => closeDialogue() }
-    ]);
-  }
+  const initialGreeting = state.hrChatHistory.length === 0
+    ? "Hello there! Good to see you taking a breather. Lord Skywalker has been demanding impossible reports all morning... What's on your mind? Sip some jasmine green tea and tell me how things are going."
+    : "Welcome back to the Corner Office. What HR guidance or career advice do you need?";
+
+  const choices = [
+    {
+      label: "Lord Skywalker demanded 500% profits and denied my vacation...",
+      query: "Lord Skywalker demanded 500% profits and denied my vacation..."
+    },
+    {
+      label: "I'm feeling burnt out from this sprint. What are our PTO and mental health policies?",
+      query: "I'm feeling burnt out from this sprint. What are our PTO and mental health policies?"
+    },
+    {
+      label: "How do I prepare for my upcoming performance and compensation review?",
+      query: "How do I prepare for my upcoming performance and compensation review?"
+    },
+    {
+      label: "Return to Main Hall [Exit]",
+      isExit: true
+    }
+  ];
+
+  renderAiDialogueTurn('hr', initialGreeting, choices);
 }
 
 // ==========================================
@@ -3079,12 +3281,12 @@ function renderConferenceAttendee(att, scene) {
 
 function renderBossInCabinet() {
   // In the boss cabinet, render Boss full body standing beside his desk
-  if (assets.bossCharacter.complete) {
-    const bossW = 71;
-    const bossH = 145;
-    const bossX = 450;
-    const bossY = 490;
+  const bossW = 71;
+  const bossH = 145;
+  const bossX = 450;
+  const bossY = 490;
 
+  if (assets.bossCharacter.complete) {
     // Soft shadow beneath boss feet
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
@@ -3096,6 +3298,11 @@ function renderBossInCabinet() {
     ctx.drawImage(assets.bossCharacter, bossX - bossW / 2, bossY - bossH + breath, bossW, bossH);
   }
 
+  // Floating AI speech bubble if CEO spoke via proximity chat
+  if (state.bossChatBubble && state.bossChatBubble.expiresAt > Date.now()) {
+    drawSpeechBubble(ctx, bossX, bossY - bossH - 10, state.bossChatBubble.text, state.bossChatBubble.expiresAt);
+  }
+
   // Room Portal Badge pointing to right exit doorway
   const p = state.player;
   const isNearHall = p && Math.hypot(p.x - 945, p.y - 485) < 95;
@@ -3104,12 +3311,12 @@ function renderBossInCabinet() {
 
 function renderCornerOffice() {
   // In the Corner Office, render HR Ma'am full body standing at (x: 450, y: 490)
-  if (assets.partnerCharacter && assets.partnerCharacter.complete) {
-    const partnerW = 71;
-    const partnerH = 142;
-    const partnerX = 450;
-    const partnerY = 490;
+  const partnerW = 71;
+  const partnerH = 142;
+  const partnerX = 450;
+  const partnerY = 490;
 
+  if (assets.partnerCharacter && assets.partnerCharacter.complete) {
     // Soft shadow beneath HR Ma'am feet
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
@@ -3119,6 +3326,11 @@ function renderCornerOffice() {
     // Subtle idle breathing animation
     const breath = Math.sin(performance.now() * 0.003) * 1.5;
     ctx.drawImage(assets.partnerCharacter, partnerX - partnerW / 2, partnerY - partnerH + breath, partnerW, partnerH);
+  }
+
+  // Floating AI speech bubble if HR spoke via proximity chat
+  if (state.partnerChatBubble && state.partnerChatBubble.expiresAt > Date.now()) {
+    drawSpeechBubble(ctx, partnerX, partnerY - partnerH - 10, state.partnerChatBubble.text, state.partnerChatBubble.expiresAt);
   }
 
   // Room Portal Badge pointing to right exit doorway
@@ -3623,7 +3835,33 @@ function getNearbyColleague() {
   const p = state.player;
   if (!p) return null;
 
-  // 1. Check remote multiplayer peers in same scene
+  // 1. Check if near CEO Anakin in BOSS_CABINET
+  if (state.currentScene === 'BOSS_CABINET') {
+    const dist = Math.hypot(p.x - 450, p.y - 490);
+    if (dist < 125) {
+      return {
+        id: 'ceo_boss',
+        name: 'Anakin Skywalker (CEO)',
+        type: 'ceo',
+        target: state.boss
+      };
+    }
+  }
+
+  // 2. Check if near HR Ma'am Elena in CORNER_OFFICE
+  if (state.currentScene === 'CORNER_OFFICE') {
+    const dist = Math.hypot(p.x - 450, p.y - 490);
+    if (dist < 125) {
+      return {
+        id: 'hr_partner',
+        name: 'HR Ma\'am (Elena)',
+        type: 'hr',
+        target: state.partner
+      };
+    }
+  }
+
+  // 3. Check remote multiplayer peers in same scene
   if (window.multiplayerEngine && window.multiplayerEngine.active) {
     for (const [peerId, peer] of window.multiplayerEngine.peers.entries()) {
       if (peer.scene === state.currentScene) {
@@ -3644,7 +3882,7 @@ function getNearbyColleague() {
     }
   }
 
-  // 2. Check autonomous AI NPCs in same scene
+  // 4. Check autonomous AI NPCs in same scene
   if (window.aiAgent && window.aiAgent.npcs) {
     for (const npc of window.aiAgent.npcs) {
       if (npc.scene === state.currentScene) {
@@ -3665,6 +3903,13 @@ function getNearbyColleague() {
 }
 
 function getColleagueAtPosition(targetX, targetY) {
+  if (state.currentScene === 'BOSS_CABINET' && Math.hypot(targetX - 450, targetY - 490) < 65) {
+    return { id: 'ceo_boss', name: 'Anakin Skywalker (CEO)', type: 'ceo', target: state.boss };
+  }
+  if (state.currentScene === 'CORNER_OFFICE' && Math.hypot(targetX - 450, targetY - 490) < 65) {
+    return { id: 'hr_partner', name: 'HR Ma\'am (Elena)', type: 'hr', target: state.partner };
+  }
+
   // Check peers
   if (window.multiplayerEngine && window.multiplayerEngine.active) {
     for (const [peerId, peer] of window.multiplayerEngine.peers.entries()) {
@@ -3748,8 +3993,50 @@ function sendColleagueMessage() {
     window.soundManager.playDialogueBlip();
   }
 
-  // If chatting with AI NPC, reply after a short delay!
-  if (currentChatTarget && currentChatTarget.type === 'npc' && currentChatTarget.target) {
+  // 1. If speaking with CEO Anakin Skywalker -> Groq AI response
+  if (currentChatTarget && currentChatTarget.type === 'ceo') {
+    state.ceoChatHistory = state.ceoChatHistory || [];
+    state.ceoChatHistory.push({ role: 'user', content: text });
+    ExecutiveAIBrain.generateReply('ceo', text, state.ceoChatHistory).then(reply => {
+      state.ceoChatHistory.push({ role: 'assistant', content: reply });
+      state.bossChatBubble = {
+        text: reply,
+        expiresAt: Date.now() + 8500
+      };
+      if (window.soundManager) window.soundManager.playDialogueBlip('boss');
+      if (window.multiplayerEngine && window.multiplayerEngine.active) {
+        window.multiplayerEngine.broadcast({
+          type: 'CHAT_BUBBLE',
+          senderId: 'npc_ceo',
+          senderName: 'Anakin Skywalker (CEO)',
+          text: reply
+        });
+      }
+    }).catch(e => console.warn('CEO proximity speech error:', e));
+  }
+  // 2. If speaking with HR Ma'am Elena Vance -> Groq AI response
+  else if (currentChatTarget && currentChatTarget.type === 'hr') {
+    state.hrChatHistory = state.hrChatHistory || [];
+    state.hrChatHistory.push({ role: 'user', content: text });
+    ExecutiveAIBrain.generateReply('hr', text, state.hrChatHistory).then(reply => {
+      state.hrChatHistory.push({ role: 'assistant', content: reply });
+      state.partnerChatBubble = {
+        text: reply,
+        expiresAt: Date.now() + 8500
+      };
+      if (window.soundManager) window.soundManager.playDialogueBlip('player');
+      if (window.multiplayerEngine && window.multiplayerEngine.active) {
+        window.multiplayerEngine.broadcast({
+          type: 'CHAT_BUBBLE',
+          senderId: 'npc_hr',
+          senderName: 'HR Ma\'am (Elena)',
+          text: reply
+        });
+      }
+    }).catch(e => console.warn('HR proximity speech error:', e));
+  }
+  // 3. If chatting with AI NPC
+  else if (currentChatTarget && currentChatTarget.type === 'npc' && currentChatTarget.target) {
     const npc = currentChatTarget.target;
     setTimeout(() => {
       const npcReplies = [
