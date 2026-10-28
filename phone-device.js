@@ -101,12 +101,14 @@
       },
       {
         id: 'task_v4',
-        priority: 'P2',
-        category: 'DevOps',
-        title: 'Configure distributed tracing with OpenTelemetry',
-        description: 'Inject W3C traceparent headers across inter-service gRPC calls for end-to-end latency flamegraphs.',
-        location: 'Acme R&D Innovation Hub',
-        xp: 110,
+        priority: 'P1',
+        category: 'Python',
+        title: 'Write Python script in Notepad: print("hello world")',
+        description: 'Open Notepad on your Workstation PC, type the exact code: print("hello world"), and click "▶ Run Python" to execute! Exact syntax required.',
+        location: 'Assigned Desk PC • Notepad App',
+        expectedCode: 'print("hello world")',
+        xp: 160,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -156,12 +158,14 @@
       },
       {
         id: 'task_n4',
-        priority: 'P2',
-        category: 'Quality',
-        title: 'Audit API SLA breach alert thresholds with SRE team',
-        description: 'Calibrate P99 alert thresholds from 250ms to 180ms to catch micro-spikes before customers notice.',
-        location: 'Executive Boardroom',
-        xp: 105,
+        priority: 'P1',
+        category: 'Python',
+        title: 'Write Python script in Notepad: print("hello world")',
+        description: 'Open Notepad on your Workstation PC, type the exact code: print("hello world"), and click "▶ Run Python" to execute! Exact syntax required.',
+        location: 'Assigned Desk PC • Notepad App',
+        expectedCode: 'print("hello world")',
+        xp: 160,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -211,12 +215,14 @@
       },
       {
         id: 'task_k4',
-        priority: 'P2',
-        category: 'Optimization',
-        title: 'Profile SIMD vectorization in Rust data pipeline',
-        description: 'Utilize AVX-512 intrinsic instructions to accelerate streaming decompression 4.2x.',
-        location: 'Intranet Browser • Benchmarks',
-        xp: 110,
+        priority: 'P1',
+        category: 'Python',
+        title: 'Write Python script in Notepad: print("hello world")',
+        description: 'Open Notepad on your Workstation PC, type the exact code: print("hello world"), and click "▶ Run Python" to execute! Exact syntax required.',
+        location: 'Assigned Desk PC • Notepad App',
+        expectedCode: 'print("hello world")',
+        xp: 160,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -266,12 +272,14 @@
       },
       {
         id: 'task_j4',
-        priority: 'P2',
-        category: 'Database',
-        title: 'Design zero-downtime blue/green schema migration',
-        description: 'Use expand-and-contract pattern with shadow column triggers for PostgreSQL user table upgrade.',
-        location: 'Acme R&D Innovation Hub',
-        xp: 110,
+        priority: 'P1',
+        category: 'Python',
+        title: 'Write Python script in Notepad: print("hello world")',
+        description: 'Open Notepad on your Workstation PC, type the exact code: print("hello world"), and click "▶ Run Python" to execute! Exact syntax required.',
+        location: 'Assigned Desk PC • Notepad App',
+        expectedCode: 'print("hello world")',
+        xp: 160,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -321,12 +329,14 @@
       },
       {
         id: 'task_y4',
-        priority: 'P2',
-        category: 'AI Engine',
-        title: 'Fine-tune local LLM inference context cache',
-        description: 'Deploy KV-cache quantization to reduce token dispatch latency during coworker banter.',
-        location: 'Acme R&D Innovation Hub',
-        xp: 115,
+        priority: 'P1',
+        category: 'Python',
+        title: 'Write Python script in Notepad: print("hello world")',
+        description: 'Open Notepad on your Workstation PC, type the exact code: print("hello world"), and click "▶ Run Python" to execute! Exact syntax required.',
+        location: 'Assigned Desk PC • Notepad App',
+        expectedCode: 'print("hello world")',
+        xp: 160,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -1758,6 +1768,113 @@ Each object must have these exact keys:
       }
 
       return { task, moneyReward };
+    }
+
+    /**
+     * Ensure active character has Python Hello World mission present
+     */
+    ensurePythonMission(charId) {
+      if (!this.characterTasks[charId]) {
+        this.characterTasks[charId] = JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS[charId] || DEFAULT_SWE_TASKS.char1));
+      }
+      const tasks = this.characterTasks[charId];
+      const hasPy = tasks.some(t => t.expectedCode === 'print("hello world")' || (t.category && t.category.toLowerCase().includes('python')));
+      if (!hasPy) {
+        tasks.push({
+          id: `task_${charId}_py_hello`,
+          priority: 'P1',
+          category: 'Python',
+          title: 'Write Python script in Notepad: print("hello world")',
+          description: 'Open Notepad on your Workstation PC, type the exact code: print("hello world"), and click "▶ Run Python" to execute! Exact syntax required.',
+          location: 'Assigned Desk PC • Notepad App',
+          expectedCode: 'print("hello world")',
+          xp: 160,
+          rewardMoney: 450,
+          completed: false
+        });
+      }
+    }
+
+    /**
+     * Get active uncompleted Python coding mission for current player character
+     */
+    getActivePythonMission() {
+      const charId = this.getActiveCharId();
+      this.ensurePythonMission(charId);
+      const tasks = this.characterTasks[charId] || [];
+      return tasks.find(t => !t.completed && (
+        t.expectedCode === 'print("hello world")' ||
+        (t.category && t.category.toLowerCase().includes('python')) ||
+        (t.title && t.title.toLowerCase().includes('python'))
+      ));
+    }
+
+    /**
+     * Complete Python Hello World coding mission in Notepad
+     */
+    checkAndCompletePythonMission(code) {
+      const charId = this.getActiveCharId();
+      this.ensurePythonMission(charId);
+      const tasks = this.characterTasks[charId] || [];
+
+      // Find matching python task
+      let mission = tasks.find(t => !t.completed && (
+        t.expectedCode === 'print("hello world")' ||
+        (t.category && t.category.toLowerCase().includes('python')) ||
+        (t.title && t.title.toLowerCase().includes('python'))
+      ));
+
+      if (!mission) {
+        mission = tasks.find(t => !t.completed);
+      }
+
+      const rewardMoney = (mission && mission.rewardMoney) ? Number(mission.rewardMoney) : 450;
+      const xp = (mission && mission.xp) ? Number(mission.xp) : 160;
+
+      if (mission) {
+        mission.completed = true;
+        this.completedTaskTitles.add(mission.title);
+        this.renderSweTaskList(charId);
+        this.updatePhoneBadge();
+
+        const allDone = tasks.length > 0 && tasks.every(t => t.completed);
+        if (allDone && typeof this.onAllTasksCompleted === 'function') {
+          this.onAllTasksCompleted(charId);
+        }
+      }
+
+      // Credit corporate funds / Coins
+      if (typeof window.addCorporateFunds === 'function') {
+        window.addCorporateFunds(rewardMoney);
+      } else if (window.state && window.state.player) {
+        window.state.player.money = Math.max(0, (window.state.player.money !== undefined ? window.state.player.money : 0) + rewardMoney);
+        const valEl = document.getElementById('hud-money-val');
+        if (valEl) valEl.textContent = '$' + window.state.player.money.toLocaleString();
+      }
+
+      // Credit XP
+      if (window.state && window.state.player) {
+        window.state.player.score = (window.state.player.score || 0) + xp;
+        const scoreEl = document.getElementById('stat-score');
+        if (scoreEl) scoreEl.textContent = window.state.player.score;
+      }
+
+      // Play sound
+      if (window.soundManager) {
+        if (typeof window.soundManager.playCoinReward === 'function') {
+          window.soundManager.playCoinReward();
+        }
+        if (typeof window.soundManager.playQuestComplete === 'function') {
+          setTimeout(() => window.soundManager.playQuestComplete(), 150);
+        }
+      }
+
+      // Sync Cloud Save if Firebase Sync active
+      if (window.firebaseSync && typeof window.firebaseSync.saveProgress === 'function') {
+        window.firebaseSync.saveProgress(false);
+      }
+
+      return { success: true, money: rewardMoney, xp, task: mission };
     }
 
     toggle() {

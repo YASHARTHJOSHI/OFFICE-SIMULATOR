@@ -1213,47 +1213,274 @@
     renderActiveChat();
   }
 
-  // --- 3. NOTEPAD / TODO APP ---
+  // --- 3. NOTEPAD / PYTHON SCRIPT APP ---
   function initNotepadApp() {
-    const savedNotes = localStorage.getItem('officesim_pc_notes') ||
-`=== OMNICORP WORKSTATION #1 DEVELOPER NOTES ===
-[x] 09:30 AM - Morning Standup (Keep updates under 60s)
-[x] 11:00 AM - Fix Character Sitting Alignment in OfficeSim
-[ ] 02:00 PM - Code Review PR #412 with Rahul
-[ ] 03:30 PM - Escalation Ticket Triage with Priya
-[ ] 05:00 PM - Try beating Minesweeper highscore!
+    const savedNotes = localStorage.getItem('officesim_pc_notes') || '';
 
---- SECRET WI-FI PASSCODE ---
-SSID: OmniCorp-Guest-5G
-Pass: CoffeeFirstCodeLater!2026
-
---- SNIPPETS ---
-git add . && git commit -m "another day another feature"`;
+    // Check active Python coding mission from Phone Device
+    let isMissionCompleted = false;
+    if (window.phoneDevice && typeof window.phoneDevice.getActivePythonMission === 'function') {
+      const activePy = window.phoneDevice.getActivePythonMission();
+      if (!activePy) {
+        // Check if already completed
+        const charId = window.phoneDevice.getActiveCharId();
+        const tasks = window.phoneDevice.characterTasks[charId] || [];
+        isMissionCompleted = tasks.some(t => t.completed && (t.expectedCode === 'print("hello world")' || (t.category && t.category.toLowerCase().includes('python'))));
+      }
+    }
 
     const html = `
       <div class="pc-notepad-container">
+        <!-- Menubar -->
         <div class="pc-notepad-menubar">
-          <span>File</span>
-          <span>Edit</span>
-          <span>Format</span>
-          <span>View</span>
-          <span>Help</span>
-          <span class="pc-notepad-status" id="notepad-save-status">Saved</span>
+          <div class="pc-notepad-menu-links">
+            <span>File</span>
+            <span>Edit</span>
+            <span>Format</span>
+            <span>View</span>
+            <span>Help</span>
+          </div>
+          <div class="pc-notepad-actions">
+            <button type="button" class="pc-notepad-btn clear" id="notepad-btn-clear" title="Clear Textarea">Clear</button>
+            <button type="button" class="pc-notepad-btn run" id="notepad-btn-run" title="Execute Python Code (Ctrl+Enter)">▶ Run Python</button>
+            <span class="pc-notepad-status" id="notepad-save-status">Saved</span>
+          </div>
         </div>
-        <textarea id="pc-notepad-text" class="pc-notepad-area" spellcheck="false">${escapeHtml(savedNotes)}</textarea>
+
+        <!-- Interactive Mission Banner -->
+        <div class="pc-notepad-mission-bar ${isMissionCompleted ? 'completed' : ''}" id="notepad-mission-banner">
+          <div class="notepad-mission-bar-left">
+            <span class="notepad-mission-pill">🐍 PYTHON MISSION</span>
+            <span class="notepad-mission-instruction">
+              Write Python code: <code>print("hello world")</code> in Notepad &amp; click <strong>▶ Run Python</strong>
+            </span>
+          </div>
+          <div class="notepad-mission-bar-right">
+            <span class="notepad-mission-reward">Bounty: <strong>+$450 Coins</strong></span>
+            <span class="notepad-mission-state-badge ${isMissionCompleted ? 'completed' : ''}" id="notepad-mission-state-badge">
+              ${isMissionCompleted ? 'COMPLETED' : 'PENDING'}
+            </span>
+          </div>
+        </div>
+
+        <!-- Editor Area -->
+        <textarea id="pc-notepad-text" class="pc-notepad-area" spellcheck="false" placeholder="# Write your Python code here (exact syntax required)&#10;print(&quot;hello world&quot;)">${escapeHtml(savedNotes)}</textarea>
+
+        <!-- TASK FAILED MODAL POPUP -->
+        <div id="notepad-failed-modal" class="pc-notepad-modal-overlay" style="display: none;">
+          <div class="pc-notepad-modal-dialog failed">
+            <div class="pc-notepad-modal-titlebar failed">
+              <span class="pc-modal-tb-icon">❌</span>
+              <span class="pc-modal-tb-title">OmniCorp OS - Python Execution Error</span>
+              <button type="button" class="pc-modal-tb-close" id="notepad-failed-close-x">&times;</button>
+            </div>
+            <div class="pc-notepad-modal-body">
+              <div class="pc-notepad-error-icon-wrap">
+                <div class="pc-notepad-error-icon">❌</div>
+              </div>
+              <div class="pc-notepad-error-details">
+                <h3 class="pc-notepad-failed-header">TASK FAILED</h3>
+                <p class="pc-notepad-failed-msg">
+                  The code written in Notepad does not match the exact mission requirement.
+                </p>
+                
+                <div class="pc-notepad-code-comparison">
+                  <div class="code-compare-row">
+                    <span class="compare-label">Required Syntax (Exact):</span>
+                    <code class="compare-code expected">print("hello world")</code>
+                  </div>
+                  <div class="code-compare-row">
+                    <span class="compare-label">Your Script in Notepad:</span>
+                    <code class="compare-code actual" id="notepad-failed-user-code"></code>
+                  </div>
+                </div>
+
+                <div class="pc-notepad-reward-zero-box">
+                  <span>💰 Bounty Received: <strong class="failed-zero">$0 Coins</strong> (No money awarded)</span>
+                </div>
+              </div>
+            </div>
+            <div class="pc-notepad-modal-actions">
+              <button type="button" class="pc-notepad-modal-btn retry" id="notepad-failed-btn-retry">Try Again</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASK PASSED SUCCESS MODAL -->
+        <div id="notepad-success-modal" class="pc-notepad-modal-overlay" style="display: none;">
+          <div class="pc-notepad-modal-dialog success">
+            <div class="pc-notepad-modal-titlebar success">
+              <span class="pc-modal-tb-icon">🐍</span>
+              <span class="pc-modal-tb-title">Python 3.12 Interpreter - Execution Succeeded</span>
+              <button type="button" class="pc-modal-tb-close" id="notepad-success-close-x">&times;</button>
+            </div>
+            <div class="pc-notepad-modal-body">
+              <div class="pc-notepad-success-icon-wrap">
+                <div class="pc-notepad-success-icon">🎉</div>
+              </div>
+              <div class="pc-notepad-success-details">
+                <h3 class="pc-notepad-success-header">TASK PASSED!</h3>
+                <p class="pc-notepad-success-msg">
+                  Python script executed cleanly with exact syntax specification!
+                </p>
+                
+                <div class="pc-notepad-terminal-output">
+                  <div class="term-out-header">&gt; TERMINAL STDOUT:</div>
+                  <div class="term-out-line prompt">&gt;&gt;&gt; python notepad_script.py</div>
+                  <div class="term-out-line output">hello world</div>
+                  <div class="term-out-line status">[Process exited with code 0 - Clean Exit]</div>
+                </div>
+
+                <div class="pc-notepad-reward-gain-box">
+                  <span>💵 Corporate Bounty: <strong id="notepad-success-money-text">+$450 Coins</strong> deposited to your funds!</span>
+                </div>
+              </div>
+            </div>
+            <div class="pc-notepad-modal-actions">
+              <button type="button" class="pc-notepad-modal-btn success" id="notepad-success-btn-ok">Claim &amp; Continue</button>
+            </div>
+          </div>
+        </div>
       </div>
     `;
 
-    const winEl = registerWindow('notepad', 'Notepad - todo.txt', '📝', html, 520, 360);
+    const winEl = registerWindow('notepad', 'Notepad - Python Script Editor', '📝', html, 580, 430);
     const textarea = winEl.querySelector('#pc-notepad-text');
     const status = winEl.querySelector('#notepad-save-status');
+    const runBtn = winEl.querySelector('#notepad-btn-run');
+    const clearBtn = winEl.querySelector('#notepad-btn-clear');
+    const missionBanner = winEl.querySelector('#notepad-mission-banner');
+    const missionStatusPill = winEl.querySelector('#notepad-mission-state-badge');
 
+    // Modals
+    const failedModal = winEl.querySelector('#notepad-failed-modal');
+    const failedCloseX = winEl.querySelector('#notepad-failed-close-x');
+    const failedBtnRetry = winEl.querySelector('#notepad-failed-btn-retry');
+    const failedUserCode = winEl.querySelector('#notepad-failed-user-code');
+
+    const successModal = winEl.querySelector('#notepad-success-modal');
+    const successCloseX = winEl.querySelector('#notepad-success-close-x');
+    const successBtnOk = winEl.querySelector('#notepad-success-btn-ok');
+    const successMoneyText = winEl.querySelector('#notepad-success-money-text');
+
+    // Auto-save logic
     textarea.addEventListener('input', () => {
       status.textContent = 'Editing...';
       localStorage.setItem('officesim_pc_notes', textarea.value);
       setTimeout(() => {
         status.textContent = 'Saved';
-      }, 500);
+      }, 400);
+    });
+
+    // Clear Button
+    clearBtn.addEventListener('click', () => {
+      textarea.value = '';
+      textarea.focus();
+      status.textContent = 'Cleared';
+      localStorage.setItem('officesim_pc_notes', '');
+      playSound('click');
+      setTimeout(() => { status.textContent = 'Saved'; }, 400);
+    });
+
+    // Execute Python Script Verification Logic
+    function executePythonCode() {
+      const rawInput = textarea.value || '';
+      const trimmed = rawInput.trim();
+
+      // EXACT syntax verification as requested:
+      // "THE CODE SHOULD BE EXACTLY SIMILAR AS I WROTE AND THE CODE HAS TO BE WRITTEN IN NOTEPAD.
+      // IF THE CODE IS RIGHT THE PLAYER SHOULD GET SOME MONEY AND IF ITS INCORRECT THE PLAYER SHOULDNT GET ANYTHING AND A POP UP SHOULD APPEAR 'TASK FAILED'."
+      const isExactMatch = (trimmed === 'print("hello world")');
+
+      if (isExactMatch) {
+        // --- SUCCESS CASE ---
+        let earnedMoney = 450;
+        let earnedXp = 160;
+
+        if (window.phoneDevice && typeof window.phoneDevice.checkAndCompletePythonMission === 'function') {
+          const res = window.phoneDevice.checkAndCompletePythonMission(trimmed);
+          if (res && res.money) earnedMoney = res.money;
+          if (res && res.xp) earnedXp = res.xp;
+        } else {
+          if (typeof window.addCorporateFunds === 'function') {
+            window.addCorporateFunds(earnedMoney);
+          } else if (window.state && window.state.player) {
+            window.state.player.money = (window.state.player.money || 0) + earnedMoney;
+            const valEl = document.getElementById('hud-money-val');
+            if (valEl) valEl.textContent = '$' + window.state.player.money.toLocaleString();
+          }
+          if (window.soundManager && typeof window.soundManager.playCoinReward === 'function') {
+            window.soundManager.playCoinReward();
+          }
+        }
+
+        // Update UI
+        if (missionBanner) missionBanner.classList.add('completed');
+        if (missionStatusPill) {
+          missionStatusPill.textContent = 'COMPLETED';
+          missionStatusPill.classList.add('completed');
+        }
+        if (successMoneyText) {
+          successMoneyText.textContent = `+$${earnedMoney} Coins`;
+        }
+
+        // Show Success Modal
+        successModal.style.display = 'flex';
+
+        if (window.showToast) {
+          window.showToast(`🎉 Python Mission Passed! Output: "hello world" • Earned +$${earnedMoney} Coins!`);
+        }
+      } else {
+        // --- FAILURE CASE ---
+        // Player gets NOTHING (0 money awarded)
+        if (window.soundManager && typeof window.soundManager.playWindowsError === 'function') {
+          window.soundManager.playWindowsError();
+        } else {
+          playSound('error');
+        }
+
+        // Show POP UP: "TASK FAILED"
+        if (failedUserCode) {
+          failedUserCode.textContent = trimmed ? trimmed : '(empty - no code typed)';
+        }
+        failedModal.style.display = 'flex';
+
+        if (window.showToast) {
+          window.showToast('❌ TASK FAILED: Expected exact code print("hello world"). 0 coins awarded.');
+        }
+      }
+    }
+
+    // Run Button Click Handler
+    runBtn.addEventListener('click', () => {
+      executePythonCode();
+    });
+
+    // Keyboard Shortcuts: Ctrl+Enter or Cmd+Enter to run code
+    textarea.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        executePythonCode();
+      }
+    });
+
+    // Close / Retry Modal Handlers
+    failedCloseX.addEventListener('click', () => {
+      failedModal.style.display = 'none';
+      textarea.focus();
+    });
+    failedBtnRetry.addEventListener('click', () => {
+      failedModal.style.display = 'none';
+      textarea.focus();
+    });
+
+    successCloseX.addEventListener('click', () => {
+      successModal.style.display = 'none';
+      textarea.focus();
+    });
+    successBtnOk.addEventListener('click', () => {
+      successModal.style.display = 'none';
+      textarea.focus();
     });
   }
 
