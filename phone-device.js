@@ -89,11 +89,14 @@
       {
         id: 'task_v3',
         priority: 'P1',
-        category: 'Database',
-        title: 'Benchmark PostgreSQL index hit ratio on telemetry logs',
-        description: 'Analyze slow query logs. Create composite BRIN indexes on timestamp and tenant_id.',
-        location: 'Dev Pod 1 • Terminal',
-        xp: 130,
+        category: 'OmniMail',
+        title: 'Send Q4 Deliverables email to Mark Sterling (VP of Tech & Enterprise)',
+        description: 'Open OmniMail on your Personal Computer, select "Mark Sterling" in the To: field, and send your deliverables email to receive coins!',
+        location: 'Assigned PC • OmniMail App',
+        targetEmail: 'm.sterling@acmecorp.com',
+        targetRecipient: 'Mark Sterling (VP of Tech & Enterprise)',
+        xp: 180,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -141,11 +144,14 @@
       {
         id: 'task_n3',
         priority: 'P1',
-        category: 'Analytics',
-        title: 'Validate OKR telemetry metrics for executive briefing',
-        description: 'Audit monthly active developer engagement figures against Grafana production dashboards.',
-        location: 'Big Workplace • Telemetry Screen',
-        xp: 130,
+        category: 'OmniMail',
+        title: 'Send Sprint Retrospective email to Amit Sharma (HR & Engineering Manager)',
+        description: 'Open OmniMail on your Personal Computer, choose Amit Sharma from the recipient list, and send the retrospective sign-off to receive coins!',
+        location: 'Assigned PC • OmniMail App',
+        targetEmail: 'amit.sharma@omnicorp.internal',
+        targetRecipient: 'Amit Sharma (HR & Engineering Manager)',
+        xp: 180,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -193,11 +199,14 @@
       {
         id: 'task_k3',
         priority: 'P1',
-        category: 'Cryptography',
-        title: 'Implement zero-knowledge proof verification endpoint',
-        description: 'Deploy zk-SNARK verifier contract to validate audit trail integrity without exposing customer data.',
-        location: 'Assigned PC • Terminal',
-        xp: 130,
+        category: 'OmniMail',
+        title: 'Dispatch Incident SLA Status email to SRE Incident Command Team',
+        description: 'Open OmniMail on your Personal Computer, select SRE Incident Command Team, and send the incident SLA status update to receive coins!',
+        location: 'Assigned PC • OmniMail App',
+        targetEmail: 'sre-incident-bot@omnicorp.internal',
+        targetRecipient: 'SRE Incident Command Team',
+        xp: 180,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -245,11 +254,14 @@
       {
         id: 'task_j3',
         priority: 'P1',
-        category: 'Resilience',
-        title: 'Implement circuit-breaker pattern in downstream RPC clients',
-        description: 'Integrate Exponential backoff and jittered retry policies to prevent thundering herd failure.',
-        location: 'Dev Pod 4 • Workstation',
-        xp: 130,
+        category: 'OmniMail',
+        title: 'Send Canary Deployment Approval email to DevOps Automation Cluster',
+        description: 'Open OmniMail on your Personal Computer, select DevOps Automation Cluster from the dropdown, and send your canary sign-off to receive coins!',
+        location: 'Assigned PC • OmniMail App',
+        targetEmail: 'deploy-bot@omnicorp.internal',
+        targetRecipient: 'DevOps Automation Cluster',
+        xp: 180,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -297,11 +309,14 @@
       {
         id: 'task_y3',
         priority: 'P1',
-        category: 'Security',
-        title: 'Audit cryptographic token auth on corporate intranet',
-        description: 'Implement HMAC-SHA256 session signatures and CSRF protection for employee services.',
-        location: 'Dev Pod 5 • Workstation',
-        xp: 140,
+        category: 'OmniMail',
+        title: 'Send Architecture Roadmap Update email to Priya (Product PM)',
+        description: 'Open OmniMail on your Personal Computer, select Priya (Product PM) as recipient, and send the roadmap update email to receive coins!',
+        location: 'Assigned PC • OmniMail App',
+        targetEmail: 'priya.pm@omnicorp.internal',
+        targetRecipient: 'Priya (Product PM)',
+        xp: 180,
+        rewardMoney: 450,
         completed: false
       },
       {
@@ -363,12 +378,15 @@
         },
         {
           id: 'hr_v2_4',
-          priority: 'P2',
-          category: 'DevOps',
-          title: 'Deploy canary release of Kafka partitioned consumer v2.4',
-          description: 'Route 5% of event stream to new consumer group with lag monitoring alerts.',
-          location: 'Acme R&D Innovation Hub',
-          xp: 115,
+          priority: 'P1',
+          category: 'OmniMail',
+          title: 'Send InfoSec Compliance Audit email to Neha Patel (Planning & InfoSec Lead)',
+          description: 'Open OmniMail on your Personal Computer, select Neha Patel from the recipient list, and send the InfoSec audit report to receive coins!',
+          location: 'Assigned PC • OmniMail App',
+          targetEmail: 'neha.patel@omnicorp.internal',
+          targetRecipient: 'Neha Patel (Planning & InfoSec Lead)',
+          xp: 175,
+          rewardMoney: 450,
           completed: false
         },
         {
@@ -415,12 +433,15 @@
         },
         {
           id: 'hr_v3_4',
-          priority: 'P2',
-          category: 'Infra',
-          title: 'Migrate Elasticsearch cluster to OpenSearch 2.11',
-          description: 'Execute zero-downtime reindexing pipeline and test vector search kNN embeddings.',
-          location: 'Dev Pod 1 • Terminal',
-          xp: 120,
+          priority: 'P1',
+          category: 'OmniMail',
+          title: 'Send Code Review Sign-off email to Rahul (Tech Lead)',
+          description: 'Open OmniMail on your Personal Computer, select Rahul (Tech Lead) from the dropdown, and send your PR sign-off to receive coins!',
+          location: 'Assigned PC • OmniMail App',
+          targetEmail: 'rahul.lead@omnicorp.internal',
+          targetRecipient: 'Rahul (Tech Lead)',
+          xp: 180,
+          rewardMoney: 450,
           completed: false
         }
       ]
@@ -1619,6 +1640,124 @@ Each object must have these exact keys:
       if (allCompleted) {
         this.onAllTasksCompleted(charId);
       }
+    }
+
+    /**
+     * Get active uncompleted OmniMail directive mission for current player character
+     */
+    getActiveEmailMission() {
+      const charId = this.getActiveCharId();
+      const tasks = this.characterTasks[charId] || [];
+      return tasks.find(t => !t.completed && (
+        t.category === 'OmniMail' || 
+        t.targetEmail || 
+        t.targetRecipient || 
+        (t.title && t.title.toLowerCase().includes('email'))
+      )) || null;
+    }
+
+    /**
+     * Check if sending an email to recipient matches an active mission, and complete it with coin rewards!
+     */
+    checkAndCompleteEmailMission(recipientEmail, recipientName) {
+      const charId = this.getActiveCharId();
+      const tasks = this.characterTasks[charId] || [];
+
+      // 1. Try finding a specific matching uncompleted task
+      const match = tasks.find(t => {
+        if (t.completed) return false;
+
+        // Direct email match
+        if (t.targetEmail && recipientEmail && t.targetEmail.toLowerCase() === recipientEmail.toLowerCase()) {
+          return true;
+        }
+
+        // Direct recipient name match
+        if (t.targetRecipient && recipientName) {
+          const cleanTarget = t.targetRecipient.split('(')[0].trim().toLowerCase();
+          const cleanRec = recipientName.split('(')[0].trim().toLowerCase();
+          if (cleanRec.includes(cleanTarget) || cleanTarget.includes(cleanRec)) {
+            return true;
+          }
+        }
+
+        // Category OmniMail with recipient mention in title or description
+        if (t.category === 'OmniMail' || (t.title && t.title.toLowerCase().includes('email'))) {
+          const cleanRec = (recipientName || '').split('(')[0].trim().toLowerCase();
+          if (cleanRec && (
+            (t.title && t.title.toLowerCase().includes(cleanRec)) ||
+            (t.description && t.description.toLowerCase().includes(cleanRec))
+          )) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+
+      if (match) {
+        return this._executeTaskReward(charId, match, recipientName);
+      }
+
+      // 2. Fallback: If player has ANY active OmniMail task, sending an email to a team member fulfills it
+      const fallbackMailTask = tasks.find(t => !t.completed && (t.category === 'OmniMail' || (t.title && t.title.toLowerCase().includes('email'))));
+      if (fallbackMailTask) {
+        return this._executeTaskReward(charId, fallbackMailTask, recipientName);
+      }
+
+      return null;
+    }
+
+    _executeTaskReward(charId, task, recipientName) {
+      task.completed = true;
+      this.completedTaskTitles.add(task.title);
+
+      const rewardInfo = getTaskDifficultyAndMoney(task);
+      const moneyReward = rewardInfo.money;
+
+      // 1. Credit corporate funds / Coins
+      if (typeof window.addCorporateFunds === 'function') {
+        window.addCorporateFunds(moneyReward);
+      } else if (window.state && window.state.player) {
+        window.state.player.money = Math.max(0, (window.state.player.money !== undefined ? window.state.player.money : 0) + moneyReward);
+        const valEl = document.getElementById('hud-money-val');
+        if (valEl) valEl.textContent = '$' + window.state.player.money.toLocaleString();
+      }
+
+      // 2. Credit XP
+      if (window.state && window.state.player) {
+        window.state.player.score = (window.state.player.score || 0) + (task.xp || 180);
+        const scoreEl = document.getElementById('stat-score');
+        if (scoreEl) scoreEl.textContent = window.state.player.score;
+      }
+
+      // 3. Play retro audio fanfare & coin pickup sound
+      if (window.soundManager) {
+        if (typeof window.soundManager.playCoinReward === 'function') {
+          window.soundManager.playCoinReward();
+        }
+        if (typeof window.soundManager.playQuestComplete === 'function') {
+          setTimeout(() => window.soundManager.playQuestComplete(), 150);
+        }
+      }
+
+      // 4. Update Phone UI & Badge
+      this.renderSweTaskList(charId);
+      this.updatePhoneBadge();
+
+      // 5. Toast Notification
+      if (typeof window.showToast === 'function') {
+        window.showToast(`🎉 MISSION COMPLETE! Delivered email to ${recipientName}! Received 💵 +$${moneyReward} Coins & ⭐ +${task.xp} XP!`);
+      }
+
+      // 6. Check if all tasks in the sprint are now complete
+      const tasks = this.characterTasks[charId] || [];
+      const allDone = tasks.length > 0 && tasks.every(t => t.completed);
+      if (allDone && typeof this.onAllTasksCompleted === 'function') {
+        this.onAllTasksCompleted(charId);
+      }
+
+      return { task, moneyReward };
     }
 
     toggle() {

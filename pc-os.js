@@ -1844,6 +1844,15 @@ git add . && git commit -m "another day another feature"`;
             <button class="pc-win-btn" id="compose-dialog-close">✕</button>
           </div>
           <div class="compose-dialog-body">
+            <!-- Active Mission Banner -->
+            <div class="compose-mission-banner" id="compose-mission-banner" style="display:none; padding:8px 12px; margin-bottom:12px; border-radius:6px; font-size:0.75rem; border:1px solid #38bdf8; background:rgba(14, 165, 233, 0.12); color:#e0f2fe; align-items:center; justify-content:space-between; gap:8px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:0.95rem;">🎯</span>
+                <span id="compose-mission-text">Active Mission: Send email to recipient to earn coins!</span>
+              </div>
+              <span class="task-reward-pill" id="compose-mission-reward" style="font-size:0.72rem; padding:2px 8px; border-radius:4px; font-weight:700; background:#fbbf24; color:#0f172a; white-space:nowrap;">+$450 Coins</span>
+            </div>
+
             <div class="compose-input-row">
               <span class="compose-label">To:</span>
               <select class="compose-select" id="compose-to-select">
@@ -2464,10 +2473,64 @@ git add . && git commit -m "another day another feature"`;
       });
     }
 
-    // Compose dialog
+    // Compose dialog & Active Mission Banner
+    const updateComposeMissionBanner = () => {
+      const banner = winEl.querySelector('#compose-mission-banner');
+      const textEl = winEl.querySelector('#compose-mission-text');
+      const rewardEl = winEl.querySelector('#compose-mission-reward');
+      if (!banner || !textEl) return;
+
+      const mission = window.phoneDevice && typeof window.phoneDevice.getActiveEmailMission === 'function'
+        ? window.phoneDevice.getActiveEmailMission()
+        : null;
+
+      if (!mission) {
+        banner.style.display = 'none';
+        return;
+      }
+
+      banner.style.display = 'flex';
+      const toVal = composeTo.value;
+      const toText = composeTo.options[composeTo.selectedIndex] ? composeTo.options[composeTo.selectedIndex].text : '';
+      
+      const cleanTarget = (mission.targetRecipient || '').split('(')[0].trim().toLowerCase();
+      const cleanTo = toText.split('(')[0].trim().toLowerCase();
+
+      const isTargetMatch = (mission.targetEmail && mission.targetEmail.toLowerCase() === toVal.toLowerCase()) ||
+                            (cleanTarget && (cleanTo.includes(cleanTarget) || cleanTarget.includes(cleanTo)));
+
+      const moneyVal = mission.rewardMoney || 450;
+      if (rewardEl) rewardEl.textContent = `+$${moneyVal} Coins`;
+
+      if (isTargetMatch) {
+        banner.style.background = 'rgba(16, 185, 129, 0.22)';
+        banner.style.borderColor = '#10b981';
+        banner.style.color = '#ecfdf5';
+        textEl.innerHTML = `✅ <strong>Target Matched!</strong> Sending email to <strong>${escapeHtml(toText)}</strong> will complete your mission &amp; award coins!`;
+        if (composeSend) {
+          composeSend.style.boxShadow = '0 0 14px rgba(16, 185, 129, 0.7)';
+          composeSend.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+        }
+      } else {
+        banner.style.background = 'rgba(14, 165, 233, 0.12)';
+        banner.style.borderColor = '#38bdf8';
+        banner.style.color = '#e0f2fe';
+        textEl.innerHTML = `🎯 <strong>Active Mission:</strong> Select <strong>${escapeHtml(mission.targetRecipient || 'Target Recipient')}</strong> from dropdown to earn coins!`;
+        if (composeSend) {
+          composeSend.style.boxShadow = '';
+          composeSend.style.background = '';
+        }
+      }
+    };
+
+    if (composeTo) {
+      composeTo.addEventListener('change', updateComposeMissionBanner);
+    }
+
     if (composeBtn && composeDialog) {
       composeBtn.onclick = () => {
         composeDialog.style.display = 'flex';
+        updateComposeMissionBanner();
         playSound('click');
       };
     }
@@ -2503,6 +2566,7 @@ git add . && git commit -m "another day another feature"`;
     if (composeSend) {
       composeSend.onclick = () => {
         const to = composeTo.value;
+        const recipientText = composeTo.options[composeTo.selectedIndex] ? composeTo.options[composeTo.selectedIndex].text : to;
         const sub = composeSub.value.trim() || 'Engineering Directive Update';
         const body = composeBody.value.trim();
 
@@ -2522,6 +2586,8 @@ git add . && git commit -m "another day another feature"`;
           senderName: 'You (Lead Dev)',
           senderDept: 'Assigned Workstation #1',
           senderEmail: userEmailEl ? userEmailEl.textContent : 'yasharth@omnicorp.internal',
+          recipientName: recipientText,
+          recipientEmail: to,
           subject: sub,
           date: `Today, ${nowStr}`,
           category: 'SENT',
@@ -2534,23 +2600,78 @@ git add . && git commit -m "another day another feature"`;
         saveMailState();
         composeDialog.style.display = 'none';
 
-        // Award proactive communication bonus
-        const commsBonus = 80;
-        if (window.state && window.state.player) {
-          window.state.player.score = (window.state.player.score || 0) + commsBonus;
-          const scoreEl = document.getElementById('stat-score');
-          if (scoreEl) scoreEl.textContent = window.state.player.score;
+        // Check if sending this email fulfills an active mission in PhoneDevice!
+        let missionResult = null;
+        if (window.phoneDevice && typeof window.phoneDevice.checkAndCompleteEmailMission === 'function') {
+          missionResult = window.phoneDevice.checkAndCompleteEmailMission(to, recipientText);
         }
 
-        // Chimes & toast
-        if (window.soundManager && typeof window.soundManager.playPhonePop === 'function') {
-          window.soundManager.playPhonePop();
-        }
-        if (window.showToast) {
-          window.showToast(`✉️ Email sent to ${to}! +${commsBonus} XP Communication Bonus.`);
+        if (!missionResult) {
+          // Standard communication reward if no specific mission was matched
+          const commsBonus = 80;
+          const coinsBonus = 50;
+          if (window.state && window.state.player) {
+            window.state.player.score = (window.state.player.score || 0) + commsBonus;
+            const scoreEl = document.getElementById('stat-score');
+            if (scoreEl) scoreEl.textContent = window.state.player.score;
+          }
+          if (typeof window.addCorporateFunds === 'function') {
+            window.addCorporateFunds(coinsBonus);
+          }
+          if (window.soundManager) {
+            if (typeof window.soundManager.playCoinReward === 'function') {
+              window.soundManager.playCoinReward();
+            } else if (typeof window.soundManager.playPhonePop === 'function') {
+              window.soundManager.playPhonePop();
+            }
+          }
+          if (window.showToast) {
+            window.showToast(`✉️ Email sent to ${recipientText}! +$${coinsBonus} Coins & +${commsBonus} XP.`);
+          }
         }
 
         updateBadges();
+
+        // Automated coworker / executive response after 3.5 seconds
+        setTimeout(() => {
+          const replyMap = {
+            'amit.sharma@omnicorp.internal': 'Email received! HR and leadership thank you for the prompt update. Your directive is formally approved.',
+            'm.sterling@acmecorp.com': 'Outstanding deliverable summary! The enterprise leadership team is impressed with your execution velocity.',
+            'sre-incident-bot@omnicorp.internal': 'Incident telemetry logged into Datadog & PagerDuty. SLA metrics healthy. Good job command team!',
+            'neha.patel@omnicorp.internal': 'Planning & InfoSec sign-off recorded. Compliance milestone cleared with zero security findings.',
+            'deploy-bot@omnicorp.internal': 'Deployment command parsed successfully. Automated pipeline triggered and canary metrics green.',
+            'rahul.lead@omnicorp.internal': 'Thanks for looping me in! Code changes look super clean. Let’s ship it.',
+            'priya.pm@omnicorp.internal': 'Product requirement review confirmed! Aligned with our Q1 roadmap goals.'
+          };
+          const replyText = replyMap[to] || `Thanks for the update! Received your message regarding "${sub}".`;
+          const replyMail = {
+            id: `reply_${Date.now()}`,
+            isTask: false,
+            isCompleted: true,
+            isRead: false,
+            folder: 'inbox',
+            senderName: recipientText.split('(')[0].trim(),
+            senderDept: 'Corporate Office',
+            senderEmail: to,
+            senderGlyph: '✉️',
+            subject: `Re: ${sub}`,
+            date: `Today, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            category: 'REPLY',
+            priority: 'Normal',
+            body: replyText,
+            replies: []
+          };
+          mails.unshift(replyMail);
+          saveMailState();
+          updateBadges();
+          renderThreadsList();
+          if (window.soundManager && typeof window.soundManager.playNotificationPop === 'function') {
+            window.soundManager.playNotificationPop();
+          }
+          if (window.showToast) {
+            window.showToast(`📬 New Reply from ${replyMail.senderName}: "${replyText.substring(0, 48)}..."`);
+          }
+        }, 3500);
       };
     }
 

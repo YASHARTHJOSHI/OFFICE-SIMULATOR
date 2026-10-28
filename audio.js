@@ -412,6 +412,33 @@ class SoundManager {
       });
     } catch (e) {}
   }
+
+  // --- RETRO COIN / MONEY REWARD SOUND ---
+  playCoinReward() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      // Twin coin pickup bell: B5 (987.77Hz) -> E6 (1318.51Hz)
+      const coinNotes = [
+        { f: 987.77, delay: 0.0, dur: 0.12, vol: 0.28 },
+        { f: 1318.51, delay: 0.08, dur: 0.35, vol: 0.32 }
+      ];
+      coinNotes.forEach(n => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(n.f, t + n.delay);
+        gain.gain.setValueAtTime(0.001, t + n.delay);
+        gain.gain.linearRampToValueAtTime(n.vol, t + n.delay + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + n.delay + n.dur);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + n.delay);
+        osc.stop(t + n.delay + n.dur + 0.04);
+      });
+    } catch (e) {}
+  }
 }
 
 window.soundManager = new SoundManager();
