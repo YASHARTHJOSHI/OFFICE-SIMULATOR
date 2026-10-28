@@ -1776,6 +1776,11 @@ function switchScene(sceneKey, spawnX, spawnY, spawnDir = 'down') {
   if (window.multiplayerEngine && window.multiplayerEngine.active) {
     window.multiplayerEngine.broadcastPosition(state.player, sceneKey);
   }
+
+  // Auto-sync progress to Firebase Cloud
+  if (window.firebaseSync && typeof window.firebaseSync.saveProgress === 'function') {
+    window.firebaseSync.saveProgress(false);
+  }
 }
 
 function enterBossCabinet() {
@@ -4164,7 +4169,18 @@ window.addCorporateFunds = function(amount = 100) {
     badge.appendChild(floatEl);
     setTimeout(() => floatEl.remove(), 750);
   }
+
+  // Auto-sync money to Firebase Cloud
+  if (window.firebaseSync && typeof window.firebaseSync.saveProgress === 'function') {
+    window.firebaseSync.saveProgress(false);
+  }
 };
+
+window.addEventListener('beforeunload', () => {
+  if (window.firebaseSync && typeof window.firebaseSync.saveProgress === 'function') {
+    window.firebaseSync.saveProgress(false);
+  }
+});
 
 function setupStartMenuAndLobby() {
   const startModal = document.getElementById('start-menu-modal');

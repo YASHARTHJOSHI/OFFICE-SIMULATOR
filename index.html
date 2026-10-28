@@ -151,47 +151,130 @@
     </main>
 
 
-    <!-- Initial Start Game Menu Modal -->
+    <!-- Initial Start Game Menu / Firebase Authentication & Cloud Save Portal Modal -->
     <div id="start-menu-modal" class="modal">
-      <div class="modal-card start-card">
+      <div class="modal-card start-card auth-portal-card">
         <div class="start-banner">
           <div class="start-logo-glow">🏢</div>
           <h1 class="start-title">OFFICE SIMULATOR</h1>
-          <p class="start-subtitle">Interactive 2D Corporate Workplace Adventure</p>
-        </div>
-        
-        <!-- Step 1: Initial Start Game Button -->
-        <div id="start-step-initial" class="start-step">
-          <button id="btn-initial-start" class="btn-pixel-primary" onclick="if(window.startGameOffline) window.startGameOffline(); else document.getElementById('start-menu-modal').classList.add('hidden');">
-            <span class="btn-icon-start">▶</span> START GAME
-          </button>
-          <div class="start-sub-actions">
-            <button id="btn-initial-online" class="btn-subtle" style="font-size: 0.82rem; color: #38bdf8; padding: 6px 12px; background: rgba(56, 189, 248, 0.08); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25); cursor: pointer;">
-              🌐 Online Multiplayer Lobby
-            </button>
+          <p class="start-subtitle">Acme Innovations • Employee Cloud Portal</p>
+          <div class="cloud-sync-status-pill">
+            <span class="cloud-pulse-dot"></span>
+            <span>Firebase Cloud Persistence Active</span>
           </div>
         </div>
 
-        <!-- Step 2: Mode Selection (Revealed upon clicking Start Game) -->
-        <div id="start-step-modes" class="start-step hidden">
-          <p class="mode-select-label">SELECT GAME MODE</p>
-          <div class="mode-buttons-wrap">
-            <button id="btn-mode-offline" class="btn-pixel-mode btn-mode-offline">
-              <span class="mode-icon">🎮</span>
-              <div class="mode-info">
-                <span class="mode-name">Offline</span>
-                <span class="mode-desc">Single-Player Office Story</span>
-              </div>
+        <!-- View 1: When user has cloud progress saved (Continue Game Card) -->
+        <div id="auth-continue-card" class="auth-continue-card" style="display: none;">
+          <!-- Dynamically populated by renderContinueCard() -->
+        </div>
+
+        <!-- View 2: When user needs to Register or Sign In -->
+        <div id="auth-form-wrapper" class="auth-form-wrapper">
+          <!-- Navigation Tabs -->
+          <div class="auth-tabs-row">
+            <button type="button" id="auth-tab-signin" class="auth-tab-btn active">
+              <span>🔑</span> Sign In
             </button>
-            <button id="btn-mode-online" class="btn-pixel-mode btn-mode-online">
-              <span class="mode-icon">🌐</span>
-              <div class="mode-info">
-                <span class="mode-name">Online</span>
-                <span class="mode-desc">Live Multiplayer Lobby</span>
-              </div>
+            <button type="button" id="auth-tab-register" class="auth-tab-btn">
+              <span>📝</span> Register (New Employee)
             </button>
           </div>
-          <button id="btn-back-to-start" class="btn-subtle">‹ Back</button>
+
+          <!-- Error Alert Banner -->
+          <div id="auth-error-msg" class="auth-error-banner" style="display: none;"></div>
+
+          <!-- Sign In Form -->
+          <form id="auth-form-signin" class="auth-form-block" onsubmit="return false;">
+            <div class="auth-field">
+              <label for="input-signin-email">EMAIL ADDRESS</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">✉️</span>
+                <input type="email" id="input-signin-email" placeholder="e.g. employee@omnicorp.internal" required autocomplete="email">
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="input-signin-password">PASSWORD</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">🔒</span>
+                <input type="password" id="input-signin-password" placeholder="••••••••" required autocomplete="current-password">
+              </div>
+            </div>
+
+            <button type="submit" id="btn-submit-signin" class="btn-pixel-primary auth-submit-btn">
+              <span>🔑</span> SIGN IN &amp; CONTINUE
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="auth-form-register" class="auth-form-block" style="display: none;" onsubmit="return false;">
+            <div class="auth-field">
+              <label for="input-register-name">EMPLOYEE FULL NAME</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">👤</span>
+                <input type="text" id="input-register-name" placeholder="e.g. Yasharth Joshi" required autocomplete="name">
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="input-register-email">EMAIL ADDRESS</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">✉️</span>
+                <input type="email" id="input-register-email" placeholder="e.g. yasharth@omnicorp.internal" required autocomplete="email">
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="input-register-password">CHOOSE PASSWORD</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">🔒</span>
+                <input type="password" id="input-register-password" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password">
+              </div>
+            </div>
+
+            <!-- Role / Character Avatar Selection -->
+            <div class="auth-field">
+              <label>SELECT EMPLOYEE AVATAR</label>
+              <div class="auth-chars-row">
+                <div class="auth-char-option selected" data-char="char1" title="Vikram: Tech Lead / Backend">
+                  <img src="assets/char1_avatar.png" alt="Vikram" />
+                  <span>Vikram</span>
+                </div>
+                <div class="auth-char-option" data-char="char2" title="Neha: Planning Lead / Eng Manager">
+                  <img src="assets/char2_avatar.png" alt="Neha" />
+                  <span>Neha</span>
+                </div>
+                <div class="auth-char-option" data-char="char3" title="Kabir: Senior Research Lead / Quantum">
+                  <img src="assets/char3_avatar.png" alt="Kabir" />
+                  <span>Kabir</span>
+                </div>
+                <div class="auth-char-option" data-char="char4" title="Josh: Lead Architect / Distributed Systems">
+                  <img src="assets/char4_avatar.png" alt="Josh" />
+                  <span>Josh</span>
+                </div>
+                <div class="auth-char-option" data-char="char5" title="Arjun: Principal Architect / Full-Stack Mastermind">
+                  <img src="assets/char5_avatar.png" alt="Arjun" />
+                  <span>Arjun</span>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-submit-register" class="btn-pixel-primary auth-submit-btn">
+              <span>📝</span> REGISTER &amp; JOIN ACME
+            </button>
+          </form>
+
+          <!-- Quick Fast Play & Multiplayer Sub-actions -->
+          <div class="auth-sub-actions">
+            <button type="button" id="btn-auth-guest-play" class="btn-subtle-guest">
+              ⚡ Quick Guest Play (Instant Offline)
+            </button>
+            <span class="auth-divider-dot">•</span>
+            <button type="button" id="btn-initial-online" class="btn-subtle-multiplayer">
+              🌐 Multiplayer Lobby
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -891,6 +974,12 @@
       </div>
     </div>
   </div>
+
+  <!-- Firebase Core, Auth & Firestore SDKs (v10 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-sync.js"></script>
 
   <script src="peerjs.min.js"></script>
   <script src="audio.js"></script>
