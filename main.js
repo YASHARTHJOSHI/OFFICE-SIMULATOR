@@ -203,6 +203,27 @@ const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
+// Restore cached wallet balance so player money never resets to $0 on refresh
+const getInitialSavedMoney = () => {
+  try {
+    const directMoney = localStorage.getItem('officesim_saved_money');
+    const lastUid = localStorage.getItem('officesim_last_uid');
+    let profileMoney = 0;
+    if (lastUid) {
+      const pStr = localStorage.getItem('officesim_profile_' + lastUid);
+      if (pStr) {
+        const p = JSON.parse(pStr);
+        if (p && p.money !== undefined) profileMoney = Number(p.money) || 0;
+      }
+    }
+    return Math.max(Number(directMoney) || 0, profileMoney);
+  } catch (e) {
+    return 0;
+  }
+};
+
+const initialWalletBalance = getInitialSavedMoney();
+
 const state = {
   currentScene: 'OFFICE_HALL', // 'OFFICE_HALL' or 'BOSS_CABINET'
   isTransitioning: false,
@@ -230,7 +251,7 @@ const state = {
     width: 40,
     height: 85,
     charId: 'char1',
-    money: 0,
+    money: initialWalletBalance,
     isSitting: false,
     // Hitbox relative to (x, y) bottom-center (feet only for smooth navigation)
     hitbox: { w: 16, h: 8 }
@@ -4157,6 +4178,20 @@ window.addCorporateFunds = function(amount = 100) {
     valEl.textContent = '$' + state.player.money.toLocaleString();
   }
 
+  // Immediately store in local persistent storage so refresh never resets to 0
+  try {
+    localStorage.setItem('officesim_saved_money', String(state.player.money));
+    const lastUid = localStorage.getItem('officesim_last_uid');
+    if (lastUid) {
+      const pStr = localStorage.getItem('officesim_profile_' + lastUid);
+      if (pStr) {
+        const p = JSON.parse(pStr);
+        p.money = state.player.money;
+        localStorage.setItem('officesim_profile_' + lastUid, JSON.stringify(p));
+      }
+    }
+  } catch (e) {}
+
   const badge = document.getElementById('hud-money-badge');
   if (badge) {
     const floatEl = document.createElement('span');
@@ -4170,9 +4205,23 @@ window.addCorporateFunds = function(amount = 100) {
     setTimeout(() => floatEl.remove(), 750);
   }
 
+  // Update top-right Cloud Profile badge immediately so user sees their updated money in the header
+  const userCoinsEl = document.getElementById('user-pill-coins-val');
+  if (userCoinsEl) {
+    userCoinsEl.textContent = '$' + state.player.money.toLocaleString();
+  }
+
   // Auto-sync money to Firebase Cloud
-  if (window.firebaseSync && typeof window.firebaseSync.saveProgress === 'function') {
-    window.firebaseSync.saveProgress(false);
+  if (window.firebaseSync) {
+    if (window.firebaseSync.currentProfile) {
+      window.firebaseSync.currentProfile.money = state.player.money;
+      if (typeof window.firebaseSync.updateHeaderProfileBadge === 'function') {
+        window.firebaseSync.updateHeaderProfileBadge(window.firebaseSync.currentProfile);
+      }
+    }
+    if (typeof window.firebaseSync.saveProgress === 'function') {
+      window.firebaseSync.saveProgress(false);
+    }
   }
 };
 
@@ -4533,6 +4582,18 @@ window.startGameOffline = function() {
   if (modal) modal.classList.add('hidden');
   if (typeof state !== 'undefined' && state.player) {
     state.player.charId = state.player.charId || 'char1';
+
+    // Ensure saved money & progress are restored immediately
+    if (window.firebaseSync && window.firebaseSync.currentProfile) {
+      window.firebaseSync.applySavedProgress(window.firebaseSync.currentProfile);
+    } else {
+      const savedMoney = localStorage.getItem('officesim_saved_money');
+      if (savedMoney !== null && Number(savedMoney) > 0) {
+        state.player.money = Number(savedMoney);
+        const valEl = document.getElementById('hud-money-val');
+        if (valEl) valEl.textContent = '$' + state.player.money.toLocaleString();
+      }
+    }
   }
   if (window.soundManager) {
     window.soundManager.unlock();

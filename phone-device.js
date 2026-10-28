@@ -846,17 +846,6 @@
 
       overlay.innerHTML = `
         <div class="phone-wrapper" id="phone-wrapper">
-          <!-- Hand holding phone -->
-          <div class="phone-hand-container">
-            <div class="phone-hand-left-fingers">
-              <div class="hand-finger"></div>
-              <div class="hand-finger"></div>
-              <div class="hand-finger"></div>
-            </div>
-            <div class="phone-hand-thumb"></div>
-            <div class="phone-hand-cuff"></div>
-          </div>
-
           <!-- Phone Hardware Body (Upright, Parallel to Screen) -->
           <div class="phone-body" id="phone-body">
             <!-- Hardware Buttons -->

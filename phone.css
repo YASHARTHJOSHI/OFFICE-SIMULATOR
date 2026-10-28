@@ -42,54 +42,15 @@
 /* ---------------------------------------------------------
    HAND HOLDING PHONE (Pixel-art styled ergonomic grip)
    --------------------------------------------------------- */
-.phone-hand-container {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 25;
-}
-
-/* Left fingers gripping bezel */
-.phone-hand-left-fingers {
-  position: absolute;
-  left: -22px;
-  top: 190px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.hand-finger {
-  width: 28px;
-  height: 38px;
-  border-radius: 14px 4px 4px 14px;
-  box-shadow: -3px 4px 8px rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  border-right: none;
-}
-
-/* Right thumb resting naturally on bezel */
-.phone-hand-thumb {
-  position: absolute;
-  right: -24px;
-  bottom: 120px;
-  width: 58px;
-  height: 52px;
-  border-radius: 26px 20px 20px 26px;
-  box-shadow: 4px 6px 14px rgba(0, 0, 0, 0.45);
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  transform: rotate(-12deg);
-}
-
-/* Sleeve cuff at bottom right */
+.phone-hand-container,
+.phone-hand-left-fingers,
+.hand-finger,
+.phone-hand-thumb,
 .phone-hand-cuff {
-  position: absolute;
-  right: -55px;
-  bottom: 0px;
-  width: 90px;
-  height: 85px;
-  border-radius: 12px 0 0 0;
-  box-shadow: 4px 8px 18px rgba(0, 0, 0, 0.5);
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* ---------------------------------------------------------

@@ -51,7 +51,32 @@
             if (user) {
               this.currentUser = user;
               console.log('☁️ Firebase Auth User active:', user.email || user.uid);
-              await this.fetchUserProfile(user.uid);
+              try {
+                localStorage.setItem('officesim_last_uid', user.uid);
+              } catch (e) {}
+
+              const profile = await this.fetchUserProfile(user.uid);
+              if (profile) {
+                // Synchronize player wallet to highest saved value so money is never lost on refresh
+                const inGameMoney = (window.state && window.state.player && window.state.player.money !== undefined) ? Number(window.state.player.money) : 0;
+                const cloudMoney = (profile.money !== undefined) ? Number(profile.money) : 0;
+                const localMoney = Number(localStorage.getItem('officesim_saved_money')) || 0;
+                const highestMoney = Math.max(inGameMoney, cloudMoney, localMoney);
+
+                profile.money = highestMoney;
+                if (window.state && window.state.player) {
+                  window.state.player.money = highestMoney;
+                  const valEl = document.getElementById('hud-money-val');
+                  if (valEl) valEl.textContent = '$' + highestMoney.toLocaleString();
+                }
+                try {
+                  localStorage.setItem('officesim_saved_money', String(highestMoney));
+                  localStorage.setItem('officesim_profile_' + user.uid, JSON.stringify(profile));
+                } catch (e) {}
+
+                // Automatically restore saved progress into the active game
+                this.applySavedProgress(profile);
+              }
               this.updateUIForLoggedInUser();
               this.startAutoSave();
             } else {
@@ -153,14 +178,22 @@
         return this.signUpLocalFallback(cleanName, cleanEmail, charId);
       }
 
+      // Carry over any in-game money already earned
+      const carryOverMoney = (window.state && window.state.player && window.state.player.money !== undefined)
+        ? Number(window.state.player.money)
+        : (Number(localStorage.getItem('officesim_saved_money')) || 0);
+      const carryOverScore = (window.state && window.state.player && window.state.player.score !== undefined)
+        ? Number(window.state.player.score)
+        : 0;
+
       // Initialize base cloud save profile
       const initialProfile = {
         uid: user.uid,
         displayName: cleanName,
         email: cleanEmail,
         charId: charId,
-        money: 0,
-        score: 0,
+        money: carryOverMoney,
+        score: carryOverScore,
         currentScene: 'OFFICE_HALL',
         playerPos: { x: 506, y: 340, direction: 'up' },
         sprintRound: 1,
@@ -185,6 +218,7 @@
       // Also save to localStorage
       try {
         localStorage.setItem('officesim_profile_' + user.uid, JSON.stringify(initialProfile));
+        localStorage.setItem('officesim_saved_money', String(carryOverMoney));
         localStorage.setItem('officesim_last_uid', user.uid);
       } catch (e) {}
 
@@ -196,13 +230,20 @@
      */
     signUpLocalFallback(name, email, charId) {
       const uid = 'local_' + btoa(email).replace(/=/g, '');
+      const carryOverMoney = (window.state && window.state.player && window.state.player.money !== undefined)
+        ? Number(window.state.player.money)
+        : (Number(localStorage.getItem('officesim_saved_money')) || 0);
+      const carryOverScore = (window.state && window.state.player && window.state.player.score !== undefined)
+        ? Number(window.state.player.score)
+        : 0;
+
       const profile = {
         uid: uid,
         displayName: name,
         email: email,
         charId: charId || 'char1',
-        money: 0,
-        score: 0,
+        money: carryOverMoney,
+        score: carryOverScore,
         currentScene: 'OFFICE_HALL',
         playerPos: { x: 506, y: 340, direction: 'up' },
         sprintRound: 1,
@@ -328,7 +369,22 @@
       // Extract current in-game state
       const p = window.state ? window.state.player : null;
       const currentScene = window.state ? window.state.currentScene : 'OFFICE_HALL';
-      const money = (p && p.money !== undefined) ? p.money : 0;
+      let money = (p && p.money !== undefined) ? Number(p.money) : 0;
+      const savedMoney = Number(localStorage.getItem('officesim_saved_money')) || 0;
+      const profileMoney = (this.currentProfile && this.currentProfile.money !== undefined) ? Number(this.currentProfile.money) : 0;
+
+      // CRITICAL SAFEGUARD: Never overwrite a positive saved balance with $0 on a quick refresh or pre-load race condition
+      if (money === 0 && (savedMoney > 0 || profileMoney > 0) && !this._explicitReset) {
+        money = Math.max(savedMoney, profileMoney);
+        if (p) p.money = money;
+        const valEl = document.getElementById('hud-money-val');
+        if (valEl) valEl.textContent = '$' + money.toLocaleString();
+      }
+
+      try {
+        localStorage.setItem('officesim_saved_money', String(money));
+      } catch (e) {}
+
       const score = (p && p.score !== undefined) ? p.score : 0;
       const charId = (p && p.charId) ? p.charId : (this.currentProfile ? this.currentProfile.charId : 'char1');
 
@@ -508,13 +564,16 @@
 
       const name = (profile && profile.displayName) ? profile.displayName : 'Employee';
       const email = (profile && profile.email) ? profile.email : '';
-      const money = (profile && profile.money !== undefined) ? profile.money : (window.state && window.state.player ? window.state.player.money : 0);
+      const inGameMoney = (window.state && window.state.player && window.state.player.money !== undefined) ? Number(window.state.player.money) : 0;
+      const profileMoney = (profile && profile.money !== undefined) ? Number(profile.money) : 0;
+      const localMoney = Number(localStorage.getItem('officesim_saved_money')) || 0;
+      const money = Math.max(inGameMoney, profileMoney, localMoney);
 
       badge.innerHTML = `
         <div class="user-pill-wrap" id="user-pill-btn" title="Logged in as ${escapeHtml(name)} (${escapeHtml(email)}) • Click for Cloud Menu">
           <span class="user-pill-cloud" id="header-cloud-status">☁️</span>
           <span class="user-pill-name">${escapeHtml(name)}</span>
-          <span class="user-pill-coins">$${money}</span>
+          <span class="user-pill-coins" id="user-pill-coins-val">$${money.toLocaleString()}</span>
         </div>
       `;
 
