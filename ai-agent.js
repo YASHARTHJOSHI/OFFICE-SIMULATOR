@@ -119,7 +119,7 @@
       waypoints: [
         { scene: 'OFFICE_HALL', x: 409, y: 380, sit: true, label: '💻 Reviewing PR Architecture' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Water Cooler Break' },
-        { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Espresso Break in Cafeteria' },
+        { scene: 'CAFETERIA', x: 375, y: 310, sit: false, label: '☕ Espresso Break in Cafeteria' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '👥 Architecture Review in Conference Room' },
         { scene: 'CAFETERIA', x: 680, y: 370, sit: false, label: '🥪 Lunch Break with Dev Team' }
       ],
@@ -148,7 +148,7 @@
         { scene: 'OFFICE_HALL', x: 560, y: 552, sit: true, label: '📋 Roadmap & Sprint Priorities' },
         { scene: 'CORNER_OFFICE', x: 600, y: 490, sit: false, label: '☕ Whiteboard & Spec Review' },
         { scene: 'CORNER_OFFICE', x: 750, y: 490, sit: false, label: '📁 Consulting HR Records' },
-        { scene: 'CAFETERIA', x: 680, y: 370, sit: false, label: '☕ Coffee Break in Cafeteria' },
+        { scene: 'CAFETERIA', x: 375, y: 310, sit: false, label: '☕ Coffee Break in Cafeteria' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Grabbing Ice Cold Water' }
       ],
       systemPrompt: 'You are Priya, a sharp and energetic Product Manager. You care deeply about user impact, clarifying ambiguous bug tickets, and setting clear stakeholder expectations. You hate assumptions and love structured problem-solving.'
@@ -175,7 +175,7 @@
       waypoints: [
         { scene: 'OFFICE_HALL', x: 410, y: 546, sit: true, label: '🤝 Reviewing Team OKRs' },
         { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Drinking Water at Cooler' },
-        { scene: 'OFFICE_HALL', x: 275, y: 240, sit: false, label: '📚 Reading Workplace Culture Docs' },
+        { scene: 'CAFETERIA', x: 375, y: 310, sit: false, label: '☕ Morning Espresso in Cafeteria' },
         { scene: 'OFFICE_HALL', x: 560, y: 540, sit: false, label: '💬 Checking in on Coworkers' },
         { scene: 'CORNER_OFFICE', x: 550, y: 490, sit: false, label: '💼 HR Mentorship Discussion' }
       ],
@@ -203,7 +203,7 @@
       waypoints: [
         { scene: 'OFFICE_HALL', x: 558, y: 380, sit: true, label: '⚡ Standup Action Items & Jira' },
         { scene: 'OFFICE_HALL', x: 470, y: 260, sit: false, label: '🎯 Sprint Retrospective Prep' },
-        { scene: 'OFFICE_HALL', x: 940, y: 220, sit: false, label: '💧 Quick Hydration Break' },
+        { scene: 'CAFETERIA', x: 375, y: 310, sit: false, label: '☕ Grabbing High-Energy Espresso' },
         { scene: 'CORNER_OFFICE', x: 580, y: 480, sit: false, label: '☕ Cross-team Sync with Priya' },
         { scene: 'OFFICE_HALL', x: 410, y: 540, sit: false, label: '📋 Velocity Chart Review' }
       ],
@@ -229,7 +229,7 @@
       activityLabel: '☕ Brewing Fresh Espresso',
       deskPos: { scene: 'CAFETERIA', x: 508, y: 260 },
       waypoints: [
-        { scene: 'CAFETERIA', x: 508, y: 260, sit: false, label: '☕ Brewing Fresh Espresso' },
+        { scene: 'CAFETERIA', x: 375, y: 310, sit: false, label: '☕ Brewing Fresh Espresso' },
         { scene: 'CAFETERIA', x: 595, y: 260, sit: false, label: '🥤 Restocking Vending Machine' },
         { scene: 'CAFETERIA', x: 700, y: 260, sit: false, label: '🍲 Cleaning Microwave Station' },
         { scene: 'CAFETERIA', x: 200, y: 340, sit: false, label: '💬 Checking in with Visitors' },
@@ -799,14 +799,37 @@ You MUST respond strictly in valid JSON format with this exact structure:
     }
 
     pickNextRoutine(npc) {
+      // If NPC was previously in coffee queue, release their spot
+      if (npc.isWaitingInCoffeeQueue && window.coffeeQueueManager) {
+        window.coffeeQueueManager.leaveQueue(npc);
+      }
+
       // Filter out any waypoint that mentions BOSS_CABINET
       const safeWaypoints = npc.waypoints.filter(w => w.scene !== 'BOSS_CABINET');
       if (safeWaypoints.length === 0) return;
 
       const wp = safeWaypoints[Math.floor(Math.random() * safeWaypoints.length)];
+      npc.isSitting = false;
+
+      // Check if this waypoint is for Cafeteria espresso / coffee
+      if (wp.scene === 'CAFETERIA' && (wp.label.includes('Espresso') || wp.label.includes('Coffee')) && window.coffeeQueueManager) {
+        const slot = window.coffeeQueueManager.joinQueue(npc);
+        const dynamicWp = {
+          scene: 'CAFETERIA',
+          x: slot.x,
+          y: slot.y,
+          sit: false,
+          label: (npc.queueSlotIndex === 0) ? '☕ Brewing Fresh Espresso' : `☕ In Coffee Queue (Position #${(npc.queueSlotIndex || 0) + 1})`
+        };
+        npc.targetWP = dynamicWp;
+        npc.activityLabel = dynamicWp.label;
+        npc.pathQueue = this.buildPathForNPC(npc, dynamicWp);
+        npc.isMoving = npc.pathQueue.length > 0;
+        return;
+      }
+
       npc.targetWP = wp;
       npc.activityLabel = wp.label;
-      npc.isSitting = false;
 
       // Build realistic hallway and doorway path
       npc.pathQueue = this.buildPathForNPC(npc, wp);

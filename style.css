@@ -7295,4 +7295,733 @@ kbd {
   color: #fecaca;
 }
 
+/* =========================================================
+   ESPRESSO MACHINE INTERACTIVE MODAL & MINIGAME STYLES
+   Pixel Art Industrial Italian Commercial Espresso Machine
+   ========================================================= */
+#coffee-machine-modal {
+  z-index: 10001;
+}
+
+.cm-modal-card {
+  width: min(460px, 94vw);
+  background: radial-gradient(circle at 50% 10%, #334155 0%, #1e293b 45%, #0f172a 100%);
+  border: 2px solid rgba(245, 158, 11, 0.45);
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(217, 119, 6, 0.2);
+  padding: 1.2rem 1.35rem;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  user-select: none;
+  animation: cm-modal-pop 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cm-modal-pop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cm-machine-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.55rem;
+}
+
+.cm-brand-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cm-brand-dot {
+  width: 9px;
+  height: 9px;
+  background: #f59e0b;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #f59e0b, 0 0 18px rgba(245, 158, 11, 0.6);
+  animation: cm-pulse-amber 2s infinite ease-in-out;
+}
+
+@keyframes cm-pulse-amber {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+
+.cm-brand-name {
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.72rem;
+  color: #fbbf24;
+  letter-spacing: 0.05em;
+}
+
+.cm-brand-sub {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+  padding-left: 0.45rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cm-machine-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* 1. Top Cup Warmer Tray */
+.cm-cup-warmer-tray {
+  background: linear-gradient(180deg, #475569 0%, #334155 100%);
+  border: 2px solid #64748b;
+  border-radius: 8px 8px 0 0;
+  padding: 6px 12px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cm-tray-rail {
+  position: absolute;
+  top: 3px;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: #94a3b8;
+  border-radius: 1px;
+}
+
+.cm-warming-cups {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.cm-mini-glass {
+  width: 13px;
+  height: 16px;
+  background: rgba(186, 230, 253, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  border-radius: 1px 1px 3px 3px;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4);
+}
+
+.cm-mini-mug {
+  width: 16px;
+  height: 18px;
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 2px 2px 4px 4px;
+  position: relative;
+}
+
+.cm-mini-mug::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 3px;
+  width: 4px;
+  height: 8px;
+  border: 1.5px solid #cbd5e1;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+}
+
+/* 2. Brushed Steel Control Fascia & Digital LCD */
+.cm-control-fascia {
+  background: linear-gradient(180deg, #475569 0%, #334155 40%, #1e293b 100%);
+  border: 2px solid #64748b;
+  border-top: none;
+  border-bottom: 2px solid #0f172a;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cm-fascia-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cm-power-light {
+  width: 10px;
+  height: 10px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #22c55e;
+  border: 1.5px solid #14532d;
+}
+
+.cm-fascia-switch {
+  width: 14px;
+  height: 20px;
+  background: #0f172a;
+  border: 1px solid #64748b;
+  border-radius: 2px;
+  position: relative;
+}
+
+.cm-fascia-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: #94a3b8;
+  border-radius: 1px;
+}
+
+/* Digital LCD Green Dot-Matrix Screen */
+.cm-lcd-screen {
+  background: #022c22;
+  border: 2px solid #065f46;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.65rem;
+  line-height: 1.35;
+  color: #34d399;
+  text-align: center;
+  flex: 1;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 0 8px rgba(16, 185, 129, 0.25);
+  text-shadow: 0 0 5px rgba(52, 211, 153, 0.7);
+}
+
+.cm-lcd-screen .lcd-glow {
+  color: #6ee7b7;
+}
+
+.cm-lcd-screen .lcd-sub {
+  font-size: 0.55rem;
+  color: #a7f3d0;
+}
+
+.cm-lcd-screen .lcd-progress {
+  color: #fbbf24;
+  letter-spacing: 0.05em;
+}
+
+.cm-lcd-screen .lcd-done {
+  color: #fef08a;
+}
+
+.cm-lcd-screen .lcd-blink {
+  color: #6ee7b7;
+  animation: cm-blink 0.8s infinite;
+}
+
+@keyframes cm-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.cm-fascia-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cm-gauge {
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle, #f8fafc 40%, #cbd5e1 90%);
+  border: 2px solid #475569;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.cm-gauge-needle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 1.5px;
+  background: #dc2626;
+  transform-origin: 0 50%;
+  transform: rotate(-35deg);
+  border-radius: 1px;
+}
+
+/* Machine Button with Yellow Pointer Arrow (from user screenshot) */
+.cm-machine-tap-btn {
+  position: relative;
+  background: #334155;
+  border: 2px solid #94a3b8;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.cm-machine-tap-btn:hover {
+  transform: scale(1.1);
+  border-color: #f59e0b;
+}
+
+.cm-machine-tap-btn.active {
+  box-shadow: 0 0 12px #f59e0b;
+}
+
+.cm-btn-core {
+  width: 10px;
+  height: 10px;
+  background: #f59e0b;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.cm-pointer-arrow {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f59e0b;
+  font-size: 0.95rem;
+  font-weight: 900;
+  animation: cm-bounce-arrow 1s infinite alternate ease-in-out;
+  pointer-events: none;
+  text-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+}
+
+@keyframes cm-bounce-arrow {
+  0% { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(4px); }
+}
+
+.cm-steam-knob {
+  width: 14px;
+  height: 18px;
+  background: #1e293b;
+  border: 1.5px solid #64748b;
+  border-radius: 3px;
+}
+
+/* 3. Dispensing Chamber & Group Heads */
+.cm-dispense-chamber {
+  background: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 0 0 10px 10px;
+  padding: 12px 16px 14px;
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.cm-group-heads-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  position: relative;
+  margin-top: -6px;
+}
+
+.cm-group-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.cm-portafilter-collar {
+  width: 44px;
+  height: 12px;
+  background: linear-gradient(180deg, #94a3b8 0%, #475569 100%);
+  border: 1.5px solid #334155;
+  border-radius: 3px;
+}
+
+.cm-portafilter-handle {
+  width: 32px;
+  height: 7px;
+  background: #09090b;
+  border-radius: 2px;
+  margin-top: -3px;
+  border: 1px solid #27272a;
+}
+
+.cm-group-head.left .cm-portafilter-handle {
+  transform: rotate(-18deg) translate(-8px, -2px);
+}
+
+.cm-group-head.right .cm-portafilter-handle {
+  transform: rotate(8deg) translate(6px, -2px);
+}
+
+.cm-spout {
+  width: 10px;
+  height: 8px;
+  background: #cbd5e1;
+  border-radius: 0 0 3px 3px;
+  position: relative;
+}
+
+/* Steam Wand */
+.cm-steam-wand {
+  position: absolute;
+  right: 15px;
+  top: 0;
+}
+
+.cm-wand-pipe {
+  width: 4px;
+  height: 48px;
+  background: linear-gradient(90deg, #94a3b8, #cbd5e1, #64748b);
+  border-radius: 2px;
+  transform: rotate(-22deg);
+  transform-origin: top center;
+}
+
+.cm-wand-tip {
+  width: 8px;
+  height: 7px;
+  background: #cbd5e1;
+  border-radius: 2px;
+  position: absolute;
+  bottom: -6px;
+  left: 14px;
+}
+
+/* Streaming Coffee Jet */
+.cm-stream {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 0px;
+  background: linear-gradient(180deg, #381b0a 0%, #713f12 50%, #451a03 100%);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+  box-shadow: 0 0 6px rgba(180, 83, 9, 0.6);
+}
+
+.cm-stream.active {
+  opacity: 1;
+  height: 84px;
+  animation: cm-stream-flow 0.25s infinite linear;
+}
+
+@keyframes cm-stream-flow {
+  0% { transform: translateX(-50%) scaleX(1); }
+  50% { transform: translateX(-50%) scaleX(1.3); }
+  100% { transform: translateX(-50%) scaleX(1); }
+}
+
+/* Rising Steam Particles */
+.cm-steam-particles {
+  position: absolute;
+  top: 20px;
+  bottom: 40px;
+  right: 50px;
+  width: 80px;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.cm-steam-puff {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  animation: cm-steam-rise 1.4s forwards ease-out;
+}
+
+@keyframes cm-steam-rise {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0.6; }
+  50% { transform: translate(-8px, -30px) scale(1.6); opacity: 0.4; }
+  100% { transform: translate(-16px, -65px) scale(2.6); opacity: 0; }
+}
+
+/* Drip Station & Mug */
+.cm-drip-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin-top: 24px;
+}
+
+.cm-coffee-mug {
+  width: 68px;
+  height: 62px;
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 2px 2px 8px 8px;
+  position: relative;
+  z-index: 4;
+  margin-left: 70px; /* Aligned under right group head */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+}
+
+.cm-mug-rim {
+  position: absolute;
+  top: -3px;
+  left: 2px;
+  right: 2px;
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  border: 1px solid #94a3b8;
+}
+
+.cm-mug-handle {
+  position: absolute;
+  right: -14px;
+  top: 10px;
+  width: 14px;
+  height: 32px;
+  border: 3.5px solid #cbd5e1;
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+}
+
+.cm-mug-interior {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  background: #18181b;
+  border-radius: 1px 1px 6px 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.cm-coffee-fill {
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(180deg, #78350f 0%, #451a03 35%, #1c0b02 100%);
+  position: relative;
+  transition: height 0.08s linear;
+}
+
+.cm-coffee-fill.full {
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.cm-coffee-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(251, 191, 36, 0.6);
+}
+
+.cm-crema-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #d97706 0%, #f59e0b 50%, #d97706 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  border-radius: 2px 2px 0 0;
+}
+
+.cm-fill-badge {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.58rem;
+  color: #fbbf24;
+  white-space: nowrap;
+}
+
+.cm-fill-badge.ready {
+  background: #065f46;
+  border-color: #34d399;
+  color: #a7f3d0;
+  animation: cm-pulse-green 1s infinite alternate;
+}
+
+@keyframes cm-pulse-green {
+  0% { transform: translateX(-50%) scale(1); }
+  100% { transform: translateX(-50%) scale(1.08); box-shadow: 0 0 10px #34d399; }
+}
+
+/* Metal Slatted Drip Tray */
+.cm-drip-tray {
+  width: 100%;
+  height: 18px;
+  background: linear-gradient(180deg, #64748b 0%, #334155 100%);
+  border-radius: 4px;
+  border: 1.5px solid #475569;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cm-drip-slots {
+  display: flex;
+  gap: 8px;
+}
+
+.cm-drip-slots span {
+  width: 3px;
+  height: 10px;
+  background: #0f172a;
+  border-radius: 1px;
+}
+
+/* 4. Status Banner */
+.cm-status-banner {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center;
+  transition: all 0.25s ease;
+}
+
+.cm-status-banner.ready {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.cm-status-banner.brewing {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+}
+
+.cm-status-banner.complete {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.cm-status-banner h4 {
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.68rem;
+  color: #fbbf24;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.04em;
+}
+
+.cm-status-banner.complete h4 {
+  color: #34d399;
+}
+
+.cm-status-banner p {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+/* 5. Control Buttons */
+.cm-controls-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.cm-btn-brew {
+  flex: 1;
+  background: linear-gradient(180deg, #b45309 0%, #92400e 50%, #78350f 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: all 0.15s ease;
+}
+
+.cm-btn-brew:hover {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.6);
+}
+
+.cm-btn-brew.brewing {
+  background: linear-gradient(180deg, #451a03 0%, #290f02 100%);
+  border-color: #fbbf24;
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+}
+
+.cm-btn-drink {
+  flex: 1;
+  background: linear-gradient(180deg, #059669 0%, #047857 50%, #065f46 100%);
+  border: 2px solid #34d399;
+  border-radius: 10px;
+  padding: 11px 16px;
+  color: #fff;
+  font-family: var(--font-retro, 'Press Start 2P', monospace);
+  font-size: 0.74rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  animation: cm-drink-pulse 1s infinite alternate;
+}
+
+@keyframes cm-drink-pulse {
+  0% { transform: scale(1); box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5); }
+  100% { transform: scale(1.02); box-shadow: 0 6px 24px rgba(52, 211, 153, 0.85); }
+}
+
+.cm-btn-drink:hover {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+
+.cm-btn-exit {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cm-btn-exit:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #f87171;
+  color: #fff;
+}
+
+
 

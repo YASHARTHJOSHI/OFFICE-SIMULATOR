@@ -975,6 +975,147 @@
     </div>
   </div>
 
+  <!-- =========================================================
+       ESPRESSO MACHINE INTERACTIVE BREWING MINIGAME MODAL
+       ========================================================= -->
+  <div id="coffee-machine-modal" class="modal hidden">
+    <div class="modal-card cm-modal-card">
+      <!-- Machine Top Header -->
+      <div class="cm-machine-header">
+        <div class="cm-brand-tag">
+          <span class="cm-brand-dot"></span>
+          <span class="cm-brand-name">ESPRESSO PRO 9000™</span>
+          <span class="cm-brand-sub">BARISTA COMMERCIAL EXTRACTION</span>
+        </div>
+        <button id="cm-btn-close-modal" class="modal-close" title="Exit (Esc)">&times;</button>
+      </div>
+
+      <!-- Main Espresso Machine Chassis (Matches User Pixel Art Screenshot) -->
+      <div class="cm-machine-body">
+        <!-- 1. Top Cup Warmer Tray with Glasses & Mugs -->
+        <div class="cm-cup-warmer-tray">
+          <div class="cm-tray-rail"></div>
+          <div class="cm-warming-cups">
+            <span class="cm-mini-glass g1"></span>
+            <span class="cm-mini-glass g2"></span>
+            <span class="cm-mini-mug m1"></span>
+            <span class="cm-mini-mug m2"></span>
+          </div>
+        </div>
+
+        <!-- 2. Brushed Steel Control Fascia & Digital LCD -->
+        <div class="cm-control-fascia">
+          <div class="cm-fascia-left">
+            <div class="cm-power-light"></div>
+            <div class="cm-fascia-switch"></div>
+          </div>
+
+          <!-- Digital Green LCD Screen -->
+          <div id="cm-lcd-screen" class="cm-lcd-screen">
+            <span class="lcd-glow">● READY 93°C</span><br>
+            <span class="lcd-sub">TAP BREW BUTTON ☕</span>
+          </div>
+
+          <!-- Pressure Gauge & Steam Knob -->
+          <div class="cm-fascia-right">
+            <div class="cm-gauge">
+              <div class="cm-gauge-needle"></div>
+            </div>
+            <!-- Clickable Brew Push Button on Machine Fascia with Pointer Arrow -->
+            <button id="cm-machine-tap-btn" class="cm-machine-tap-btn" title="Tap Button on Machine to Brew!">
+              <div class="cm-btn-core"></div>
+              <div class="cm-pointer-arrow">▼</div>
+            </button>
+            <div class="cm-steam-knob"></div>
+          </div>
+        </div>
+
+        <!-- 3. Dispensing Chamber with Dual Group Heads & Mug -->
+        <div class="cm-dispense-chamber">
+          <!-- Dual Chrome Group Heads -->
+          <div class="cm-group-heads-row">
+            <div class="cm-group-head left">
+              <div class="cm-portafilter-collar"></div>
+              <div class="cm-portafilter-handle"></div>
+              <div class="cm-spout"></div>
+            </div>
+
+            <!-- Right Group Head (Active Dispenser directly over mug) -->
+            <div class="cm-group-head right active">
+              <div class="cm-portafilter-collar"></div>
+              <div class="cm-portafilter-handle"></div>
+              <div class="cm-spout">
+                <!-- Streaming Coffee Jet (flows down into mug when active) -->
+                <div id="cm-coffee-stream" class="cm-stream"></div>
+              </div>
+            </div>
+
+            <!-- Side Chrome Steam Wand Pipe -->
+            <div class="cm-steam-wand">
+              <div class="cm-wand-pipe"></div>
+              <div class="cm-wand-tip"></div>
+            </div>
+          </div>
+
+          <!-- Steaming Particles Wrap -->
+          <div id="cm-steam-particles" class="cm-steam-particles"></div>
+
+          <!-- Ceramic Coffee Cup Resting on Metal Drip Tray -->
+          <div class="cm-drip-station">
+            <div id="cm-coffee-mug" class="cm-coffee-mug">
+              <!-- Mug Rim & Body -->
+              <div class="cm-mug-rim"></div>
+              <div class="cm-mug-handle"></div>
+              <div class="cm-mug-interior">
+                <!-- Rich Dark Espresso Liquid Fill -->
+                <div id="cm-coffee-fill" class="cm-coffee-fill">
+                  <div class="cm-coffee-surface"></div>
+                  <!-- Crema Foam Layer on Top -->
+                  <div id="cm-crema-layer" class="cm-crema-layer"></div>
+                </div>
+              </div>
+              <!-- Fill percentage badge -->
+              <div id="cm-fill-badge" class="cm-fill-badge">0%</div>
+            </div>
+
+            <!-- Stainless Steel Slotted Drip Tray Grill -->
+            <div class="cm-drip-tray">
+              <div class="cm-drip-slots">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Status Banner -->
+        <div id="cm-status-banner" class="cm-status-banner ready">
+          <h4 id="cm-status-title">ESPRESSO PRO 9000™</h4>
+          <p id="cm-status-desc">Tap the brew button or press Space/E to start pouring coffee into your cup.</p>
+        </div>
+
+        <!-- 5. Controls Row: Brew Button & OK / Drink Button -->
+        <div class="cm-controls-row">
+          <button id="cm-brew-btn" class="cm-btn-brew" title="Tap or Press Space/E to Pour">
+            <span class="cm-btn-icon">☕</span>
+            <span class="cm-btn-text">TAP TO BREW ESPRESSO</span>
+            <small class="cm-btn-sub">[Space / E / Click]</small>
+          </button>
+
+          <!-- OK / Drink Button (Revealed when 100% full) -->
+          <button id="cm-drink-btn" class="cm-btn-drink hidden" title="Drink Fresh Espresso!">
+            <span class="cm-btn-icon">✨</span>
+            <span class="cm-btn-text">OK / DRINK COFFEE ☕</span>
+            <small class="cm-btn-sub">[+Speed & Energy Boost]</small>
+          </button>
+
+          <button id="cm-exit-btn" class="cm-btn-exit" title="Exit (Esc)">
+            <span>✕ Exit</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase Core, Auth & Firestore SDKs (v10 Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -991,6 +1132,7 @@
   <script src="workplace-paper.js"></script>
   <script src="phone-device.js"></script>
   <script src="water-cooler.js"></script>
+  <script src="coffee-machine.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

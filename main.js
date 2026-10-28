@@ -762,11 +762,15 @@ const SCENES = {
       {
         id: 'cafe_espresso_machine',
         x: 310, y: 245, w: 130, h: 60,
-        prompt: 'Brew Fresh Espresso ☕',
+        prompt: 'Brew Fresh Espresso ☕ [E]',
         promptPos: { x: 375, y: 225 },
         action: () => {
-          window.soundManager.playWater();
-          showToast('☕ *Psssshh* Rich dark espresso brewed! Energy boosted to 100%! ⚡');
+          if (window.coffeeMachine) {
+            window.coffeeMachine.open();
+          } else {
+            window.soundManager.playWater();
+            showToast('☕ *Psssshh* Rich dark espresso brewed! Energy boosted to 100%! ⚡');
+          }
         }
       },
       // 3. Glowing Vending Machine
@@ -978,12 +982,16 @@ const SCENES = {
         prompt: '☕ Brew R&D Espresso [E]',
         promptPos: { x: 810, y: 140 },
         action: () => {
-          window.soundManager.playInteract();
-          if (window.pixelEngine && window.pixelEngine.particles) {
-            window.pixelEngine.particles.spawnCoffeeSteam(790, 85);
-            window.pixelEngine.particles.spawnCoffeeSteam(830, 85);
+          if (window.coffeeMachine) {
+            window.coffeeMachine.open();
+          } else {
+            window.soundManager.playInteract();
+            if (window.pixelEngine && window.pixelEngine.particles) {
+              window.pixelEngine.particles.spawnCoffeeSteam(790, 85);
+              window.pixelEngine.particles.spawnCoffeeSteam(830, 85);
+            }
+            showToast('☕ Double shot espresso pulled! Developer focus accelerated.');
           }
-          showToast('☕ Double shot espresso pulled! Developer focus accelerated.');
         }
       },
       // 9. Snack Vending Machine
@@ -1096,11 +1104,15 @@ const SCENES = {
         prompt: '☕ Brew Executive Blend Coffee [E]',
         promptPos: { x: 135, y: 230 },
         action: () => {
-          window.soundManager.playInteract();
-          if (window.pixelEngine && window.pixelEngine.particles) {
-            window.pixelEngine.particles.spawnCoffeeSteam(135, 215);
+          if (window.coffeeMachine) {
+            window.coffeeMachine.open();
+          } else {
+            window.soundManager.playInteract();
+            if (window.pixelEngine && window.pixelEngine.particles) {
+              window.pixelEngine.particles.spawnCoffeeSteam(135, 215);
+            }
+            showToast('☕ Executive Dark Roast brewed! Focus +100% for the upcoming board meeting.');
           }
-          showToast('☕ Executive Dark Roast brewed! Focus +100% for the upcoming board meeting.');
         }
       },
       // 4. Conference Board Meeting Table Sitting
@@ -2303,6 +2315,11 @@ function update(dt) {
   // Autonomous AI NPC Routines
   if (window.aiAgent) {
     window.aiAgent.update(dt * 1000);
+  }
+
+  // Autonomous Coffee Machine Queue Manager
+  if (window.coffeeQueueManager) {
+    window.coffeeQueueManager.update(dt * 1000);
   }
 }
 

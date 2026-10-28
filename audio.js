@@ -439,6 +439,165 @@ class SoundManager {
       });
     } catch (e) {}
   }
+  // --- ESPRESSO STREAM AUDIO ---
+  startCoffeePour() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    this.stopCoffeePour();
+
+    try {
+      const now = this.ctx.currentTime;
+      // 1. Noise buffer for streaming hot liquid and high-pressure steam
+      const bufferSize = this.ctx.sampleRate * 2;
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        output[i] = (b0 + b1 + b2 + white * 0.5362) * 0.28;
+      }
+
+      this.coffeeNoiseNode = this.ctx.createBufferSource();
+      this.coffeeNoiseNode.buffer = noiseBuffer;
+      this.coffeeNoiseNode.loop = true;
+
+      // Resonant bandpass filter (pitch rises smoothly as cup fills with liquid)
+      this.coffeeFilter = this.ctx.createBiquadFilter();
+      this.coffeeFilter.type = 'bandpass';
+      this.coffeeFilter.frequency.setValueAtTime(540, now);
+      this.coffeeFilter.Q.setValueAtTime(4.2, now);
+
+      // Low mechanical pump rumble (52Hz)
+      this.coffeePumpOsc = this.ctx.createOscillator();
+      this.coffeePumpOsc.type = 'triangle';
+      this.coffeePumpOsc.frequency.setValueAtTime(52, now);
+      this.coffeePumpGain = this.ctx.createGain();
+      this.coffeePumpGain.gain.setValueAtTime(0.04, now);
+      this.coffeePumpOsc.connect(this.coffeePumpGain);
+
+      // Bubbling trickle modulation (13Hz flutter)
+      this.coffeeLFO = this.ctx.createOscillator();
+      this.coffeeLFO.type = 'sine';
+      this.coffeeLFO.frequency.setValueAtTime(13, now);
+      const lfoGain = this.ctx.createGain();
+      lfoGain.gain.setValueAtTime(110, now);
+      this.coffeeLFO.connect(lfoGain);
+      lfoGain.connect(this.coffeeFilter.frequency);
+
+      // Master pour gain
+      this.coffeeGain = this.ctx.createGain();
+      this.coffeeGain.gain.setValueAtTime(0.001, now);
+      this.coffeeGain.gain.linearRampToValueAtTime(0.24, now + 0.1);
+
+      this.coffeeNoiseNode.connect(this.coffeeFilter);
+      this.coffeeFilter.connect(this.coffeeGain);
+      this.coffeePumpGain.connect(this.coffeeGain);
+      this.coffeeGain.connect(this.masterGain);
+
+      this.coffeeNoiseNode.start(now);
+      this.coffeePumpOsc.start(now);
+      this.coffeeLFO.start(now);
+      this.isCoffeePouring = true;
+    } catch (e) {
+      console.warn('Coffee sound error:', e);
+    }
+  }
+
+  updateCoffeePourPitch(fillPercent) {
+    if (!this.isCoffeePouring || !this.coffeeFilter || !this.ctx) return;
+    try {
+      const freq = 540 + (Math.min(100, Math.max(0, fillPercent)) / 100) * 580;
+      this.coffeeFilter.frequency.setTargetAtTime(freq, this.ctx.currentTime, 0.05);
+    } catch (e) {}
+  }
+
+  stopCoffeePour() {
+    if (!this.isCoffeePouring) return;
+    this.isCoffeePouring = false;
+    try {
+      if (this.coffeeGain && this.ctx) {
+        const now = this.ctx.currentTime;
+        this.coffeeGain.gain.setValueAtTime(this.coffeeGain.gain.value, now);
+        this.coffeeGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+      }
+      setTimeout(() => {
+        try {
+          if (this.coffeeNoiseNode) { this.coffeeNoiseNode.stop(); this.coffeeNoiseNode.disconnect(); }
+          if (this.coffeePumpOsc) { this.coffeePumpOsc.stop(); this.coffeePumpOsc.disconnect(); }
+          if (this.coffeeLFO) { this.coffeeLFO.stop(); this.coffeeLFO.disconnect(); }
+        } catch (e) {}
+      }, 160);
+    } catch (e) {}
+  }
+
+  // --- COFFEE READY DING / CHIME ---
+  playCoffeeReady() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      const chimes = [
+        { f: 739.99, delay: 0.0, dur: 0.55, vol: 0.24 },
+        { f: 1108.73, delay: 0.08, dur: 0.75, vol: 0.28 }
+      ];
+      chimes.forEach(c => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(c.f, t + c.delay);
+        gain.gain.setValueAtTime(0.001, t + c.delay);
+        gain.gain.linearRampToValueAtTime(c.vol, t + c.delay + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + c.delay + c.dur);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + c.delay);
+        osc.stop(t + c.delay + c.dur + 0.05);
+      });
+    } catch (e) {}
+  }
+
+  // --- COFFEE DRINK / GULP SOUND ---
+  playCoffeeDrink() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      // Two gulp swallow sounds
+      [0.0, 0.22].forEach((delay, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(260 - idx * 25, t + delay);
+        osc.frequency.exponentialRampToValueAtTime(140 - idx * 20, t + delay + 0.12);
+        gain.gain.setValueAtTime(0.001, t + delay);
+        gain.gain.linearRampToValueAtTime(0.26, t + delay + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.14);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + delay);
+        osc.stop(t + delay + 0.15);
+      });
+
+      // Refreshing sparkle chime
+      const sparkle = [1046.5, 1318.5, 1567.98, 2093.0];
+      sparkle.forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, t + 0.38 + i * 0.06);
+        gain.gain.setValueAtTime(0.001, t + 0.38 + i * 0.06);
+        gain.gain.linearRampToValueAtTime(0.14, t + 0.38 + i * 0.06 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.38 + i * 0.06 + 0.22);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + 0.38 + i * 0.06);
+        osc.stop(t + 0.38 + i * 0.06 + 0.25);
+      });
+    } catch (e) {}
+  }
 }
 
 window.soundManager = new SoundManager();
