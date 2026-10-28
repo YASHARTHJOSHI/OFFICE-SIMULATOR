@@ -787,7 +787,40 @@
       this.completedTaskTitles = new Set();
       this._isAssigningTasks = false;
       this._lastToggle = 0;
-      this._pushTimeout = null;
+      // Interactive In-Phone Apps State (Camera, Chat, Mail, Quests, Browser, Terminal, Notes, Music, Settings)
+      this.currentApp = null;
+      this.activeCameraStream = null;
+      this.cameraFilterIndex = 0;
+      this.cameraFilters = ['none', 'grayscale(100%) contrast(120%)', 'sepia(90%) hue-rotate(315deg)', 'hue-rotate(180deg) saturate(220%)', 'contrast(160%) brightness(110%)'];
+      this.capturedPhotos = [];
+      this.musicState = { playing: false, trackIndex: 0, interval: null, volume: 0.5 };
+      this.activeChatChannel = 'general';
+      this.chatMessages = {
+        general: [
+          { sender: 'Amit (HR)', text: 'Reminder: All-Hands meeting on the main stage at 4 PM! 🍕', time: '10:15 AM', avatar: '👔' },
+          { sender: 'Vikram', text: 'Prod deployment for v2.4.1 is green. Monitoring metrics.', time: '10:28 AM', avatar: '💻' },
+          { sender: 'Neha', text: 'Sprint velocity is looking great this week! Good job everyone.', time: '10:35 AM', avatar: '📋' }
+        ],
+        dev: [
+          { sender: 'Kabir', text: 'Anyone reviewed PR #418 on failover consensus yet?', time: '09:45 AM', avatar: '🔬' },
+          { sender: 'Rohan', text: 'Looking at it now, looks solid. Connection pool recycling is clean.', time: '10:02 AM', avatar: '🛡️' }
+        ],
+        hr: [
+          { sender: 'Amit (HR)', text: 'Welcome to the team! Don’t forget to check your daily SWE tasks.', time: '09:00 AM', avatar: '👔' },
+          { sender: 'Amit (HR)', text: 'Espresso machine tip: Slide mug to green zone before pouring!', time: '09:30 AM', avatar: '☕' }
+        ],
+        multiplayer: [
+          { sender: 'Lobby Server', text: 'Multiplayer room connected. Type messages below to chat with players!', time: 'Just now', avatar: '🌐' }
+        ]
+      };
+      this.notes = JSON.parse(localStorage.getItem('OFFICE_PHONE_NOTES') || 'null') || [
+        { id: 1, title: 'Sprint Standup Notes', body: '• Fix Redis leak\n• Test multi-region failover\n• Grab espresso at pantry' },
+        { id: 2, title: 'Office Map Secret', body: 'Press [M] to open holographic floor plan & fast travel!' },
+        { id: 3, title: 'Espresso Machine Tip', body: 'Slide the glass under the green pour guide to avoid messy spills!' }
+      ];
+      this.activeBrowserTab = 'wiki';
+      this.terminalHistory = [];
+      this.terminalHistoryIdx = -1;
 
       // Character Tasks in Memory
       this.characterTasks = {
@@ -944,8 +977,8 @@
                 </div>
               </div>
 
-              <!-- Scrollable Phone Screen View -->
-              <div class="phone-content">
+              <!-- Scrollable Phone Screen View (Home Screen) -->
+              <div class="phone-content" id="phone-home-view">
                 <!-- Task Notification Card -->
                 <div class="phone-notif-card" id="phone-notif-card">
                   <div class="notif-top">
@@ -1038,6 +1071,20 @@
                       <span class="app-label">CRT Mode</span>
                     </button>
                   </div>
+                </div>
+              </div>
+
+              <!-- Interactive In-Phone App Viewport Container -->
+              <div class="phone-app-view" id="phone-app-view" style="display: none;">
+                <div class="phone-app-header">
+                  <button class="phone-app-back-btn" id="phone-app-back-btn">
+                    <span class="back-arrow">‹</span> Home
+                  </button>
+                  <div class="phone-app-title" id="phone-app-title">App</div>
+                  <div class="phone-app-header-action" id="phone-app-action"></div>
+                </div>
+                <div class="phone-app-body" id="phone-app-body">
+                  <!-- Active App Renders Here -->
                 </div>
               </div>
 
@@ -1174,7 +1221,11 @@
 
         if ((k === 'escape' || code === 'Escape') && this.isOpen) {
           e.preventDefault();
-          this.close();
+          if (this.currentApp) {
+            this.closeApp();
+          } else {
+            this.close();
+          }
         }
       });
 
@@ -1187,9 +1238,23 @@
         });
       }
 
-      // Close pill click
+      // Close pill click (if inside an app -> returns to Home; if on home -> closes phone)
       const homePill = document.getElementById('phone-home-pill');
-      if (homePill) homePill.onclick = () => this.close();
+      if (homePill) {
+        homePill.onclick = () => {
+          if (this.currentApp) {
+            this.closeApp();
+          } else {
+            this.close();
+          }
+        };
+      }
+
+      // App Back to Home Button
+      const appBackBtn = document.getElementById('phone-app-back-btn');
+      if (appBackBtn) {
+        appBackBtn.onclick = () => this.closeApp();
+      }
 
       // Refresh Groq tasks button -> Asks HR Manager Amit for new sprint tasks
       const refreshBtn = document.getElementById('phone-groq-refresh-btn');
@@ -1206,10 +1271,7 @@
       const btnQuest = document.getElementById('phone-btn-open-quest');
       if (btnQuest) {
         btnQuest.onclick = () => {
-          this.close();
-          if (typeof window.toggleClassicDashboard === 'function') {
-            window.toggleClassicDashboard();
-          }
+          this.openApp('quests');
         };
       }
 
@@ -1225,100 +1287,33 @@
         };
       }
 
-      // App button wiring
+      // App button wiring - All 9 Interactive Smartphone Apps!
       const chatBtn = document.getElementById('app-btn-chat');
-      if (chatBtn) {
-        chatBtn.onclick = () => {
-          this.close();
-          if (typeof window.togglePagerModal === 'function') {
-            window.togglePagerModal();
-          }
-        };
-      }
+      if (chatBtn) chatBtn.onclick = () => this.openApp('chat');
 
       const mailBtn = document.getElementById('app-btn-mail');
-      if (mailBtn) {
-        mailBtn.onclick = () => {
-          this.close();
-          if (window.pcOS && typeof window.pcOS.openMail === 'function') {
-            window.pcOS.openMail();
-          } else if (typeof window.openWorkstationPC === 'function') {
-            window.openWorkstationPC();
-          }
-        };
-      }
+      if (mailBtn) mailBtn.onclick = () => this.openApp('mail');
 
       const questBtn = document.getElementById('app-btn-quest');
-      if (questBtn) {
-        questBtn.onclick = () => {
-          this.close();
-          if (typeof window.toggleClassicDashboard === 'function') {
-            window.toggleClassicDashboard();
-          }
-        };
-      }
+      if (questBtn) questBtn.onclick = () => this.openApp('quests');
 
       const browserBtn = document.getElementById('app-btn-browser');
-      if (browserBtn) {
-        browserBtn.onclick = () => {
-          this.close();
-          if (window.pcOS && typeof window.pcOS.open === 'function') {
-            window.pcOS.open();
-            setTimeout(() => {
-              if (typeof window.pcOS.openBrowser === 'function') window.pcOS.openBrowser();
-            }, 300);
-          } else if (typeof window.showToast === 'function') {
-            window.showToast('🌐 Log into your assigned desk PC to access Intranet!');
-          }
-        };
-      }
+      if (browserBtn) browserBtn.onclick = () => this.openApp('browser');
 
       const cameraBtn = document.getElementById('app-btn-camera');
-      if (cameraBtn) {
-        cameraBtn.onclick = () => this.takeSnapshot();
-      }
+      if (cameraBtn) cameraBtn.onclick = () => this.openApp('camera');
 
       const terminalBtn = document.getElementById('app-btn-terminal');
-      if (terminalBtn) {
-        terminalBtn.onclick = () => {
-          if (window.soundManager) window.soundManager.playInteract();
-          if (typeof window.showToast === 'function') {
-            window.showToast('💻 OmniTerminal: Latency 0.8ms • All systems operational');
-          }
-        };
-      }
+      if (terminalBtn) terminalBtn.onclick = () => this.openApp('terminal');
 
       const notesBtn = document.getElementById('app-btn-notes');
-      if (notesBtn) {
-        notesBtn.onclick = () => {
-          if (window.soundManager) window.soundManager.playInteract();
-          const obj = document.getElementById('objective-text');
-          if (typeof window.showToast === 'function') {
-            window.showToast(obj ? `📝 Note: ${obj.textContent}` : '📝 Clear daily missions!');
-          }
-        };
-      }
+      if (notesBtn) notesBtn.onclick = () => this.openApp('notes');
 
       const musicBtn = document.getElementById('app-btn-music');
-      if (musicBtn) {
-        musicBtn.onclick = () => {
-          if (typeof window.toggleSound === 'function') {
-            window.toggleSound();
-          }
-        };
-      }
+      if (musicBtn) musicBtn.onclick = () => this.openApp('music');
 
       const settingsBtn = document.getElementById('app-btn-settings');
-      if (settingsBtn) {
-        settingsBtn.onclick = () => {
-          if (window.pixelEngine && typeof window.pixelEngine.toggleCRT === 'function') {
-            const active = window.pixelEngine.toggleCRT();
-            if (typeof window.showToast === 'function') {
-              window.showToast(active ? '📺 CRT Scanlines: ON' : '📺 CRT Scanlines: OFF');
-            }
-          }
-        };
-      }
+      if (settingsBtn) settingsBtn.onclick = () => this.openApp('settings');
     }
 
     takeSnapshot() {
@@ -2001,11 +1996,894 @@ Each object must have these exact keys:
 
     close() {
       if (!this.isOpen) return;
+      this.closeApp();
       this.isOpen = false;
       if (!this.overlay) this.overlay = document.getElementById('phone-overlay');
       if (this.overlay) {
         this.overlay.classList.add('hidden');
       }
+    }
+
+    // ==================================================================
+    // IN-PHONE APPS CONTROLLER SYSTEM (Camera, Chat, Mail, Quests, etc.)
+    // ==================================================================
+    openApp(appName) {
+      this.currentApp = appName;
+      const homeView = document.getElementById('phone-home-view');
+      const appView = document.getElementById('phone-app-view');
+      if (homeView) homeView.style.display = 'none';
+      if (appView) appView.style.display = 'flex';
+
+      const titleEl = document.getElementById('phone-app-title');
+      const bodyEl = document.getElementById('phone-app-body');
+      const actionEl = document.getElementById('phone-app-action');
+
+      if (window.soundManager && typeof window.soundManager.playInteract === 'function') {
+        window.soundManager.playInteract();
+      }
+
+      switch (appName) {
+        case 'camera':
+          this.renderCameraApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'chat':
+          this.renderChatApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'mail':
+          this.renderMailApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'quests':
+          this.renderQuestsApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'browser':
+          this.renderBrowserApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'terminal':
+          this.renderTerminalApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'notes':
+          this.renderNotesApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'music':
+          this.renderMusicApp(titleEl, bodyEl, actionEl);
+          break;
+        case 'settings':
+          this.renderSettingsApp(titleEl, bodyEl, actionEl);
+          break;
+        default:
+          this.closeApp();
+          break;
+      }
+    }
+
+    closeApp() {
+      if (this.currentApp === 'camera') {
+        this.stopCamera();
+      }
+      this.currentApp = null;
+      const homeView = document.getElementById('phone-home-view');
+      const appView = document.getElementById('phone-app-view');
+      if (appView) appView.style.display = 'none';
+      if (homeView) homeView.style.display = 'flex';
+    }
+
+    // ------------------------------------------------------------------
+    // 1. CAMERA APP (Webcam live preview, shutter, filter & snapshot)
+    // ------------------------------------------------------------------
+    renderCameraApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '📷 Camera';
+      if (actionEl) {
+        actionEl.innerHTML = `<button id="camera-filter-btn" class="phone-app-back-btn" title="Cycle Filter">✨ Filter</button>`;
+        const fBtn = document.getElementById('camera-filter-btn');
+        if (fBtn) fBtn.onclick = () => this.cycleCameraFilter();
+      }
+
+      const activeFilter = this.cameraFilters[this.cameraFilterIndex] || 'none';
+      const recentPhoto = (this.capturedPhotos && this.capturedPhotos[0]) || '';
+
+      bodyEl.innerHTML = `
+        <div class="camera-app-viewport">
+          <video id="phone-camera-video" class="camera-video-feed" style="filter: ${activeFilter}; display:none;" autoplay playsinline muted></video>
+          <div id="phone-camera-fallback" class="camera-fallback-screen">
+            <div class="camera-fallback-avatar">📸</div>
+            <div style="font-size:0.85rem; font-weight:700; color:#38bdf8;">Connecting Laptop Camera...</div>
+            <div style="font-size:0.65rem; color:#94a3b8;">If prompted, allow camera permissions to see live video.</div>
+          </div>
+          <div class="camera-controls-bar">
+            ${recentPhoto ? `<img id="camera-thumb-preview" class="camera-preview-thumb" src="${recentPhoto}" title="Click to view & download photo" />` : `<div style="width:38px; height:38px; border-radius:8px; border:1px dashed #475569;"></div>`}
+            <button class="camera-shutter-btn" id="phone-shutter-btn" title="Snap Photo"></button>
+            <button id="camera-switch-btn" class="phone-app-back-btn" style="border-radius:50%; width:38px; height:38px; padding:0; justify-content:center; font-size:16px;" title="Reset Camera">🔄</button>
+          </div>
+        </div>
+      `;
+
+      const shutterBtn = document.getElementById('phone-shutter-btn');
+      if (shutterBtn) shutterBtn.onclick = () => this.takeCameraPhoto();
+
+      const switchBtn = document.getElementById('camera-switch-btn');
+      if (switchBtn) switchBtn.onclick = () => {
+        this.stopCamera();
+        this.startCamera();
+      };
+
+      const thumb = document.getElementById('camera-thumb-preview');
+      if (thumb) thumb.onclick = () => this.showCapturedPhotoModal();
+
+      this.startCamera();
+    }
+
+    async startCamera() {
+      const videoEl = document.getElementById('phone-camera-video');
+      const fallbackEl = document.getElementById('phone-camera-fallback');
+      if (!videoEl) return;
+
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+            audio: false
+          });
+          this.activeCameraStream = stream;
+          videoEl.srcObject = stream;
+          videoEl.style.display = 'block';
+          if (fallbackEl) fallbackEl.style.display = 'none';
+          await videoEl.play();
+        } else {
+          throw new Error('getUserMedia not supported');
+        }
+      } catch (err) {
+        console.warn('Camera stream could not be opened:', err);
+        if (videoEl) videoEl.style.display = 'none';
+        if (fallbackEl) {
+          fallbackEl.style.display = 'flex';
+          fallbackEl.innerHTML = `
+            <div class="camera-fallback-avatar">🕶️</div>
+            <div style="font-size:0.85rem; font-weight:700; color:#38bdf8;">Office Selfie Booth</div>
+            <div style="font-size:0.68rem; color:#94a3b8; line-height:1.4;">Laptop camera is unavailable or blocked in browser settings.<br>Press the white shutter button to capture a retro corporate badge selfie!</div>
+          `;
+        }
+      }
+    }
+
+    stopCamera() {
+      if (this.activeCameraStream) {
+        try {
+          this.activeCameraStream.getTracks().forEach(t => t.stop());
+        } catch (e) {}
+        this.activeCameraStream = null;
+      }
+    }
+
+    cycleCameraFilter() {
+      this.cameraFilterIndex = (this.cameraFilterIndex + 1) % this.cameraFilters.length;
+      const f = this.cameraFilters[this.cameraFilterIndex];
+      const videoEl = document.getElementById('phone-camera-video');
+      if (videoEl) videoEl.style.filter = f;
+      if (typeof window.showToast === 'function') {
+        const names = ['Normal', 'B&W Noir', 'Retro Sepia', 'Cyberpunk Neon', 'High Contrast'];
+        window.showToast(`✨ Filter: ${names[this.cameraFilterIndex]}`);
+      }
+    }
+
+    takeCameraPhoto() {
+      const flash = document.getElementById('phone-camera-flash');
+      if (flash) {
+        flash.classList.add('flash');
+        setTimeout(() => flash.classList.remove('flash'), 220);
+      }
+
+      if (window.soundManager && typeof window.soundManager.playInteract === 'function') {
+        window.soundManager.playInteract();
+      }
+
+      const videoEl = document.getElementById('phone-camera-video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (videoEl && videoEl.srcObject && videoEl.videoWidth) {
+        canvas.width = videoEl.videoWidth;
+        canvas.height = videoEl.videoHeight;
+        // Mirror horizontally for selfie
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.filter = this.cameraFilters[this.cameraFilterIndex] || 'none';
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      } else {
+        // Fallback stylized snapshot
+        canvas.width = 480;
+        canvas.height = 360;
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(0, 0, 480, 360);
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText('ACME CORP • RETRO SELFIE 📸', 60, 160);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px monospace';
+        ctx.fillText(`Timestamp: ${new Date().toLocaleTimeString()}`, 80, 200);
+      }
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      this.capturedPhotos.unshift(dataUrl);
+
+      // Re-render camera controls to update thumbnail
+      const titleEl = document.getElementById('phone-app-title');
+      const bodyEl = document.getElementById('phone-app-body');
+      const actionEl = document.getElementById('phone-app-action');
+      this.renderCameraApp(titleEl, bodyEl, actionEl);
+
+      if (typeof window.showToast === 'function') {
+        window.showToast('📸 Photo captured! Saved to phone gallery.');
+      }
+    }
+
+    showCapturedPhotoModal() {
+      if (!this.capturedPhotos || this.capturedPhotos.length === 0) return;
+      const photo = this.capturedPhotos[0];
+      const win = window.open('');
+      if (win) {
+        win.document.write(`
+          <title>ACME Smartphone Photo</title>
+          <body style="margin:0; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; color:#fff; font-family:sans-serif;">
+            <img src="${photo}" style="max-width:90%; max-height:80vh; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.8); border:2px solid #38bdf8;" />
+            <div style="margin-top:15px; display:flex; gap:10px;">
+              <a href="${photo}" download="office-selfie.jpg" style="background:#38bdf8; color:#0f172a; font-weight:bold; padding:8px 18px; border-radius:20px; text-decoration:none;">💾 Download Photo</a>
+            </div>
+          </body>
+        `);
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // 2. CHAT APP (Channels, Coworker AI & Multiplayer sync)
+    // ------------------------------------------------------------------
+    renderChatApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '💬 OmniChat';
+      if (actionEl) actionEl.innerHTML = '';
+
+      const channels = [
+        { id: 'general', label: '#general' },
+        { id: 'dev', label: '#dev-squad' },
+        { id: 'hr', label: '#hr-amit' },
+        { id: 'multiplayer', label: '🌐 Online' }
+      ];
+
+      const currentChan = this.activeChatChannel || 'general';
+      const messages = this.chatMessages[currentChan] || [];
+
+      bodyEl.innerHTML = `
+        <div class="chat-app-container">
+          <div class="chat-channel-bar">
+            ${channels.map(c => `
+              <button class="chat-tab-btn ${c.id === currentChan ? 'active' : ''}" data-chan="${c.id}">${c.label}</button>
+            `).join('')}
+          </div>
+          <div class="chat-messages-scroll" id="chat-messages-scroll">
+            ${messages.map(m => `
+              <div class="chat-msg-row ${m.mine ? 'mine' : ''}">
+                ${!m.mine ? `<div class="chat-avatar">${m.avatar || '👤'}</div>` : ''}
+                <div class="chat-bubble ${m.mine ? 'mine' : ''}">
+                  ${!m.mine ? `<div class="chat-sender-name">${m.sender} <span style="font-size:0.58rem; color:#64748b; font-weight:normal;">${m.time || ''}</span></div>` : ''}
+                  <div>${m.text}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <form class="chat-input-bar" id="chat-form">
+            <input type="text" class="chat-input" id="chat-input-text" placeholder="Message ${currentChan === 'multiplayer' ? 'all online players' : '#' + currentChan}..." autocomplete="off" />
+            <button type="submit" class="chat-send-btn">Send</button>
+          </form>
+        </div>
+      `;
+
+      // Tab switcher
+      bodyEl.querySelectorAll('.chat-tab-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          this.activeChatChannel = e.target.getAttribute('data-chan');
+          this.renderChatApp(titleEl, bodyEl, actionEl);
+        };
+      });
+
+      // Scroll to bottom
+      const scrollEl = document.getElementById('chat-messages-scroll');
+      if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+
+      // Send form
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input-text');
+      if (form && input) {
+        form.onsubmit = (e) => {
+          e.preventDefault();
+          const text = input.value.trim();
+          if (!text) return;
+          input.value = '';
+          this.sendChatMessage(text, currentChan, titleEl, bodyEl, actionEl);
+        };
+      }
+    }
+
+    sendChatMessage(text, chan, titleEl, bodyEl, actionEl) {
+      const charId = this.getActiveCharId();
+      const profile = this.profiles[charId] || this.profiles.char1;
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (!this.chatMessages[chan]) this.chatMessages[chan] = [];
+      this.chatMessages[chan].push({
+        sender: profile.name,
+        mine: true,
+        text: text,
+        time: nowStr,
+        avatar: '😎'
+      });
+
+      // Broadcast to multiplayer if peer available
+      if (chan === 'multiplayer' || chan === 'general') {
+        try {
+          if (window.multiplayerEngine && typeof window.multiplayerEngine.broadcastChat === 'function') {
+            window.multiplayerEngine.broadcastChat(text);
+          }
+        } catch (err) {}
+      }
+
+      this.renderChatApp(titleEl, bodyEl, actionEl);
+
+      // Automated coworker reply for single player / offline banter
+      if (chan !== 'multiplayer') {
+        setTimeout(() => {
+          const replies = [
+            { sender: 'Amit (HR)', text: 'Acknowledged! Keep up the momentum on your sprint tasks. 🚀', avatar: '👔' },
+            { sender: 'Vikram', text: 'Checked the logs, latency is down to 0.4ms. Looking solid!', avatar: '💻' },
+            { sender: 'Neha', text: 'Great point. Adding this to our retro discussion.', avatar: '📋' },
+            { sender: 'Kabir', text: 'Confirmed. Sensor coherence is 99.98% stable.', avatar: '🔬' },
+            { sender: 'Rohan', text: 'Pods scaled up cleanly. Zero drift across regions.', avatar: '🛡️' }
+          ];
+          const rep = replies[Math.floor(Math.random() * replies.length)];
+          this.chatMessages[chan].push({
+            sender: rep.sender,
+            mine: false,
+            text: rep.text,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            avatar: rep.avatar
+          });
+          if (this.currentApp === 'chat' && this.activeChatChannel === chan) {
+            this.renderChatApp(titleEl, bodyEl, actionEl);
+          }
+        }, 1200);
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // 3. MAIL APP (Directives, executive emails & replies)
+    // ------------------------------------------------------------------
+    renderMailApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '✉️ OmniMail';
+      if (actionEl) actionEl.innerHTML = '';
+
+      const emails = [
+        {
+          id: 'mail_1',
+          sender: 'Mark Sterling (VP of Tech)',
+          time: '09:15 AM',
+          subject: 'Q4 Architecture Milestone & Deliverables',
+          body: 'Team, please ensure the multi-region cluster quorum logic and Python data pipelines are completed before the sprint review. Excellent progress this week!'
+        },
+        {
+          id: 'mail_2',
+          sender: 'Amit Sharma (HR Manager)',
+          time: 'Yesterday',
+          subject: 'Espresso Machine Guidelines & Office Perks',
+          body: 'Friendly reminder to all engineers: please ensure your glass is placed inside the green alignment reticle before dispensing coffee to keep the pantry clean!'
+        },
+        {
+          id: 'mail_3',
+          sender: 'Sarah Jenkins (Client Exec)',
+          time: 'Oct 26',
+          subject: 'Demo Feedback: Customer Applauded Telemetry',
+          body: 'The client specifically praised our sub-1ms ingestion latency and interactive holographic floor map. Great teamwork everyone!'
+        }
+      ];
+
+      bodyEl.innerHTML = `
+        <div class="mail-list">
+          ${emails.map(m => `
+            <div class="mail-item" data-mail-id="${m.id}">
+              <div class="mail-item-header">
+                <span class="mail-sender">${m.sender}</span>
+                <span class="mail-time">${m.time}</span>
+              </div>
+              <div class="mail-subject">${m.subject}</div>
+              <div class="mail-snippet">${m.body}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      bodyEl.querySelectorAll('.mail-item').forEach(el => {
+        el.onclick = () => {
+          const mailId = el.getAttribute('data-mail-id');
+          const item = emails.find(e => e.id === mailId);
+          if (item) {
+            bodyEl.innerHTML = `
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="phone-app-back-btn" id="mail-back-list-btn" style="width:fit-content;">‹ Back to Inbox</button>
+                <div style="font-size:0.85rem; font-weight:700; color:#f8fafc; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:6px;">${item.subject}</div>
+                <div style="font-size:0.68rem; color:#38bdf8;">From: ${item.sender}</div>
+                <div style="font-size:0.72rem; color:#cbd5e1; line-height:1.4; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px;">${item.body}</div>
+                <button class="chat-send-btn" id="mail-reply-btn" style="padding:8px; margin-top:8px;">↩ Quick Reply ("Acknowledged, working on it!")</button>
+              </div>
+            `;
+            const backBtn = document.getElementById('mail-back-list-btn');
+            if (backBtn) backBtn.onclick = () => this.renderMailApp(titleEl, bodyEl, actionEl);
+            const repBtn = document.getElementById('mail-reply-btn');
+            if (repBtn) repBtn.onclick = () => {
+              if (typeof window.showToast === 'function') {
+                window.showToast(`✉️ Reply sent to ${item.sender}!`);
+              }
+              this.renderMailApp(titleEl, bodyEl, actionEl);
+            };
+          }
+        };
+      });
+    }
+
+    // ------------------------------------------------------------------
+    // 4. QUESTS APP (Sprint Tasks & Cash/XP claims)
+    // ------------------------------------------------------------------
+    renderQuestsApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '📜 Sprint Quests';
+      if (actionEl) {
+        actionEl.innerHTML = `<button id="quest-refresh-btn" class="phone-app-back-btn" title="Refresh">🔄 Refresh</button>`;
+        const qBtn = document.getElementById('quest-refresh-btn');
+        if (qBtn) qBtn.onclick = () => {
+          const charId = this.getActiveCharId();
+          this.sprintRound++;
+          this.assignNewHRTasks(charId);
+          setTimeout(() => this.renderQuestsApp(titleEl, bodyEl, actionEl), 300);
+        };
+      }
+
+      const charId = this.getActiveCharId();
+      const tasks = this.characterTasks[charId] || [];
+
+      bodyEl.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="background:rgba(30,41,59,0.85); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.75rem; font-weight:700; color:#f8fafc;">Sprint #${this.sprintRound} Progress</div>
+              <div style="font-size:0.62rem; color:#94a3b8;">${tasks.filter(t=>t.completed).length}/${tasks.length} tasks completed</div>
+            </div>
+            <span style="font-size:0.75rem; font-weight:800; color:#10b981;">+$$$ CASH REWARDS</span>
+          </div>
+          <div id="phone-quests-app-list" style="display:flex; flex-direction:column; gap:6px;">
+            ${tasks.map(t => {
+              const r = getTaskDifficultyAndMoney(t);
+              return `
+                <div class="swe-task-notif-card ${t.completed ? 'completed' : ''}" data-task-id="${t.id}" style="cursor:pointer;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.72rem; font-weight:700; color:${t.completed ? '#10b981' : '#f8fafc'};">${t.title}</span>
+                    <span style="font-size:0.65rem; font-weight:700; color:#38bdf8;">+$${r.money}</span>
+                  </div>
+                  <div style="font-size:0.64rem; color:#94a3b8; margin:4px 0;">${t.description}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.60rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:8px;">${t.category || 'Tech'}</span>
+                    <button class="chat-tab-btn ${t.completed ? 'active' : ''}" style="font-size:0.62rem;" data-task-id="${t.id}">
+                      ${t.completed ? '✓ Completed' : '⚡ Tick & Claim'}
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      bodyEl.querySelectorAll('button[data-task-id]').forEach(b => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const tid = b.getAttribute('data-task-id');
+          this.toggleTaskCompleted(charId, tid);
+          setTimeout(() => this.renderQuestsApp(titleEl, bodyEl, actionEl), 150);
+        };
+      });
+    }
+
+    // ------------------------------------------------------------------
+    // 5. BROWSER APP (Corporate Intranet, Wiki, Git & AI Assistant)
+    // ------------------------------------------------------------------
+    renderBrowserApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '🌐 Intranet';
+      if (actionEl) actionEl.innerHTML = '';
+
+      const tab = this.activeBrowserTab || 'wiki';
+      const bms = [
+        { id: 'wiki', label: '📖 Office Wiki' },
+        { id: 'git', label: '🐙 GitDeploy' },
+        { id: 'news', label: '📰 Tech News' },
+        { id: 'ai', label: '🤖 Groq AI' }
+      ];
+
+      let contentHtml = '';
+      if (tab === 'wiki') {
+        contentHtml = `
+          <div style="font-weight:700; font-size:0.8rem; color:#38bdf8; margin-bottom:6px;">🏢 ACME Innovation Mega-Hub Manual</div>
+          <p>• <b>Fast Travel:</b> Press <b>[M]</b> anytime to view the live blueprint map and teleport instantly between rooms.</p>
+          <p>• <b>Espresso Bar:</b> Slide the glass mug under the green reticle before starting pour to prevent hot spills.</p>
+          <p>• <b>Conference Room:</b> Check behind the presentation projector screen for hidden company easter eggs!</p>
+          <p>• <b>Multiplayer:</b> Peer-to-peer cloud syncing ensures real-time movement and chat with coworkers.</p>
+        `;
+      } else if (tab === 'git') {
+        contentHtml = `
+          <div style="font-weight:700; font-size:0.8rem; color:#10b981; margin-bottom:6px;">🐙 GitDeploy Pipeline Status: GREEN</div>
+          <div style="background:rgba(0,0,0,0.5); padding:6px; border-radius:8px; font-family:monospace; font-size:0.65rem; color:#22c55e;">
+            [v2.4.1] • Commit: aac5e67 (Verified)<br>
+            • Conference boundary collisions: RESOLVED<br>
+            • Holographic office map 'M': DEPLOYED<br>
+            • Movable espresso mug mechanics: ACTIVE<br>
+            • 6th playable engineer (Rohan): ONLINE
+          </div>
+        `;
+      } else if (tab === 'news') {
+        contentHtml = `
+          <div style="font-weight:700; font-size:0.8rem; color:#f59e0b; margin-bottom:6px;">📰 Silicon Valley Dispatch</div>
+          <div style="border-bottom:1px solid rgba(255,255,255,0.1); padding:4px 0;"><b>"AI Agent Learns to Brew Coffee, Demands Health Insurance"</b> - TechDigest</div>
+          <div style="border-bottom:1px solid rgba(255,255,255,0.1); padding:4px 0;"><b>"Engineer exits Vim after 7 years of deep meditation"</b> - HackerNews</div>
+          <div style="padding:4px 0;"><b>"Global Server Uptime Hits 99.999% Following ACME Cluster Overhaul"</b></div>
+        `;
+      } else if (tab === 'ai') {
+        contentHtml = `
+          <div style="font-weight:700; font-size:0.8rem; color:#a855f7; margin-bottom:6px;">⚡ Groq AI (Model: gpt-oss-120b)</div>
+          <p>Direct low-latency AI reasoning is hooked up to your smartphone for automated sprint directive generation and role-tailored software engineering tasks.</p>
+          <div style="font-size:0.68rem; color:#94a3b8;">Latency: <b>0.12s</b> • Tokens/Sec: <b>450 t/s</b> • Status: Operational</div>
+        `;
+      }
+
+      bodyEl.innerHTML = `
+        <div style="display:flex; flex-direction:column; height:100%;">
+          <div class="browser-url-bar">
+            <span>🔒</span>
+            <span style="flex:1;">https://intranet.acme.corp/${tab}</span>
+            <span style="cursor:pointer;" id="bm-reload-btn">🔄</span>
+          </div>
+          <div class="browser-bookmarks">
+            ${bms.map(b => `<button class="browser-bm-pill ${b.id === tab ? 'active' : ''}" data-bm="${b.id}">${b.label}</button>`).join('')}
+          </div>
+          <div class="browser-content-frame">
+            ${contentHtml}
+          </div>
+        </div>
+      `;
+
+      bodyEl.querySelectorAll('.browser-bm-pill').forEach(btn => {
+        btn.onclick = (e) => {
+          this.activeBrowserTab = e.target.getAttribute('data-bm');
+          this.renderBrowserApp(titleEl, bodyEl, actionEl);
+        };
+      });
+
+      const rel = document.getElementById('bm-reload-btn');
+      if (rel) rel.onclick = () => this.renderBrowserApp(titleEl, bodyEl, actionEl);
+    }
+
+    // ------------------------------------------------------------------
+    // 6. TERMINAL APP (Interactive shell with rich commands)
+    // ------------------------------------------------------------------
+    renderTerminalApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '💻 Terminal';
+      if (actionEl) {
+        actionEl.innerHTML = `<button id="term-clear-btn" class="phone-app-back-btn">Clear</button>`;
+        const cBtn = document.getElementById('term-clear-btn');
+        if (cBtn) cBtn.onclick = () => {
+          const out = document.getElementById('terminal-output');
+          if (out) out.textContent = 'ACME OmniOS Shell v4.2.0 (tty1)\nType "help" for commands.\n';
+        };
+      }
+
+      bodyEl.innerHTML = `
+        <div class="terminal-screen">
+          <div class="terminal-output" id="terminal-output">ACME OmniOS Shell v4.2.0 (tty1)\nType "help" to view available commands.\n</div>
+          <form class="terminal-prompt-row" id="terminal-form">
+            <span class="terminal-prompt-label">&gt;_</span>
+            <input type="text" class="terminal-input" id="terminal-input" placeholder="type command..." autofocus autocomplete="off" />
+          </form>
+        </div>
+      `;
+
+      const form = document.getElementById('terminal-form');
+      const input = document.getElementById('terminal-input');
+      const output = document.getElementById('terminal-output');
+
+      if (form && input && output) {
+        form.onsubmit = (e) => {
+          e.preventDefault();
+          const cmd = input.value.trim();
+          input.value = '';
+          if (!cmd) return;
+          this.executeTerminalCommand(cmd, output);
+        };
+      }
+    }
+
+    executeTerminalCommand(cmd, outputEl) {
+      const charId = this.getActiveCharId();
+      const profile = this.profiles[charId] || this.profiles.char1;
+      const lower = cmd.toLowerCase().trim();
+
+      outputEl.textContent += `\n$ ${cmd}\n`;
+
+      if (lower === 'help') {
+        outputEl.textContent += `Available Commands:\n• status   - View player stats, money & room\n• whoami   - Current role & device profile\n• ls       - List directory contents\n• cat <f>  - Read file (e.g. cat roadmap.txt)\n• coffee   - Virtual espresso injection (+speed)\n• clear    - Clear terminal screen\n• ping     - Test cluster latency\n• matrix   - Matrix green cascade test\n`;
+      } else if (lower === 'status') {
+        const money = (window.state && window.state.player && window.state.player.money) || 0;
+        const scene = (window.state && window.state.currentScene) || 'OFFICE_HALL';
+        outputEl.textContent += `Player: ${profile.name}\nFunds: $${money}\nLocation: ${scene}\nHealth: 100% • All Systems Go\n`;
+      } else if (lower === 'whoami') {
+        outputEl.textContent += `User: ${profile.name}\nRole: ${profile.role}\nDevice: ${profile.deviceName}\nNetwork: ${profile.carrier}\n`;
+      } else if (lower === 'ls') {
+        outputEl.textContent += `roadmap.txt   cluster_config.yaml   secret_passcodes.bin   easter_egg.py\n`;
+      } else if (lower.startsWith('cat')) {
+        outputEl.textContent += `[CONFIDENTIAL ACME ARCHITECTURE]\n"The future of office engineering is cloud-native, pixel-perfect, and fully automated."\n`;
+      } else if (lower === 'coffee') {
+        outputEl.textContent += `☕ Espresso shot brewed! Caffeine levels increased to 100%.\n`;
+        if (typeof window.showToast === 'function') window.showToast('☕ Virtual espresso ingested!');
+      } else if (lower === 'ping') {
+        outputEl.textContent += `PING api.acme.corp: 64 bytes in 0.42ms (RTT min/avg/max = 0.38/0.41/0.45 ms)\n`;
+      } else if (lower === 'matrix') {
+        outputEl.textContent += `01001111 01000110 01000110 01001001 01000011 01000101\nWAKE UP, ENGINEER... THE SYSTEM IS READY.\n`;
+      } else if (lower === 'clear') {
+        outputEl.textContent = 'ACME OmniOS Shell v4.2.0 (tty1)\n';
+      } else {
+        outputEl.textContent += `Unknown command: "${cmd}". Type "help" for options.\n`;
+      }
+
+      outputEl.scrollTop = outputEl.scrollHeight;
+    }
+
+    // ------------------------------------------------------------------
+    // 7. NOTES APP (Scratchpad, checklists & persistent localStorage)
+    // ------------------------------------------------------------------
+    renderNotesApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '📝 Notes';
+      if (actionEl) {
+        actionEl.innerHTML = `<button id="note-add-btn" class="phone-app-back-btn" title="Add Note">➕ Add</button>`;
+        const aBtn = document.getElementById('note-add-btn');
+        if (aBtn) aBtn.onclick = () => {
+          const t = prompt('Note Title:', 'Quick Reminder');
+          if (!t) return;
+          const b = prompt('Note Details:', 'Meeting with team at 3 PM');
+          if (!b) return;
+          this.notes.unshift({ id: Date.now(), title: t, body: b });
+          localStorage.setItem('OFFICE_PHONE_NOTES', JSON.stringify(this.notes));
+          this.renderNotesApp(titleEl, bodyEl, actionEl);
+        };
+      }
+
+      bodyEl.innerHTML = `
+        <div class="notes-container">
+          ${this.notes.map(n => `
+            <div class="notes-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="notes-card-title">${n.title}</span>
+                <span style="font-size:0.65rem; color:#ef4444; cursor:pointer;" data-del-note="${n.id}" title="Delete Note">✕</span>
+              </div>
+              <div class="notes-card-body">${n.body.replace(/\n/g, '<br>')}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      bodyEl.querySelectorAll('[data-del-note]').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const id = Number(btn.getAttribute('data-del-note'));
+          this.notes = this.notes.filter(n => n.id !== id);
+          localStorage.setItem('OFFICE_PHONE_NOTES', JSON.stringify(this.notes));
+          this.renderNotesApp(titleEl, bodyEl, actionEl);
+        };
+      });
+    }
+
+    // ------------------------------------------------------------------
+    // 8. MUSIC APP (Lo-Fi synth, animated equalizer & playback controls)
+    // ------------------------------------------------------------------
+    renderMusicApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '🎵 Music Player';
+      if (actionEl) actionEl.innerHTML = '';
+
+      const tracks = [
+        { title: 'Lo-Fi Office Chillhop', artist: 'ACME Sound Lab', genre: 'Chillwave' },
+        { title: '8-Bit Espresso Break', artist: 'Pixel Synthesizer', genre: 'Chiptune' },
+        { title: 'Late Night Production Push', artist: 'CyberDeck', genre: 'Synthwave' },
+        { title: 'Elevator Bossa Nova', artist: 'Lounge Bot', genre: 'Jazz' }
+      ];
+
+      const curIdx = this.musicState.trackIndex % tracks.length;
+      const track = tracks[curIdx];
+      const isPlaying = this.musicState.playing;
+
+      bodyEl.innerHTML = `
+        <div class="music-app-container">
+          <div class="music-art-disc ${isPlaying ? 'playing' : ''}">🎧</div>
+          <div>
+            <div style="font-size:0.85rem; font-weight:800; color:#f8fafc; margin-bottom:2px;">${track.title}</div>
+            <div style="font-size:0.68rem; color:#ec4899; font-weight:600;">${track.artist} • ${track.genre}</div>
+          </div>
+          <div class="music-eq-bars" style="${isPlaying ? '' : 'opacity:0.3;'}">
+            <div class="music-eq-bar"></div>
+            <div class="music-eq-bar"></div>
+            <div class="music-eq-bar"></div>
+            <div class="music-eq-bar"></div>
+            <div class="music-eq-bar"></div>
+          </div>
+          <div class="music-controls-row">
+            <button class="music-ctrl-btn" id="music-prev-btn" title="Previous Track">⏮</button>
+            <button class="music-ctrl-btn play" id="music-toggle-play-btn" title="${isPlaying ? 'Pause' : 'Play'}">
+              ${isPlaying ? '⏸' : '▶'}
+            </button>
+            <button class="music-ctrl-btn" id="music-next-btn" title="Next Track">⏭</button>
+          </div>
+          <div style="font-size:0.62rem; color:#94a3b8;">Synthesized WebAudio Stereo Output</div>
+        </div>
+      `;
+
+      const playBtn = document.getElementById('music-toggle-play-btn');
+      if (playBtn) playBtn.onclick = () => this.toggleMusicPlay(titleEl, bodyEl, actionEl);
+
+      const nextBtn = document.getElementById('music-next-btn');
+      if (nextBtn) nextBtn.onclick = () => this.nextMusicTrack(titleEl, bodyEl, actionEl);
+
+      const prevBtn = document.getElementById('music-prev-btn');
+      if (prevBtn) prevBtn.onclick = () => this.prevMusicTrack(titleEl, bodyEl, actionEl);
+    }
+
+    toggleMusicPlay(titleEl, bodyEl, actionEl) {
+      this.musicState.playing = !this.musicState.playing;
+      if (this.musicState.playing) {
+        this.play8BitMelody();
+      } else {
+        this.stopMusicSynth();
+      }
+      this.renderMusicApp(titleEl, bodyEl, actionEl);
+    }
+
+    nextMusicTrack(titleEl, bodyEl, actionEl) {
+      this.musicState.trackIndex = (this.musicState.trackIndex + 1) % 4;
+      if (this.musicState.playing) {
+        this.stopMusicSynth();
+        this.play8BitMelody();
+      }
+      this.renderMusicApp(titleEl, bodyEl, actionEl);
+    }
+
+    prevMusicTrack(titleEl, bodyEl, actionEl) {
+      this.musicState.trackIndex = (this.musicState.trackIndex - 1 + 4) % 4;
+      if (this.musicState.playing) {
+        this.stopMusicSynth();
+        this.play8BitMelody();
+      }
+      this.renderMusicApp(titleEl, bodyEl, actionEl);
+    }
+
+    play8BitMelody() {
+      if (!window.soundManager) return;
+      window.soundManager.unlock();
+      if (!window.soundManager.ctx) return;
+
+      this.stopMusicSynth();
+
+      const chords = [
+        [261.63, 329.63, 392.00], // C
+        [220.00, 261.63, 329.63], // Am
+        [174.61, 220.00, 261.63], // F
+        [196.00, 246.94, 293.66]  // G
+      ];
+
+      let chordIdx = 0;
+      this.musicState.interval = setInterval(() => {
+        if (!this.musicState.playing || !window.soundManager || !window.soundManager.ctx) return;
+        try {
+          const ctx = window.soundManager.ctx;
+          const t = ctx.currentTime;
+          const currentChord = chords[chordIdx % chords.length];
+          chordIdx++;
+
+          currentChord.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, t + idx * 0.1);
+            gain.gain.setValueAtTime(0.04, t + idx * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.1 + 0.35);
+
+            osc.connect(gain);
+            gain.connect(window.soundManager.masterGain);
+            osc.start(t + idx * 0.1);
+            osc.stop(t + idx * 0.1 + 0.36);
+          });
+        } catch (e) {}
+      }, 700);
+    }
+
+    stopMusicSynth() {
+      if (this.musicState.interval) {
+        clearInterval(this.musicState.interval);
+        this.musicState.interval = null;
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // 9. SETTINGS APP (CRT Mode, Audio, Game Keys & Themes)
+    // ------------------------------------------------------------------
+    renderSettingsApp(titleEl, bodyEl, actionEl) {
+      if (titleEl) titleEl.innerHTML = '⚙️ Settings';
+      if (actionEl) actionEl.innerHTML = '';
+
+      const isCrt = (window.pixelEngine && window.pixelEngine.crtActive) || false;
+      const isMuted = (window.soundManager && window.soundManager.muted) || false;
+
+      bodyEl.innerHTML = `
+        <div class="settings-list">
+          <div class="settings-card">
+            <div class="settings-info">
+              <span class="settings-label">📺 CRT Scanline Filter</span>
+              <span class="settings-subtext">Retro monitor cathode-ray tube emulation</span>
+            </div>
+            <button class="settings-toggle-btn ${isCrt ? 'active' : ''}" id="set-crt-btn">
+              ${isCrt ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-info">
+              <span class="settings-label">🔊 Master Sound & FX</span>
+              <span class="settings-subtext">Synthesized retro audio feedback</span>
+            </div>
+            <button class="settings-toggle-btn ${!isMuted ? 'active' : ''}" id="set-sound-btn">
+              ${!isMuted ? 'ENABLED' : 'MUTED'}
+            </button>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-info">
+              <span class="settings-label">🗺️ Holographic Office Map</span>
+              <span class="settings-subtext">Toggle blueprint & radar tracking</span>
+            </div>
+            <button class="chat-tab-btn active" id="set-open-map-btn">
+              Open Map [M]
+            </button>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-info">
+              <span class="settings-label">🎮 Keyboard Shortcuts</span>
+              <span class="settings-subtext">WASD/Arrows: Walk • M: Map • P: Phone • E: Interact</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const crtBtn = document.getElementById('set-crt-btn');
+      if (crtBtn) crtBtn.onclick = () => {
+        if (window.pixelEngine && typeof window.pixelEngine.toggleCRT === 'function') {
+          const act = window.pixelEngine.toggleCRT();
+          if (typeof window.showToast === 'function') window.showToast(act ? '📺 CRT Scanlines: ON' : '📺 CRT Scanlines: OFF');
+          this.renderSettingsApp(titleEl, bodyEl, actionEl);
+        }
+      };
+
+      const soundBtn = document.getElementById('set-sound-btn');
+      if (soundBtn) soundBtn.onclick = () => {
+        if (typeof window.toggleSound === 'function') {
+          window.toggleSound();
+          this.renderSettingsApp(titleEl, bodyEl, actionEl);
+        }
+      };
+
+      const mapBtn = document.getElementById('set-open-map-btn');
+      if (mapBtn) mapBtn.onclick = () => {
+        this.close();
+        if (window.officeMap && typeof window.officeMap.open === 'function') {
+          window.officeMap.open();
+        }
+      };
     }
 
     playPhoneChime(tones = [587, 880]) {
