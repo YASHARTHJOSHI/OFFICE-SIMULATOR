@@ -157,7 +157,8 @@
         char2: 'Neha (Strategic Planner)',
         char3: 'Kabir (Research Lead)',
         char4: 'Josh (Lead Architect)',
-        char5: 'Arjun (Principal Architect)'
+        char5: 'Arjun (Principal Architect)',
+        char6: 'Rohan (DevOps Lead)'
       };
       userName.textContent = charNames[player.charId] || player.name || 'Vikram';
       if (userRole) userRole.textContent = 'Assigned Workstation #1 • OmniCorp';
@@ -756,7 +757,8 @@
     // Dynamic player avatar
     const myAv = winEl.querySelector('#wa-my-avatar');
     if (myAv && window.state && window.state.player) {
-      if (window.state.player.charId === 'char5') myAv.src = 'assets/char5_avatar.png';
+      if (window.state.player.charId === 'char6') myAv.src = 'assets/char6_avatar.png';
+      else if (window.state.player.charId === 'char5') myAv.src = 'assets/char5_avatar.png';
       else if (window.state.player.charId === 'char4') myAv.src = 'assets/char4_avatar.png';
       else if (window.state.player.charId === 'char1') myAv.src = 'assets/char1_avatar.png';
       else if (window.state.player.charId === 'char2') myAv.src = 'assets/char2_avatar.png';
@@ -2292,7 +2294,8 @@
         char2: 'neha.planner@omnicorp.internal',
         char3: 'kabir.research@omnicorp.internal',
         char4: 'josh.architect@omnicorp.internal',
-        char5: 'arjun.architect@omnicorp.internal'
+        char5: 'arjun.architect@omnicorp.internal',
+        char6: 'rohan.devops@omnicorp.internal'
       };
       userEmailEl.textContent = emailMap[charId] || 'colleague@omnicorp.internal';
     }

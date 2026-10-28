@@ -349,6 +349,63 @@
         xp: 95,
         completed: false
       }
+    ],
+    char6: [ // Rohan: Senior DevOps & Cloud Infrastructure Lead
+      {
+        id: 'task_r1',
+        priority: 'P0',
+        category: 'Kubernetes',
+        title: 'Optimize multi-region Kubernetes ingress mesh',
+        description: 'Configure Envoy gateway routing and automated health check probes for 99.999% uptime.',
+        location: 'Big Workplace • Architecture Board',
+        xp: 200,
+        completed: false
+      },
+      {
+        id: 'task_r2',
+        priority: 'P1',
+        category: 'CI/CD',
+        title: 'Automate zero-downtime rolling canary deployments',
+        description: 'Verify instant rollback thresholds and Prometheus latency alarms for microservices.',
+        location: 'Assigned PC • Architecture Tool',
+        xp: 170,
+        completed: false
+      },
+      {
+        id: 'task_r3',
+        priority: 'P1',
+        category: 'OmniMail',
+        title: 'Send Infrastructure SLA Report email to Rahul (Tech Lead)',
+        description: 'Open OmniMail on your Personal Computer, select Rahul (Tech Lead) as recipient, and send the SLA report to receive corporate funds!',
+        location: 'Assigned PC • OmniMail App',
+        targetEmail: 'rahul.techlead@omnicorp.internal',
+        targetRecipient: 'Rahul (Tech Lead)',
+        xp: 180,
+        rewardMoney: 450,
+        completed: false
+      },
+      {
+        id: 'task_r4',
+        priority: 'P1',
+        category: 'Python',
+        title: 'Write Python script in Notepad: print("hello world")',
+        description: 'Open Notepad on your Workstation PC, type the exact code: print("hello world"), and click "▶ Run Python" to execute! Exact syntax required.',
+        location: 'Assigned Desk PC • Notepad App',
+        expectedCode: 'print("hello world")',
+        xp: 160,
+        rewardMoney: 450,
+        completed: false
+      },
+      {
+        id: 'task_r5',
+        priority: 'P2',
+        category: 'Terraform',
+        title: 'Audit Terraform cloud state locks & security groups',
+        description: 'Verify zero open ingress ports and encrypted EBS volume snapshots across all cloud zones.',
+        location: 'Boss Cabinet • Strategy Desk',
+        xp: 95,
+        completed: false
+      }
     ]
   };
 
@@ -738,7 +795,8 @@
         char2: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char2)),
         char3: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char3)),
         char4: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char4)),
-        char5: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char5))
+        char5: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char5)),
+        char6: JSON.parse(JSON.stringify(DEFAULT_SWE_TASKS.char6))
       };
 
       // Character Phone Profiles
@@ -802,6 +860,18 @@
           widgetPill: '120 FPS / 0.2ms',
           widgetBody: '• Distributed WebAssembly kernel: Operational<br>• Real-time peer delta synchronization online',
           tones: [523, 1046]
+        },
+        char6: {
+          id: 'char6',
+          name: 'Rohan',
+          role: 'DevOps & Cloud Lead',
+          carrier: 'TERRA-CLOUD 5G',
+          deviceName: 'Tactical CyberSlate 9',
+          themeClass: 'phone-char6',
+          widgetTitle: '🛡️ Cloud Infrastructure Mesh',
+          widgetPill: 'ALL REGIONS GREEN',
+          widgetBody: '• 48 node pods balanced • Zero drift detected<br>• Ingress traffic: 4.8M req/sec • Global SLA: 99.999%',
+          tones: [493, 987]
         }
       };
     }

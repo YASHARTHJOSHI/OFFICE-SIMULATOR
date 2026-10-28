@@ -604,7 +604,8 @@
         char2: 'Neha (Planning Lead)',
         char3: 'Kabir (Quantum Lead)',
         char4: 'Josh (Architect)',
-        char5: 'Arjun (Principal Eng)'
+        char5: 'Arjun (Principal Eng)',
+        char6: 'Rohan (DevOps Lead)'
       };
       const charId = (window.state && window.state.player && window.state.player.charId) || 'char1';
 
@@ -694,7 +695,8 @@
         char2: 'assets/char2_avatar.png',
         char3: 'assets/char3_avatar.png',
         char4: 'assets/char4_avatar.png',
-        char5: 'assets/char5_avatar.png'
+        char5: 'assets/char5_avatar.png',
+        char6: 'assets/char6_avatar.png'
       };
 
       const charNameMap = {
@@ -702,7 +704,8 @@
         char2: 'Neha (Planning Lead)',
         char3: 'Kabir (Quantum Lead)',
         char4: 'Josh (Lead Architect)',
-        char5: 'Arjun (Principal Eng)'
+        char5: 'Arjun (Principal Eng)',
+        char6: 'Rohan (DevOps Lead)'
       };
 
       const sceneNameMap = {

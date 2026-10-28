@@ -597,6 +597,20 @@
   border: 1px solid #ef4444;
 }
 
+/* Character 6 (Rohan): Olive Military / Tactical Titanium Theme */
+.phone-char6 .phone-body {
+  background: linear-gradient(145deg, #2b3329, #3f4a3c, #4d5d49);
+  box-shadow: 0 25px 60px -15px rgba(77, 93, 73, 0.5), 0 0 0 3px #657e5f;
+}
+.phone-char6 .phone-screen {
+  background: radial-gradient(circle at 50% 20%, #20291e 0%, #151a14 50%, #0c100b 100%);
+}
+.phone-char6 .widget-stat-pill {
+  background: rgba(101, 126, 95, 0.28);
+  color: #bbf7d0;
+  border: 1px solid #657e5f;
+}
+
 /* Camera Flash Snapshot Effect */
 .camera-flash-overlay {
   position: absolute;

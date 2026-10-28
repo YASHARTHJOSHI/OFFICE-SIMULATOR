@@ -99,6 +99,20 @@ class MultiplayerEngine {
         claimedBy: null,
         claimedByName: null,
         isLocked: false
+      },
+      {
+        id: 'char6',
+        name: 'Rohan',
+        role: 'DevOps & Cloud Lead',
+        desc: 'Short beard, salt-and-pepper hair, olive utility bomber jacket & black GRAPH tee. Cloud infrastructure master.',
+        avatar: 'assets/char6_avatar.png?v=1',
+        idleSprite: 'assets/char6_idle.png?v=1',
+        backSprite: 'assets/char6_back.png?v=1',
+        spritesheet: 'assets/char6_spritesheet.png?v=1',
+        available: true,
+        claimedBy: null,
+        claimedByName: null,
+        isLocked: false
       }
     ];
 
