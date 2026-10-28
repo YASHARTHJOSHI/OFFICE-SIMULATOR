@@ -11,7 +11,7 @@ best game ever:)
 - **Pixel-Art Environments**:
   - **Main Office Hall**: 3/4 top-down view with cubicles, dual-monitor workstations, water coolers, bookshelves, clock, and the executive wooden door.
   - **Boss's Executive Cabinet**: Rich 2.5D side-view executive office with mahogany wainscoting, CRT monitor desk, filing cabinets, and moving boxes.
-- **Main Character**:
+- **Main Character**:                 
   - Smooth 60 FPS 4-directional walking animations (down, left, right, and custom back-view).
   - Compact collision footbox with anti-stuck sliding physics.
   - Click-to-Move / Tap-to-Move support with animated target pulse.
