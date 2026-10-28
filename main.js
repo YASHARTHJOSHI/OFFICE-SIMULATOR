@@ -5463,6 +5463,13 @@ function setupStartMenuAndLobby() {
     renderLobbyUI();
   }
 
+  window.openMultiplayerModal = function() {
+    if (mpModal) {
+      mpModal.classList.remove('hidden');
+      joinOrHostCurrentRoom();
+    }
+  };
+
   if (btnCreateRoomTab) {
     btnCreateRoomTab.onclick = () => {
       isHosting = true;
@@ -5702,6 +5709,16 @@ function setupStartMenuAndLobby() {
   // Hook engine callbacks
   window.multiplayerEngine.onLobbyUpdate = () => {
     renderLobbyUI();
+    if (onlinePlayerCount && window.multiplayerEngine) {
+      onlinePlayerCount.textContent = `👥 ${1 + window.multiplayerEngine.peers.size}`;
+    }
+    // Update phone device OmniChat status if active
+    if (window.phoneDevice && window.phoneDevice.currentApp === 'chat' && window.phoneDevice.activeChatChannel === 'multiplayer') {
+      const roomStatusEl = document.getElementById('chat-room-status-text');
+      if (roomStatusEl && window.multiplayerEngine) {
+        roomStatusEl.innerHTML = `ROOM: <strong>${window.multiplayerEngine.roomCode || 'OFFLINE'}</strong> (${1 + window.multiplayerEngine.peers.size} online)`;
+      }
+    }
   };
 
   window.multiplayerEngine.onToast = (msg) => {

@@ -613,6 +613,42 @@ class MultiplayerEngine {
           break;
         }
 
+        case 'PHONE_CHAT_MESSAGE': {
+          const { senderId, senderName, charId, avatar, channel, text, time } = msg;
+
+          // 1. Deliver to Phone Device Manager
+          if (window.phoneDevice && typeof window.phoneDevice.receiveRemoteChatMessage === 'function') {
+            window.phoneDevice.receiveRemoteChatMessage({
+              senderId,
+              senderName,
+              charId,
+              avatar,
+              channel: channel || 'multiplayer',
+              text,
+              time: time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+          }
+
+          // 2. Also show floating speech bubble over that peer character in game world
+          let peer = this.peers.get(senderId);
+          if (!peer) {
+            for (const [key, val] of this.peers.entries()) {
+              if (senderId && (senderId.includes(key) || key.includes(senderId) || (val.connectionPeerId && val.connectionPeerId === senderId))) {
+                peer = val;
+                break;
+              }
+            }
+          }
+          if (peer && text) {
+            const duration = Math.max(6500, Math.min(11000, 4500 + text.length * 80));
+            peer.chatBubble = {
+              text: text,
+              expiresAt: Date.now() + duration
+            };
+          }
+          break;
+        }
+
         case 'CHAT_BUBBLE': {
           const { senderId, text, senderName } = msg;
           let peer = this.peers.get(senderId);
@@ -631,6 +667,20 @@ class MultiplayerEngine {
               expiresAt: Date.now() + duration
             };
           }
+
+          // Mirror proximity chat bubble to Phone's OmniChat (Online tab)
+          if (window.phoneDevice && typeof window.phoneDevice.receiveRemoteChatMessage === 'function') {
+            window.phoneDevice.receiveRemoteChatMessage({
+              senderId,
+              senderName: senderName || (peer ? peer.name : 'Colleague'),
+              charId: peer ? peer.charId : null,
+              avatar: null,
+              channel: 'multiplayer',
+              text: text,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+          }
+
           if (window.soundManager && typeof window.soundManager.playDialogueBlip === 'function') {
             window.soundManager.playDialogueBlip('player');
           }
@@ -779,6 +829,31 @@ class MultiplayerEngine {
       senderName: this.localPlayer.name,
       text: text.trim()
     });
+  }
+
+  /**
+   * Broadcast an OmniChat smartphone message to all peers in the multiplayer room
+   */
+  broadcastChat(text, channel = 'multiplayer', senderInfo = {}) {
+    if (!this.active || !text) return;
+    const cleanText = text.trim();
+    if (!cleanText) return;
+
+    const payload = {
+      type: 'PHONE_CHAT_MESSAGE',
+      senderId: this.localPlayer.id,
+      senderName: senderInfo.name || this.localPlayer.name || 'Colleague',
+      charId: senderInfo.charId || this.localPlayer.charId || 'char1',
+      avatar: senderInfo.avatar || '👨‍💻',
+      channel: channel || 'multiplayer',
+      text: cleanText,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    this.broadcast(payload);
+
+    // Also show floating chat bubble above character on canvas
+    this.broadcastChatBubble(cleanText);
   }
 
   /**

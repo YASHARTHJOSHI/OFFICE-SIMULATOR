@@ -2479,6 +2479,10 @@ Each object must have these exact keys:
       const currentChan = this.activeChatChannel || 'general';
       const messages = this.chatMessages[currentChan] || [];
 
+      const isOnline = !!(window.multiplayerEngine && window.multiplayerEngine.active);
+      const roomCode = isOnline ? window.multiplayerEngine.roomCode : null;
+      const peerCount = isOnline ? (1 + window.multiplayerEngine.peers.size) : 1;
+
       bodyEl.innerHTML = `
         <div class="chat-app-container">
           <div class="chat-channel-bar">
@@ -2486,10 +2490,34 @@ Each object must have these exact keys:
               <button class="chat-tab-btn ${c.id === currentChan ? 'active' : ''}" data-chan="${c.id}">${c.label}</button>
             `).join('')}
           </div>
+
+          ${currentChan === 'multiplayer' ? `
+            <div class="chat-room-status-bar ${isOnline ? 'online' : 'offline'}">
+              <div class="room-status-info">
+                <span class="room-status-dot"></span>
+                <span class="room-status-text" id="chat-room-status-text">
+                  ${isOnline 
+                    ? `ROOM: <strong>${roomCode}</strong> (${peerCount} ${peerCount === 1 ? 'player' : 'players'} online)` 
+                    : `Offline Mode • Connect to multiplayer room to chat live!`}
+                </span>
+              </div>
+              ${!isOnline ? `
+                <button type="button" class="btn-room-quick-connect" id="btn-quick-room-join">
+                  ⚡ Join Room
+                </button>
+              ` : ''}
+            </div>
+          ` : ''}
+
           <div class="chat-messages-scroll" id="chat-messages-scroll">
             ${messages.map(m => `
               <div class="chat-msg-row ${m.mine ? 'mine' : ''}">
-                ${!m.mine ? `<div class="chat-avatar">${m.avatar || '👤'}</div>` : ''}
+                ${!m.mine ? `
+                  <div class="chat-avatar">
+                    ${(m.avatar && (m.avatar.includes('/') || m.avatar.startsWith('assets')))
+                      ? `<img src="${m.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML='👤'" />`
+                      : (m.avatar || '👤')}
+                  </div>` : ''}
                 <div class="chat-bubble ${m.mine ? 'mine' : ''}">
                   ${!m.mine ? `<div class="chat-sender-name">${m.sender} <span style="font-size:0.58rem; color:#64748b; font-weight:normal;">${m.time || ''}</span></div>` : ''}
                   <div>${m.text}</div>
@@ -2512,6 +2540,18 @@ Each object must have these exact keys:
         };
       });
 
+      // Quick room connect button
+      const quickJoinBtn = bodyEl.querySelector('#btn-quick-room-join');
+      if (quickJoinBtn) {
+        quickJoinBtn.onclick = () => {
+          if (typeof window.openMultiplayerModal === 'function') {
+            window.openMultiplayerModal();
+          } else if (typeof window.showToast === 'function') {
+            window.showToast('Click the ONLINE badge at the top-left to host/join a room!');
+          }
+        };
+      }
+
       // Scroll to bottom
       const scrollEl = document.getElementById('chat-messages-scroll');
       if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
@@ -2533,30 +2573,57 @@ Each object must have these exact keys:
     sendChatMessage(text, chan, titleEl, bodyEl, actionEl) {
       const charId = this.getActiveCharId();
       const profile = this.profiles[charId] || this.profiles.char1;
+      const myName = (window.multiplayerEngine && window.multiplayerEngine.localPlayer && window.multiplayerEngine.localPlayer.name)
+        ? window.multiplayerEngine.localPlayer.name
+        : profile.name;
       const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Character avatar resolution
+      let myAvatar = '👨‍💻';
+      if (charId === 'char1') myAvatar = 'assets/char1_avatar.png';
+      else if (charId === 'char2') myAvatar = 'assets/char2_avatar.png';
+      else if (charId === 'char3') myAvatar = 'assets/char3_avatar.png';
+      else if (charId === 'char4') myAvatar = 'assets/char4_avatar.png';
+      else if (charId === 'char5') myAvatar = 'assets/char5_avatar.png';
+      else if (charId === 'char6') myAvatar = 'assets/char6_avatar.png';
 
       if (!this.chatMessages[chan]) this.chatMessages[chan] = [];
       this.chatMessages[chan].push({
-        sender: profile.name,
+        sender: myName,
         mine: true,
         text: text,
         time: nowStr,
-        avatar: '😎'
+        avatar: myAvatar
       });
 
       // Broadcast to multiplayer if peer available
       if (chan === 'multiplayer' || chan === 'general') {
         try {
           if (window.multiplayerEngine && typeof window.multiplayerEngine.broadcastChat === 'function') {
-            window.multiplayerEngine.broadcastChat(text);
+            window.multiplayerEngine.broadcastChat(text, chan, {
+              name: myName,
+              charId: charId,
+              avatar: myAvatar
+            });
           }
-        } catch (err) {}
+        } catch (err) {
+          console.warn('Multiplayer chat broadcast error:', err);
+        }
+      }
+
+      // Also display floating chat bubble above local player in the canvas
+      if (window.state && window.state.player) {
+        window.state.player.chatBubble = {
+          text: text,
+          expiresAt: Date.now() + Math.max(6500, Math.min(11000, 4500 + text.length * 80))
+        };
       }
 
       this.renderChatApp(titleEl, bodyEl, actionEl);
 
       // Automated coworker reply for single player / offline banter
-      if (chan !== 'multiplayer') {
+      const isOnline = !!(window.multiplayerEngine && window.multiplayerEngine.active);
+      if (chan !== 'multiplayer' && !isOnline) {
         setTimeout(() => {
           const replies = [
             { sender: 'Amit (HR)', text: 'Acknowledged! Keep up the momentum on your sprint tasks. 🚀', avatar: '👔' },
@@ -2578,6 +2645,132 @@ Each object must have these exact keys:
           }
         }, 1200);
       }
+    }
+
+    /**
+     * Ingest and display real-time incoming chat messages from remote multiplayer peers
+     */
+    receiveRemoteChatMessage(data) {
+      if (!data || !data.text) return;
+      const myId = (window.multiplayerEngine && window.multiplayerEngine.localPlayer)
+        ? window.multiplayerEngine.localPlayer.id
+        : null;
+      if (data.senderId && myId && data.senderId === myId) return;
+
+      const chan = data.channel || 'multiplayer';
+      const timeStr = data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Resolve sender avatar
+      let senderAvatar = data.avatar;
+      if (!senderAvatar && data.charId) {
+        if (data.charId === 'char1') senderAvatar = 'assets/char1_avatar.png';
+        else if (data.charId === 'char2') senderAvatar = 'assets/char2_avatar.png';
+        else if (data.charId === 'char3') senderAvatar = 'assets/char3_avatar.png';
+        else if (data.charId === 'char4') senderAvatar = 'assets/char4_avatar.png';
+        else if (data.charId === 'char5') senderAvatar = 'assets/char5_avatar.png';
+        else if (data.charId === 'char6') senderAvatar = 'assets/char6_avatar.png';
+      }
+      if (!senderAvatar) senderAvatar = '👤';
+
+      const newMsg = {
+        sender: data.senderName || 'Online Colleague',
+        mine: false,
+        text: data.text,
+        time: timeStr,
+        avatar: senderAvatar
+      };
+
+      if (!this.chatMessages[chan]) this.chatMessages[chan] = [];
+      this.chatMessages[chan].push(newMsg);
+
+      // Also mirror into 'multiplayer' if received under general
+      if (chan !== 'multiplayer') {
+        if (!this.chatMessages['multiplayer']) this.chatMessages['multiplayer'] = [];
+        this.chatMessages['multiplayer'].push(newMsg);
+      }
+
+      // Play soft incoming notification sound
+      this.playPhoneChime([659, 880, 1046]);
+
+      // If phone is open and chat is active:
+      if (this.isOpen && this.currentApp === 'chat') {
+        const titleEl = document.getElementById('phone-app-title');
+        const bodyEl = document.getElementById('phone-app-body');
+        const actionEl = document.getElementById('phone-app-action');
+
+        const scrollEl = document.getElementById('chat-messages-scroll');
+        if (scrollEl && (this.activeChatChannel === chan || this.activeChatChannel === 'multiplayer')) {
+          const row = document.createElement('div');
+          row.className = 'chat-msg-row';
+          const avatarHtml = (senderAvatar.includes('/') || senderAvatar.startsWith('assets'))
+            ? `<div class="chat-avatar"><img src="${senderAvatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML='👤'" /></div>`
+            : `<div class="chat-avatar">${senderAvatar}</div>`;
+          row.innerHTML = `
+            ${avatarHtml}
+            <div class="chat-bubble">
+              <div class="chat-sender-name">${newMsg.sender} <span style="font-size:0.58rem; color:#64748b; font-weight:normal;">${newMsg.time}</span></div>
+              <div>${newMsg.text}</div>
+            </div>
+          `;
+          scrollEl.appendChild(row);
+          scrollEl.scrollTop = scrollEl.scrollHeight;
+        } else {
+          this.renderChatApp(titleEl, bodyEl, actionEl);
+        }
+      } else {
+        // Phone is closed or in another app:
+        // 1. Show floating push banner
+        this.showChatPushBanner({
+          sender: newMsg.sender,
+          text: newMsg.text,
+          channel: chan
+        });
+
+        // 2. Increment unread badge on header phone button
+        const headerBadge = document.getElementById('phone-header-badge');
+        if (headerBadge) {
+          headerBadge.classList.remove('hidden');
+          headerBadge.classList.add('pulse');
+          const currentCount = parseInt(headerBadge.textContent) || 0;
+          headerBadge.textContent = currentCount + 1;
+        }
+
+        // 3. Show game toast
+        if (typeof window.showToast === 'function') {
+          window.showToast(`💬 ${newMsg.sender}: "${newMsg.text.length > 35 ? newMsg.text.substring(0, 35) + '...' : newMsg.text}"`);
+        }
+      }
+    }
+
+    showChatPushBanner(data) {
+      const banner = document.getElementById('phone-push-banner');
+      if (!banner) return;
+
+      const titleEl = document.getElementById('push-notif-title');
+      const bodyEl = document.getElementById('push-notif-body');
+      const timeEl = document.getElementById('push-notif-time');
+      const appNameEl = banner.querySelector('.push-app-name');
+
+      if (appNameEl) appNameEl.textContent = '📱 OMNICHAT • ONLINE';
+      if (titleEl) titleEl.textContent = `New message from ${data.sender}`;
+      if (bodyEl) bodyEl.textContent = data.text;
+      if (timeEl) timeEl.textContent = 'Just now';
+
+      banner.classList.remove('hidden');
+      banner.classList.add('show');
+
+      banner.onclick = (e) => {
+        if (e.target && e.target.closest('#btn-close-push')) return;
+        this.hideWorkplacePushBanner();
+        if (!this.isOpen) this.toggle();
+        this.activeChatChannel = 'multiplayer';
+        this.launchApp('chat');
+      };
+
+      if (this._pushBannerTimeout) clearTimeout(this._pushBannerTimeout);
+      this._pushBannerTimeout = setTimeout(() => {
+        this.hideWorkplacePushBanner();
+      }, 7000);
     }
 
     // ------------------------------------------------------------------
