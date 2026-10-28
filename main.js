@@ -1220,7 +1220,13 @@ function updateClock() {
 function setupEventListeners() {
   const handleKey = (e, isDown) => {
     const tag = (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '');
-    if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) return;
+    if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) {
+      if (e.target.offsetParent === null || (e.target.closest && e.target.closest('.hidden'))) {
+        e.target.blur();
+      } else {
+        return;
+      }
+    }
 
     if (window.officeMap && window.officeMap.isOpen) {
       if (isDown && (e.key === 'Escape' || e.code === 'Escape' || e.key === 'm' || e.key === 'M' || e.code === 'KeyM')) {
@@ -1358,6 +1364,10 @@ function setupEventListeners() {
   // Canvas Click-to-Move
   canvas.addEventListener('click', (e) => {
     window.soundManager.unlock();
+    if (document.activeElement && document.activeElement.tagName && ['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) {
+      document.activeElement.blur();
+    }
+    closeColleagueChat();
     const rect = canvas.getBoundingClientRect();
     const scaleX = CANVAS_WIDTH / rect.width;
     const scaleY = CANVAS_HEIGHT / rect.height;
@@ -1600,15 +1610,7 @@ function toggleSitInChair(chairX, chairY, sitDir = 'up', standX, standY) {
 function handleInteract() {
   if (state.isTransitioning) return;
 
-  // If colleague chat bar is already open, keep input focused - DO NOT send empty message or close on E!
-  const bar = document.getElementById('colleague-chat-bar');
-  if (bar && !bar.classList.contains('hidden')) {
-    const inputEl = document.getElementById('colleague-chat-input');
-    if (inputEl) inputEl.focus();
-    return;
-  }
-
-  // If dialogue box is open
+  // 1. If dialogue box is open
   if (state.isDialogueOpen) {
     if (state.dialogueDone) {
       closeDialogue();
@@ -1619,16 +1621,36 @@ function handleInteract() {
     return;
   }
 
-  // If near a human multiplayer colleague, prioritize opening speech chat!
-  const nearbyColleague = getNearbyColleague();
-  if (nearbyColleague) {
-    openColleagueChat(nearbyColleague);
+  // 2. ALWAYS execute active world triggers first (Doors, Boss, HR, Quest NPCs, Computers, Water Cooler, Whiteboard, etc.)
+  if (state.activePrompt && state.activePrompt.action) {
+    closeColleagueChat();
+    state.activePrompt.action();
     return;
   }
 
-  // If an active trigger zone is in range (Boss, HR, Quest NPCs, water cooler, doors)
-  if (state.activePrompt && state.activePrompt.action) {
-    state.activePrompt.action();
+  // 3. If near a human multiplayer colleague, toggle/open proximity speech chat
+  const nearbyColleague = getNearbyColleague();
+  if (nearbyColleague) {
+    const bar = document.getElementById('colleague-chat-bar');
+    if (bar && !bar.classList.contains('hidden')) {
+      const inputEl = document.getElementById('colleague-chat-input');
+      const text = (inputEl ? inputEl.value : '').trim();
+      if (text) {
+        sendColleagueMessage();
+      } else {
+        closeColleagueChat();
+      }
+    } else {
+      openColleagueChat(nearbyColleague);
+    }
+    return;
+  }
+
+  // 4. If colleague chat bar is open anywhere else and E is pressed, close it
+  const bar = document.getElementById('colleague-chat-bar');
+  if (bar && !bar.classList.contains('hidden')) {
+    closeColleagueChat();
+    return;
   }
 }
 
@@ -2578,6 +2600,17 @@ function update(dt) {
 
   // Trigger Zone Detection
   updateTriggers();
+
+  // Auto-close colleague chat bar if player moves away from colleague
+  const chatBarEl = document.getElementById('colleague-chat-bar');
+  if (chatBarEl && !chatBarEl.classList.contains('hidden') && currentChatTarget && currentChatTarget.target) {
+    const t = currentChatTarget.target;
+    const tx = Number.isFinite(t.x) ? t.x : (Number.isFinite(t.targetX) ? t.targetX : 0);
+    const ty = Number.isFinite(t.y) ? t.y : (Number.isFinite(t.targetY) ? t.targetY : 0);
+    if (Math.hypot(p.x - tx, p.y - ty) > 115) {
+      closeColleagueChat();
+    }
+  }
 
   // Pixel Particles & Ambient Emitters Update
   if (window.pixelEngine && window.pixelEngine.particles) {
@@ -3964,8 +3997,14 @@ function closeColleagueChat() {
   const bar = document.getElementById('colleague-chat-bar');
   const inputEl = document.getElementById('colleague-chat-input');
   if (bar) bar.classList.add('hidden');
-  if (inputEl) inputEl.blur();
+  if (inputEl) {
+    inputEl.value = '';
+    inputEl.blur();
+  }
   currentChatTarget = null;
+  if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+    document.activeElement.blur();
+  }
 }
 
 function sendColleagueMessage() {
