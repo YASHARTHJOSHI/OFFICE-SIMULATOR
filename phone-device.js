@@ -63,6 +63,140 @@
     };
   };
 
+  // PS 7: Workplace Communication Objectives (Converted from photo into English)
+  const WORKPLACE_OBJECTIVES = [
+    {
+      id: 'obj_help_without_sorry',
+      num: 1,
+      title: 'Ask for Help Without Apologizing',
+      shortTitle: 'Help Without Apologizing',
+      category: 'Communication',
+      problem: 'Employees hesitate to reach out to senior engineers or start with excessive "sorry" apologies, causing imposter syndrome and delay.',
+      action: 'Reach out to a senior engineer with clear context (what you tried, error logs, specific blocker) with zero unnecessary apologies.',
+      location: 'Dev Pods • Main Hall',
+      mentor: 'Rahul (Tech Lead)',
+      priority: 'P0',
+      diffClass: 'p0',
+      xp: 150,
+      rewardMoney: 400,
+      completed: false
+    },
+    {
+      id: 'obj_clarify_task',
+      num: 2,
+      title: 'Clarify Ambiguous Ticket Requirements',
+      shortTitle: 'Clarify Ambiguous Tickets',
+      category: 'Planning',
+      problem: 'Starting work on vague tickets leads to wasted sprints, misunderstanding, and code rework.',
+      action: 'Ask structured clarifying questions on edge cases, schemas, and acceptance criteria before writing code.',
+      location: 'Conference Room • Office Hall',
+      mentor: 'Neha (Planning Lead)',
+      priority: 'P1',
+      diffClass: 'p1',
+      xp: 140,
+      rewardMoney: 350,
+      completed: false
+    },
+    {
+      id: 'obj_post_meeting_mom',
+      num: 3,
+      title: 'Document Post-Meeting Action Items (MoM)',
+      shortTitle: 'Post-Meeting MoM',
+      category: 'Leadership',
+      problem: 'Team meetings end without documented decisions, ownership assignments, or delivery milestone dates.',
+      action: 'Publish a 3-bullet Minutes of Meeting (MoM): Key Decisions, Assigned Owners, and Milestone Deadlines.',
+      location: 'Executive Boardroom',
+      mentor: 'Sneha & Vikram',
+      priority: 'P1',
+      diffClass: 'p1',
+      xp: 160,
+      rewardMoney: 450,
+      completed: false
+    },
+    {
+      id: 'obj_polite_followup',
+      num: 4,
+      title: 'Send Polite & Firm Blocker Follow-up',
+      shortTitle: 'Polite & Firm Follow-up',
+      category: 'Operations',
+      problem: 'Fear of sounding rude prevents employees from unblocking pending PR reviews or upstream dependencies.',
+      action: 'Send an objective nudge with ticket link and timeline impact, without passive-aggressive phrasing.',
+      location: 'HR & Ops Cabin',
+      mentor: 'Amit (HR & Operations)',
+      priority: 'P1',
+      diffClass: 'p1',
+      xp: 130,
+      rewardMoney: 300,
+      completed: false
+    },
+    {
+      id: 'obj_confident_replies',
+      num: 5,
+      title: 'Deliver Confident Technical Pushback',
+      shortTitle: 'Confident Technical Replies',
+      category: 'Architecture',
+      problem: 'Agreeing to impossible deadlines due to fear of pushing back on leadership.',
+      action: 'State technical trade-offs, feasibility constraints, and revised timeline calmly and assertively.',
+      location: 'Corner Office',
+      mentor: 'Mark Sterling (VP)',
+      priority: 'P0',
+      diffClass: 'p0',
+      xp: 180,
+      rewardMoney: 500,
+      completed: false
+    }
+  ];
+
+  // Restore saved completion states from localStorage
+  try {
+    const saved = localStorage.getItem('officesim_objectives_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      WORKPLACE_OBJECTIVES.forEach(obj => {
+        if (parsed[obj.id] !== undefined) obj.completed = !!parsed[obj.id];
+      });
+    }
+  } catch (e) {}
+
+  window.WORKPLACE_OBJECTIVES = WORKPLACE_OBJECTIVES;
+
+  window.toggleObjectiveCompleted = function(objId) {
+    const list = window.WORKPLACE_OBJECTIVES || [];
+    const item = list.find(o => o.id === objId);
+    if (!item) return false;
+    item.completed = !item.completed;
+
+    try {
+      const stateObj = {};
+      list.forEach(o => stateObj[o.id] = o.completed);
+      localStorage.setItem('officesim_objectives_state', JSON.stringify(stateObj));
+    } catch (e) {}
+
+    if (item.completed) {
+      const xp = item.xp || 150;
+      const cash = item.rewardMoney || 400;
+      if (typeof window.addCorporateFunds === 'function') {
+        window.addCorporateFunds(cash);
+      }
+      if (window.state && window.state.player) {
+        window.state.player.score = (window.state.player.score || 0) + xp;
+        const scoreEl = document.getElementById('stat-score');
+        if (scoreEl) scoreEl.textContent = window.state.player.score;
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(`🎯 Objective Cleared: ${item.shortTitle}! +${xp} XP & +$${cash}!`);
+      }
+      if (window.soundManager && typeof window.soundManager.playQuestComplete === 'function') {
+        window.soundManager.playQuestComplete();
+      }
+    }
+
+    if (typeof window.renderObjectivesList === 'function') {
+      window.renderObjectivesList();
+    }
+    return item.completed;
+  };
+
   // Curated Fallback SWE Tasks per Character Role (used instantly on boot or offline)
   const DEFAULT_SWE_TASKS = {
     char1: [ // Vikram: Tech Lead / Backend Specialist
@@ -921,6 +1055,9 @@
         this.fetchGroqTasks(activeChar, false);
       }, 1500);
 
+      // Start 20-second workplace communication push notification cycle
+      this.start20SecNotificationCycle();
+
       console.log('📱 Handheld Smartphone System Initialized with Groq AI (Press [P] to toggle)');
     }
 
@@ -1171,6 +1308,98 @@
       this._pushTimeout = setTimeout(() => {
         el.classList.remove('show');
       }, duration);
+    }
+
+    start20SecNotificationCycle() {
+      if (this._notifInterval) clearInterval(this._notifInterval);
+      this._lastNotifIndex = 0;
+
+      // Close button wireup on the canvas push banner
+      const closeBtn = document.getElementById('btn-close-push');
+      if (closeBtn) {
+        closeBtn.onclick = (e) => {
+          e.stopPropagation();
+          this.hideWorkplacePushBanner();
+        };
+      }
+
+      // Clicking push banner opens the Objectives HUD panel
+      const banner = document.getElementById('phone-push-banner');
+      if (banner) {
+        banner.onclick = (e) => {
+          if (e.target && e.target.closest('#btn-close-push')) return;
+          this.hideWorkplacePushBanner();
+          if (typeof window.toggleObjectivesPanel === 'function') {
+            window.toggleObjectivesPanel(true);
+          } else {
+            this.toggle();
+          }
+        };
+      }
+
+      // First notification after 4 seconds
+      setTimeout(() => {
+        this.triggerNextWorkplaceNotification();
+      }, 4000);
+
+      // Recurring loop every 20 seconds
+      this._notifInterval = setInterval(() => {
+        this.triggerNextWorkplaceNotification();
+      }, 20000);
+    }
+
+    triggerNextWorkplaceNotification() {
+      const list = window.WORKPLACE_OBJECTIVES || [];
+      if (list.length === 0) return;
+
+      // Prioritize uncompleted objectives
+      const uncompleted = list.filter(o => !o.completed);
+      const targetPool = uncompleted.length > 0 ? uncompleted : list;
+
+      const obj = targetPool[this._lastNotifIndex % targetPool.length];
+      this._lastNotifIndex++;
+
+      this.showWorkplacePushBanner(obj);
+    }
+
+    showWorkplacePushBanner(obj) {
+      if (!obj) return;
+      const banner = document.getElementById('phone-push-banner');
+      if (!banner) return;
+
+      const titleEl = document.getElementById('push-notif-title');
+      const bodyEl = document.getElementById('push-notif-body');
+      const timeEl = document.getElementById('push-notif-time');
+
+      if (titleEl) titleEl.textContent = `[Task #${obj.num}] ${obj.shortTitle || obj.title}`;
+      if (bodyEl) bodyEl.textContent = obj.action || obj.problem;
+      if (timeEl) timeEl.textContent = 'Just now';
+
+      banner.classList.remove('hidden');
+      banner.classList.add('show');
+
+      // Play soft smartphone notification chime
+      this.playPhoneChime([587, 880]);
+
+      // Subtle pulse on phone header badge
+      const badge = document.getElementById('phone-header-badge');
+      if (badge) {
+        badge.classList.remove('hidden');
+        badge.classList.add('pulse');
+      }
+
+      if (this._pushBannerTimeout) clearTimeout(this._pushBannerTimeout);
+      this._pushBannerTimeout = setTimeout(() => {
+        this.hideWorkplacePushBanner();
+      }, 6500);
+    }
+
+    hideWorkplacePushBanner() {
+      const banner = document.getElementById('phone-push-banner');
+      if (banner) {
+        banner.classList.remove('show');
+        banner.classList.add('hidden');
+      }
     }
 
     addHeaderButton() {

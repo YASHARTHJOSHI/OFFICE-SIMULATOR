@@ -1168,6 +1168,7 @@ function initGame() {
   setupStartMenuAndLobby();
   setupQuestEventListeners();
   setupColleagueChatListeners();
+  setupObjectivesWidget();
   if (window.aiAgent) window.aiAgent.updateHeaderScoreUI();
   updateResponsiveCanvas();
   window.addEventListener('resize', updateResponsiveCanvas);
@@ -1285,14 +1286,20 @@ function setupEventListeners() {
         if (window.phoneDevice) window.phoneDevice.toggle();
         matched = true;
       }
+      if (k === 'o' || c === 'KeyO') {
+        if (typeof window.toggleObjectivesPanel === 'function') {
+          window.toggleObjectivesPanel();
+        }
+        matched = true;
+      }
       if (k === 'm' || c === 'KeyM') {
         if (window.officeMap) window.officeMap.toggle();
         matched = true;
       }
       if (k === 'escape' || c === 'Escape') {
-        const chatBar = document.getElementById('colleague-chat-bar');
-        if (chatBar && !chatBar.classList.contains('hidden')) {
-          closeColleagueChat();
+        const objPanel = document.getElementById('hud-objectives-panel');
+        if (objPanel && !objPanel.classList.contains('hidden')) {
+          if (typeof window.toggleObjectivesPanel === 'function') window.toggleObjectivesPanel(false);
           matched = true;
         } else if (window.officeMap && window.officeMap.isOpen) {
           window.officeMap.close();
@@ -1300,6 +1307,12 @@ function setupEventListeners() {
         } else if (window.phoneDevice && window.phoneDevice.isOpen) {
           window.phoneDevice.close();
           matched = true;
+        } else {
+          const chatBar = document.getElementById('colleague-chat-bar');
+          if (chatBar && !chatBar.classList.contains('hidden')) {
+            closeColleagueChat();
+            matched = true;
+          }
         }
       }
       if (k === 'h' || c === 'KeyH') toggleHelpModal();
@@ -2372,6 +2385,11 @@ function update(dt) {
   if (window.coffeeQueueManager) {
     window.coffeeQueueManager.update(dt * 1000);
   }
+
+  // Rotate Conference Room Project Chronos Live Discussion
+  if (state.currentScene === 'CONFERENCE_ROOM' && typeof updateConferenceDiscussion === 'function') {
+    updateConferenceDiscussion();
+  }
 }
 
 function updateTriggers() {
@@ -2401,7 +2419,26 @@ function updateTriggers() {
     }
   }
 
-  // 2. Standard Scene Triggers (Doors, water cooler, workstations)
+  // 2. Check proximity to Conference Room Project Chronos Attendees
+  if (!foundTrigger && state.currentScene === 'CONFERENCE_ROOM' && typeof CONFERENCE_ATTENDEES !== 'undefined') {
+    for (const att of CONFERENCE_ATTENDEES) {
+      const dist = Math.hypot(p.x - att.x, p.y - att.y);
+      if (dist < 75) {
+        foundTrigger = {
+          id: `talk_to_${att.id}`,
+          prompt: `Talk to ${att.name} (${att.role}) [E]`,
+          promptPos: { x: att.x, y: att.y - 70 },
+          action: () => {
+            window.soundManager.playInteract();
+            showToast(`${att.name} (${att.role}): "${att.dialogue}"`);
+          }
+        };
+        break;
+      }
+    }
+  }
+
+  // 3. Standard Scene Triggers (Doors, water cooler, workstations)
   if (!foundTrigger) {
     for (const trig of scene.triggers) {
       const dist = Math.hypot(p.x - (trig.x + trig.w / 2), p.y - (trig.y + trig.h / 2));
@@ -2544,6 +2581,16 @@ function render() {
           }
         });
       }
+    });
+  }
+
+  // Conference Room Project Chronos Attendees
+  if (state.currentScene === 'CONFERENCE_ROOM' && typeof CONFERENCE_ATTENDEES !== 'undefined') {
+    CONFERENCE_ATTENDEES.forEach(att => {
+      renderables.push({
+        y: att.y,
+        draw: () => renderConferenceAttendee(att, scene)
+      });
     });
   }
 
@@ -2850,6 +2897,183 @@ function renderConferenceRoomDetails() {
   // 2. PixelEngine Dynamic Particle & Ambient Lighting for Conference Room
   if (window.pixelEngine && window.pixelEngine.renderConferenceRoomPixelEffects) {
     window.pixelEngine.renderConferenceRoomPixelEffects(ctx, p ? p.x : 0, p ? p.y : 0);
+  }
+}
+
+// ==========================================
+// CONFERENCE ROOM PROJECT DISCUSSION (Project Chronos)
+// ==========================================
+const CONFERENCE_ATTENDEES = [
+  {
+    id: 'vikram',
+    name: 'Vikram',
+    role: 'Tech Lead',
+    x: 350,
+    y: 350,
+    charId: 'char1',
+    sitImgKey: 'char1SeatedDesk',
+    fallbackImgKey: 'char1Sitting',
+    facing: 'down',
+    dialogue: 'We are monitoring Project Chronos multi-region replication. Latency is sub-0.5ms across all clusters!'
+  },
+  {
+    id: 'sneha',
+    name: 'Sneha',
+    role: 'Cloud Architect',
+    x: 485,
+    y: 345,
+    charId: 'char2',
+    sitImgKey: 'char2SeatedDesk',
+    fallbackImgKey: 'char2Sitting',
+    facing: 'down',
+    dialogue: 'The zero-downtime microservices mesh is live! 100k active WebSocket channels with 0 packet drops.'
+  },
+  {
+    id: 'ananya',
+    name: 'Ananya',
+    role: 'Staff PM',
+    x: 620,
+    y: 350,
+    charId: 'char3',
+    sitImgKey: 'char3SeatedDesk',
+    fallbackImgKey: 'char3Sitting',
+    facing: 'down',
+    dialogue: 'Welcome to the project sync! Make sure you document our 3 key sprint decisions in the MoM before 4 PM.'
+  },
+  {
+    id: 'rohan',
+    name: 'Rohan',
+    role: 'DevOps Lead',
+    x: 485,
+    y: 505,
+    charId: 'char6',
+    sitImgKey: 'char6Back',
+    fallbackImgKey: 'charBack',
+    facing: 'up',
+    dialogue: 'Chaos engineering suite ran overnight — Raft quorum healed in 350ms with zero data drift.'
+  }
+];
+
+const CHRONOS_MEETING_SCRIPT = [
+  { speakerId: 'vikram', text: 'Project Chronos: Ingestion latency dropped to 0.4ms across Europe-West!' },
+  { speakerId: 'sneha', text: 'WebSocket connection pools scaled to 100k concurrent peers with zero drops.' },
+  { speakerId: 'ananya', text: 'Sprint 4 milestone: Zero-downtime failover is verified. Let\'s review release notes.' },
+  { speakerId: 'rohan', text: 'Simulated a region outage — Raft quorum self-healed in 350ms without data loss.' },
+  { speakerId: 'vikram', text: 'We need to document the 3-point MoM for leadership before the code freeze.' },
+  { speakerId: 'sneha', text: 'Multi-region CockroachDB replica is fully green. Ready for canary rollout.' },
+  { speakerId: 'ananya', text: 'Great velocity team. Let\'s keep test coverage strictly above 95%.' },
+  { speakerId: 'rohan', text: 'Helm charts are tagged and pushed to the staging cluster right now.' }
+];
+
+const confDiscussionState = {
+  scriptIndex: 0,
+  activeSpeakerId: 'vikram',
+  bubbleText: CHRONOS_MEETING_SCRIPT[0].text,
+  expiresAt: Date.now() + 4500
+};
+
+function updateConferenceDiscussion() {
+  const now = Date.now();
+  if (now > confDiscussionState.expiresAt) {
+    confDiscussionState.scriptIndex = (confDiscussionState.scriptIndex + 1) % CHRONOS_MEETING_SCRIPT.length;
+    const turn = CHRONOS_MEETING_SCRIPT[confDiscussionState.scriptIndex];
+    confDiscussionState.activeSpeakerId = turn.speakerId;
+    confDiscussionState.bubbleText = turn.text;
+    confDiscussionState.expiresAt = now + 4200;
+  }
+}
+
+function renderConferenceAttendee(att, scene) {
+  // 1. Soft shadow beneath chair
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(att.x, att.y - 2, 22, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Seated sprite
+  const scale = scene.playerScale || 0.58;
+  const dw = Math.round(58 * (scale / 0.58));
+  const dh = Math.round(102 * (scale / 0.58));
+  const dx = Math.round(att.x - dw / 2);
+  const breath = Math.sin(performance.now() * 0.004 + (att.x * 0.05)) * 1.0;
+  const dy = Math.round(att.y - dh + breath);
+
+  let img = assets[att.sitImgKey] || assets[att.fallbackImgKey] || assets.char1Sitting;
+  if (img && img.complete && img.width > 0) {
+    ctx.drawImage(img, dx, dy, dw, dh);
+  }
+
+  // 3. Floating name tag pill
+  const tagText = `${att.name} (${att.role})`;
+  ctx.font = 'bold 10px Outfit, sans-serif';
+  const textWidth = ctx.measureText(tagText).width;
+  const badgeW = textWidth + 18;
+  const badgeH = 17;
+  const badgeX = Math.round(att.x - badgeW / 2);
+  const headTop = att.y - dh;
+  const badgeY = headTop - 12;
+
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 8);
+  else ctx.rect(badgeX, badgeY, badgeW, badgeH);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.arc(badgeX + 7, badgeY + badgeH / 2, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(tagText, badgeX + 14, badgeY + badgeH / 2 + 0.5);
+
+  // 4. Proximity prompt [E] Talk
+  const dist = Math.hypot(state.player.x - att.x, state.player.y - att.y);
+  let topY = badgeY;
+  if (dist < 85 && !state.isDialogueOpen) {
+    const promptW = 56;
+    const promptH = 16;
+    const promptX = Math.round(att.x - promptW / 2);
+    const bounce = Math.sin(performance.now() * 0.007) * 1.5;
+    const promptY = badgeY - 18 + bounce;
+    topY = promptY;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(promptX, promptY, promptW, promptH, 8);
+    else ctx.rect(promptX, promptY, promptW, promptH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(promptX + 3, promptY + 2, 12, 12, 3);
+    else ctx.rect(promptX + 3, promptY + 2, 12, 12);
+    ctx.fill();
+
+    ctx.font = 'bold 9px Outfit, sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('E', promptX + 9, promptY + 8);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 9px Outfit, sans-serif';
+    ctx.fillText('Talk', promptX + 21, promptY + 8);
+    ctx.restore();
+  }
+
+  // 5. Active live discussion speech bubble
+  if (confDiscussionState.activeSpeakerId === att.id && confDiscussionState.expiresAt > Date.now()) {
+    drawSpeechBubble(ctx, att.x, topY - 6, confDiscussionState.bubbleText, confDiscussionState.expiresAt);
   }
 }
 
@@ -4645,6 +4869,110 @@ function setupQuestEventListeners() {
   // Initial HUD update
   setTimeout(updateHUDQuestTracker, 500);
 }
+
+// ==========================================
+// OBJECTIVES HUD CONTROLLER (Workplace Quest Tasks)
+// ==========================================
+function setupObjectivesWidget() {
+  const toggleBtn = document.getElementById('btn-toggle-objectives');
+  const closeBtn = document.getElementById('btn-close-objectives-panel');
+  const panel = document.getElementById('hud-objectives-panel');
+
+  if (toggleBtn) {
+    toggleBtn.onclick = (e) => {
+      e.stopPropagation();
+      window.toggleObjectivesPanel();
+    };
+  }
+
+  if (closeBtn) {
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      window.toggleObjectivesPanel(false);
+    };
+  }
+
+  document.addEventListener('click', (e) => {
+    if (panel && !panel.classList.contains('hidden')) {
+      const widget = document.getElementById('hud-objectives-widget');
+      if (widget && !widget.contains(e.target)) {
+        window.toggleObjectivesPanel(false);
+      }
+    }
+  });
+
+  window.renderObjectivesList();
+}
+
+window.toggleObjectivesPanel = function(forceOpen) {
+  const panel = document.getElementById('hud-objectives-panel');
+  const chevron = document.getElementById('hud-obj-chevron');
+  if (!panel) return;
+
+  const willOpen = (typeof forceOpen === 'boolean') ? forceOpen : panel.classList.contains('hidden');
+
+  if (willOpen) {
+    panel.classList.remove('hidden');
+    if (chevron) chevron.textContent = '▲';
+    window.renderObjectivesList();
+    if (window.soundManager && typeof window.soundManager.playInteract === 'function') {
+      window.soundManager.playInteract();
+    }
+  } else {
+    panel.classList.add('hidden');
+    if (chevron) chevron.textContent = '▼';
+  }
+};
+
+window.renderObjectivesList = function() {
+  const listEl = document.getElementById('hud-objectives-list');
+  const countBadge = document.getElementById('hud-obj-count');
+  const progText = document.getElementById('hud-obj-prog-text');
+  const progBar = document.getElementById('hud-obj-prog-bar');
+
+  const objectives = window.WORKPLACE_OBJECTIVES || [];
+  if (objectives.length === 0) return;
+
+  const completedCount = objectives.filter(o => o.completed).length;
+  const totalCount = objectives.length;
+  const percent = Math.round((completedCount / totalCount) * 100);
+
+  if (countBadge) countBadge.textContent = `${completedCount}/${totalCount}`;
+  if (progText) progText.textContent = `${percent}% Completed (${completedCount}/${totalCount})`;
+  if (progBar) progBar.style.width = `${percent}%`;
+
+  if (!listEl) return;
+
+  listEl.innerHTML = objectives.map(obj => `
+    <div class="hud-obj-card ${obj.completed ? 'completed' : ''}" data-obj-id="${obj.id}" title="Click to ${obj.completed ? 'unmark' : 'mark completed'}">
+      <div class="hud-obj-card-left">
+        <button type="button" class="hud-obj-check ${obj.completed ? 'checked' : ''}" data-obj-id="${obj.id}">
+          ${obj.completed ? '✓' : ''}
+        </button>
+        <div class="hud-obj-info">
+          <div class="hud-obj-card-title">${obj.num}. ${obj.title}</div>
+          <div class="hud-obj-card-action">${obj.action}</div>
+          <div class="hud-obj-meta">
+            <span class="hud-obj-prio ${obj.diffClass || 'p1'}">${obj.priority || 'P1'}</span>
+            <span class="hud-obj-reward">💵 +$${obj.rewardMoney || 350}</span>
+            <span class="hud-obj-reward">⭐ +${obj.xp || 150} XP</span>
+            <span class="hud-obj-loc">📍 ${obj.location || 'Office'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('.hud-obj-card').forEach(card => {
+    card.onclick = (e) => {
+      e.stopPropagation();
+      const objId = card.getAttribute('data-obj-id');
+      if (typeof window.toggleObjectiveCompleted === 'function') {
+        window.toggleObjectiveCompleted(objId);
+      }
+    };
+  });
+};
 
 // Global Corporate Funds Handler
 window.addCorporateFunds = function(amount = 100) {

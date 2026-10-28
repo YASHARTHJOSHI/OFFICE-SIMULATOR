@@ -46,6 +46,60 @@
           <span class="hud-money-val" id="hud-money-val">$0</span>
         </div>
 
+        <!-- Top-Left In-Game Objectives HUD Widget (Workplace Quest Tasks) -->
+        <div id="hud-objectives-widget" class="hud-objectives-widget">
+          <button id="btn-toggle-objectives" class="hud-objectives-btn" title="View Workplace Communication Objectives [O]" type="button">
+            <span class="hud-obj-icon">🎯</span>
+            <span class="hud-obj-title">OBJECTIVES</span>
+            <span class="hud-obj-count-badge" id="hud-obj-count">0/5</span>
+            <span class="hud-obj-chevron" id="hud-obj-chevron">▼</span>
+          </button>
+          
+          <div id="hud-objectives-panel" class="hud-objectives-panel hidden">
+            <div class="hud-obj-header">
+              <div class="hud-obj-header-left">
+                <span class="hud-obj-badge-tag">PS 7 • WORKPLACE QUEST</span>
+                <h4 class="hud-obj-heading">Communication Objectives</h4>
+              </div>
+              <button id="btn-close-objectives-panel" class="hud-obj-close" type="button" title="Close [O]">&times;</button>
+            </div>
+            
+            <p class="hud-obj-desc">Master professional technical communication without hesitation or unnecessary apologies.</p>
+            
+            <div class="hud-obj-progress-wrap">
+              <div class="hud-obj-prog-labels">
+                <span>Mastery Progress</span>
+                <span id="hud-obj-prog-text">0% Completed</span>
+              </div>
+              <div class="hud-obj-prog-track">
+                <div class="hud-obj-prog-bar" id="hud-obj-prog-bar" style="width: 0%;"></div>
+              </div>
+            </div>
+            
+            <div class="hud-obj-list" id="hud-objectives-list">
+              <!-- Dynamically populated 5 objectives from image -->
+            </div>
+            
+            <div class="hud-obj-footer">
+              <span class="hud-obj-tip">💡 Tip: Press [O] to toggle • Press [P] for phone alerts</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating In-Game Phone Push Notification Banner (Every 20s) -->
+        <div id="phone-push-banner" class="phone-push-banner hidden">
+          <div class="push-icon-circle">🔔</div>
+          <div class="push-content-wrap">
+            <div class="push-header-row">
+              <span class="push-app-name">📱 ACME PHONE • REMINDER</span>
+              <span class="push-time" id="push-notif-time">Just now</span>
+            </div>
+            <div class="push-title" id="push-notif-title">Workplace Communication Task</div>
+            <div class="push-body" id="push-notif-body">Reach out to a senior engineer for help without apologizing.</div>
+          </div>
+          <button id="btn-close-push" class="push-close-btn" type="button">&times;</button>
+        </div>
+
         <canvas id="game-canvas" width="1024" height="576" tabindex="0"></canvas>
 
         <!-- Door Transition Overlay -->
