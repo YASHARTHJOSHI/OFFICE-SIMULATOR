@@ -9218,8 +9218,8 @@ kbd {
    ========================================================= */
 .hud-objectives-widget {
   position: absolute;
-  top: 14px;
-  left: 114px;
+  top: 56px;
+  left: 14px;
   z-index: 35;
   pointer-events: auto;
   user-select: none;
@@ -9292,6 +9292,7 @@ kbd {
   top: 42px;
   left: 0;
   width: 380px;
+  max-width: calc(100vw - 28px);
   max-height: 480px;
   background: rgba(15, 23, 42, 0.96);
   border: 1.5px solid rgba(56, 189, 248, 0.45);
