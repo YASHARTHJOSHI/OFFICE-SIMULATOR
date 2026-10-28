@@ -1167,6 +1167,7 @@ function initGame() {
   setupEventListeners();
   setupStartMenuAndLobby();
   setupQuestEventListeners();
+  setupColleagueChatListeners();
   if (window.aiAgent) window.aiAgent.updateHeaderScoreUI();
   updateResponsiveCanvas();
   window.addEventListener('resize', updateResponsiveCanvas);
@@ -1289,7 +1290,11 @@ function setupEventListeners() {
         matched = true;
       }
       if (k === 'escape' || c === 'Escape') {
-        if (window.officeMap && window.officeMap.isOpen) {
+        const chatBar = document.getElementById('colleague-chat-bar');
+        if (chatBar && !chatBar.classList.contains('hidden')) {
+          closeColleagueChat();
+          matched = true;
+        } else if (window.officeMap && window.officeMap.isOpen) {
           window.officeMap.close();
           matched = true;
         } else if (window.phoneDevice && window.phoneDevice.isOpen) {
@@ -1401,6 +1406,16 @@ function setupEventListeners() {
       // Left: Big Workplace badge (cx: 80, cy: 335)
       if (Math.abs(targetX - 80) <= 55 && Math.abs(targetY - 335) <= 16) {
         exitConferenceRoomToBigWorkplace();
+        return;
+      }
+    }
+
+    // Check if clicked directly on a colleague in the current room
+    const clickedColleague = getColleagueAtPosition(targetX, targetY);
+    if (clickedColleague) {
+      const dist = Math.hypot(state.player.x - targetX, state.player.y - targetY);
+      if (dist < 110) {
+        openColleagueChat(clickedColleague);
         return;
       }
     }
@@ -1556,6 +1571,13 @@ function toggleSitInChair(chairX, chairY, sitDir = 'up', standX, standY) {
 function handleInteract() {
   if (state.isTransitioning) return;
 
+  // If colleague chat bar is open, pressing Enter / E sends the message
+  const bar = document.getElementById('colleague-chat-bar');
+  if (bar && !bar.classList.contains('hidden')) {
+    sendColleagueMessage();
+    return;
+  }
+
   // If dialogue box is open
   if (state.isDialogueOpen) {
     if (state.dialogueDone) {
@@ -1564,6 +1586,13 @@ function handleInteract() {
       // Speed up text immediately
       fastForwardDialogue();
     }
+    return;
+  }
+
+  // If near a colleague / remote peer, prioritize opening speech chat!
+  const nearbyColleague = getNearbyColleague();
+  if (nearbyColleague) {
+    openColleagueChat(nearbyColleague);
     return;
   }
 
@@ -2467,7 +2496,52 @@ function render() {
       if (npc.scene === state.currentScene) {
         renderables.push({
           y: npc.y,
-          draw: () => window.aiAgent.renderSingleNPC(ctx, npc, assets, scene.playerScale)
+          draw: () => {
+            window.aiAgent.renderSingleNPC(ctx, npc, assets, scene.playerScale);
+            // If near NPC and no active dialogue, show cozy [E] Talk
+            const dist = Math.hypot(state.player.x - npc.x, state.player.y - npc.y);
+            let topY = npc.y - 64;
+            if (dist < 85 && !state.isDialogueOpen) {
+              const promptW = 56;
+              const promptH = 16;
+              const promptX = npc.x - promptW / 2;
+              const bounce = Math.sin(performance.now() * 0.007) * 1.5;
+              const promptY = topY - 18 + bounce;
+              topY = promptY;
+
+              ctx.save();
+              ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+              ctx.strokeStyle = '#38bdf8';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              if (ctx.roundRect) ctx.roundRect(promptX, promptY, promptW, promptH, 8);
+              else ctx.rect(promptX, promptY, promptW, promptH);
+              ctx.fill();
+              ctx.stroke();
+
+              ctx.fillStyle = '#38bdf8';
+              ctx.beginPath();
+              if (ctx.roundRect) ctx.roundRect(promptX + 3, promptY + 2, 12, 12, 3);
+              else ctx.rect(promptX + 3, promptY + 2, 12, 12);
+              ctx.fill();
+
+              ctx.font = 'bold 9px Outfit, sans-serif';
+              ctx.fillStyle = '#0f172a';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('E', promptX + 9, promptY + 8);
+
+              ctx.fillStyle = '#f8fafc';
+              ctx.textAlign = 'left';
+              ctx.font = 'bold 9px Outfit, sans-serif';
+              ctx.fillText('Talk', promptX + 21, promptY + 8);
+              ctx.restore();
+            }
+
+            if (npc.chatBubble && npc.chatBubble.expiresAt > Date.now()) {
+              drawSpeechBubble(ctx, npc.x, topY - 6, npc.chatBubble.text, npc.chatBubble.expiresAt);
+            }
+          }
         });
       }
     });
@@ -2895,6 +2969,9 @@ function renderPlayer() {
         window.pixelEngine.particles.spawnTypingParticles(p.x, p.y - 45);
       }
     }
+    if (state.playerChatBubble && state.playerChatBubble.expiresAt > Date.now()) {
+      drawSpeechBubble(ctx, p.x, p.y - Math.round(95 * (scene.playerScale || 0.55)) - 14, state.playerChatBubble.text, state.playerChatBubble.expiresAt);
+    }
     ctx.restore();
     return;
   }
@@ -2974,6 +3051,10 @@ function renderPlayer() {
     ctx.drawImage(assets.char4Idle, px, py, pw, ph);
   } else if (assets.charIdle.complete) {
     ctx.drawImage(assets.charIdle, px, py, pw, ph);
+  }
+
+  if (state.playerChatBubble && state.playerChatBubble.expiresAt > Date.now()) {
+    drawSpeechBubble(ctx, p.x, py - 12, state.playerChatBubble.text, state.playerChatBubble.expiresAt);
   }
 
   ctx.restore();
@@ -3145,11 +3226,350 @@ function renderSingleRemotePlayer(peer) {
     ctx.fillStyle = '#f8fafc';
     ctx.textBaseline = 'middle';
     ctx.fillText(tagText, badgeX + 16, badgeY + badgeH / 2 + 1);
+
+    // 4. Cozy [E] Talk Prompt (if player is nearby < 85px)
+    const distToPlayer = Math.hypot(posX - state.player.x, posY - state.player.y);
+    let topAnchorY = badgeY;
+    if (distToPlayer < 85) {
+      const promptW = 56;
+      const promptH = 16;
+      const promptX = posX - promptW / 2;
+      const bounce = Math.sin(performance.now() * 0.007) * 1.5;
+      const promptY = badgeY - 19 + bounce;
+      topAnchorY = promptY;
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(promptX, promptY, promptW, promptH, 8);
+      else ctx.rect(promptX, promptY, promptW, promptH);
+      ctx.fill();
+      ctx.stroke();
+
+      // Tiny Keycap [E]
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(promptX + 3, promptY + 2, 12, 12, 3);
+      else ctx.rect(promptX + 3, promptY + 2, 12, 12);
+      ctx.fill();
+
+      ctx.font = 'bold 9px Outfit, sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('E', promptX + 9, promptY + 8);
+
+      // 'Talk' text
+      ctx.fillStyle = '#f8fafc';
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 9px Outfit, sans-serif';
+      ctx.fillText('Talk', promptX + 21, promptY + 8);
+      ctx.restore();
+    }
+
+    // 5. Speech Bubble above head (if remote peer has active chat bubble)
+    if (peer.chatBubble && peer.chatBubble.expiresAt > Date.now()) {
+      drawSpeechBubble(ctx, posX, topAnchorY - 6, peer.chatBubble.text, peer.chatBubble.expiresAt);
+    }
   } catch (err) {
     console.warn('Error rendering remote peer:', err);
   } finally {
     ctx.restore();
   }
+}
+
+// ==========================================
+// SPEECH BUBBLES & PROXIMITY COLLEAGUE CHAT
+// ==========================================
+let currentChatTarget = null;
+
+function drawSpeechBubble(ctx, anchorX, anchorY, rawText, expiresAt) {
+  if (!rawText) return;
+  const now = Date.now();
+  if (expiresAt && now > expiresAt) return;
+
+  // Smooth fade-out in final 500ms
+  let alpha = 1;
+  if (expiresAt) {
+    const timeLeft = expiresAt - now;
+    if (timeLeft < 500) {
+      alpha = Math.max(0, timeLeft / 500);
+    }
+  }
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Outfit", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Multi-line word wrapping
+  const maxW = 160;
+  const words = String(rawText).split(' ');
+  const lines = [];
+  let curLine = '';
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = curLine ? (curLine + ' ' + words[i]) : words[i];
+    if (ctx.measureText(testLine).width > maxW && curLine) {
+      lines.push(curLine);
+      curLine = words[i];
+    } else {
+      curLine = testLine;
+    }
+  }
+  if (curLine) lines.push(curLine);
+
+  let measuredMaxW = 0;
+  lines.forEach(l => {
+    const w = ctx.measureText(l).width;
+    if (w > measuredMaxW) measuredMaxW = w;
+  });
+
+  const lineHeight = 15;
+  const padX = 12;
+  const padY = 8;
+  const bubbleW = Math.max(48, Math.min(maxW + padX * 2, measuredMaxW + padX * 2));
+  const bubbleH = lines.length * lineHeight + padY * 2;
+  const tailH = 6;
+  const tailW = 8;
+
+  const bubbleX = Math.round(anchorX - bubbleW / 2);
+  const bubbleY = Math.round(anchorY - bubbleH - tailH);
+
+  // Soft drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+
+  // Speech bubble body (clean rounded card with slight premium ivory/white tint)
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = 'rgba(15, 23, 42, 0.15)';
+  ctx.lineWidth = 1.2;
+
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(bubbleX, bubbleY, bubbleW, bubbleH, 10);
+  } else {
+    ctx.rect(bubbleX, bubbleY, bubbleW, bubbleH);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  // Reset shadow for tail and text
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  // Downward pointer tail pointing directly to character head
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(anchorX - tailW / 2, bubbleY + bubbleH);
+  ctx.lineTo(anchorX + tailW / 2, bubbleY + bubbleH);
+  ctx.lineTo(anchorX, bubbleY + bubbleH + tailH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tail stroke bottom lines
+  ctx.strokeStyle = 'rgba(15, 23, 42, 0.15)';
+  ctx.beginPath();
+  ctx.moveTo(anchorX - tailW / 2, bubbleY + bubbleH);
+  ctx.lineTo(anchorX, bubbleY + bubbleH + tailH);
+  ctx.lineTo(anchorX + tailW / 2, bubbleY + bubbleH);
+  ctx.stroke();
+
+  // Re-fill tiny overlap to seamless white
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(anchorX - tailW / 2 + 1, bubbleY + bubbleH - 1, tailW - 2, 2);
+
+  // Text inside bubble
+  ctx.fillStyle = '#0f172a';
+  const startY = bubbleY + padY + lineHeight / 2;
+  lines.forEach((line, idx) => {
+    ctx.fillText(line, anchorX, startY + idx * lineHeight);
+  });
+
+  ctx.restore();
+}
+
+function getNearbyColleague() {
+  const p = state.player;
+  if (!p) return null;
+
+  // 1. Check remote multiplayer peers in same scene
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    for (const [peerId, peer] of window.multiplayerEngine.peers.entries()) {
+      if (peer.scene === state.currentScene) {
+        const posX = Number.isFinite(peer.x) ? peer.x : peer.targetX;
+        const posY = Number.isFinite(peer.y) ? peer.y : peer.targetY;
+        if (Number.isFinite(posX) && Number.isFinite(posY)) {
+          const dist = Math.hypot(p.x - posX, p.y - posY);
+          if (dist < 85) {
+            return {
+              id: peerId,
+              name: peer.name || 'Colleague',
+              type: 'peer',
+              target: peer
+            };
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Check autonomous AI NPCs in same scene
+  if (window.aiAgent && window.aiAgent.npcs) {
+    for (const npc of window.aiAgent.npcs) {
+      if (npc.scene === state.currentScene) {
+        const dist = Math.hypot(p.x - npc.x, p.y - npc.y);
+        if (dist < 85) {
+          return {
+            id: npc.id,
+            name: npc.name || 'Colleague',
+            type: 'npc',
+            target: npc
+          };
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function getColleagueAtPosition(targetX, targetY) {
+  // Check peers
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    for (const [peerId, peer] of window.multiplayerEngine.peers.entries()) {
+      if (peer.scene === state.currentScene) {
+        const posX = Number.isFinite(peer.x) ? peer.x : peer.targetX;
+        const posY = Number.isFinite(peer.y) ? peer.y : peer.targetY;
+        if (Number.isFinite(posX) && Number.isFinite(posY)) {
+          if (Math.hypot(targetX - posX, targetY - posY) < 40) {
+            return { id: peerId, name: peer.name || 'Colleague', type: 'peer', target: peer };
+          }
+        }
+      }
+    }
+  }
+
+  // Check NPCs
+  if (window.aiAgent && window.aiAgent.npcs) {
+    for (const npc of window.aiAgent.npcs) {
+      if (npc.scene === state.currentScene) {
+        if (Math.hypot(targetX - npc.x, targetY - npc.y) < 40) {
+          return { id: npc.id, name: npc.name || 'Colleague', type: 'npc', target: npc };
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function openColleagueChat(colleague) {
+  currentChatTarget = colleague || { name: 'Colleague' };
+  const bar = document.getElementById('colleague-chat-bar');
+  const targetNameEl = document.getElementById('colleague-chat-target-name');
+  const inputEl = document.getElementById('colleague-chat-input');
+  if (!bar || !inputEl) return;
+
+  if (targetNameEl) {
+    targetNameEl.textContent = `${currentChatTarget.name || 'Colleague'}:`;
+  }
+  bar.classList.remove('hidden');
+  inputEl.value = '';
+  setTimeout(() => inputEl.focus(), 50);
+
+  if (window.soundManager) {
+    window.soundManager.unlock();
+    window.soundManager.playDialogueBlip();
+  }
+}
+
+function closeColleagueChat() {
+  const bar = document.getElementById('colleague-chat-bar');
+  const inputEl = document.getElementById('colleague-chat-input');
+  if (bar) bar.classList.add('hidden');
+  if (inputEl) inputEl.blur();
+  currentChatTarget = null;
+}
+
+function sendColleagueMessage() {
+  const inputEl = document.getElementById('colleague-chat-input');
+  if (!inputEl) return;
+  const text = (inputEl.value || '').trim();
+  if (!text) {
+    closeColleagueChat();
+    return;
+  }
+
+  // Set local chat bubble for 6.5 seconds
+  state.playerChatBubble = {
+    text: text,
+    expiresAt: Date.now() + 6500
+  };
+
+  // Broadcast to peers via MultiplayerEngine
+  if (window.multiplayerEngine && window.multiplayerEngine.active) {
+    window.multiplayerEngine.broadcastChatBubble(text);
+  }
+
+  // Play audio blip
+  if (window.soundManager) {
+    window.soundManager.unlock();
+    window.soundManager.playDialogueBlip();
+  }
+
+  // If chatting with AI NPC, reply after a short delay!
+  if (currentChatTarget && currentChatTarget.type === 'npc' && currentChatTarget.target) {
+    const npc = currentChatTarget.target;
+    setTimeout(() => {
+      const npcReplies = [
+        `Hey! Good seeing you in the ${state.currentScene.replace('_', ' ').toLowerCase()}.`,
+        `Working hard or hardly working? Haha! Let's crush our sprint goals!`,
+        `Did you see the new PR comments? Everything looks solid.`,
+        `Need a coffee refill? The machine in the cafeteria makes great brew!`
+      ];
+      const reply = npcReplies[Math.floor(Math.random() * npcReplies.length)];
+      npc.chatBubble = {
+        text: reply,
+        expiresAt: Date.now() + 6500
+      };
+      if (window.soundManager) window.soundManager.playDialogueBlip();
+    }, 1200);
+  }
+
+  closeColleagueChat();
+}
+
+function setupColleagueChatListeners() {
+  const bar = document.getElementById('colleague-chat-bar');
+  const inputEl = document.getElementById('colleague-chat-input');
+  const sendBtn = document.getElementById('colleague-chat-send');
+  if (!bar || !inputEl) return;
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sendColleagueMessage();
+    });
+  }
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      sendColleagueMessage();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      closeColleagueChat();
+    }
+  });
 }
 
 function renderRemotePlayers() {

@@ -1237,7 +1237,17 @@
           </button>
         </div>
       </div>
+  </div>
+
+  <!-- Multiplayer Proximity Colleague Chat Bar -->
+  <div id="colleague-chat-bar" class="colleague-chat-bar-container hidden">
+    <div class="colleague-chat-prompt">
+      <span>💬</span>
+      <span id="colleague-chat-target-name">Colleague:</span>
     </div>
+    <input type="text" id="colleague-chat-input" class="colleague-chat-input" placeholder="Type message to speak... [Enter]" maxlength="120" autocomplete="off" spellcheck="false" />
+    <button id="colleague-chat-send" class="colleague-chat-send-btn" type="button">Say ↵</button>
+    <span class="colleague-chat-hint">[Esc] Cancel</span>
   </div>
 
   <!-- Firebase Core, Auth & Firestore SDKs (v10 Compat) -->

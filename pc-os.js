@@ -1710,6 +1710,10 @@
             <span class="pc-tab-icon">🌐</span>
             <span class="pc-tab-title" id="pc-tab-title">Google Search</span>
           </div>
+          <div class="pc-b-tab" id="tab-youtube" data-target="youtube">
+            <span class="pc-tab-icon">▶️</span>
+            <span class="pc-tab-title">YouTube</span>
+          </div>
           <div class="pc-b-tab" id="tab-intranet" data-target="intranet">
             <span class="pc-tab-icon">🏢</span>
             <span class="pc-tab-title">OmniCorp Portal</span>
@@ -1725,7 +1729,7 @@
           
           <div class="pc-url-bar-wrap">
             <span class="pc-url-lock" id="pc-url-lock">🔒</span>
-            <input type="text" class="pc-url-input" id="pc-url-input" value="${defaultUrl}" placeholder="Search Google or enter web address..." autocomplete="off" spellcheck="false" />
+            <input type="text" class="pc-url-input" id="pc-url-input" value="${defaultUrl}" placeholder="Search Google, paste YouTube link or enter web address..." autocomplete="off" spellcheck="false" />
             <button class="pc-btn-go" id="pc-btn-go">Search / Go</button>
           </div>
 
@@ -1737,6 +1741,7 @@
         <!-- Bookmarks Bar -->
         <div class="pc-browser-bookmarks">
           <span style="color: #64748b; font-size: 0.7rem; font-weight: 600;">Favorites:</span>
+          <div class="pc-bookmark-chip pc-bm-youtube" data-url="https://www.youtube.com">▶️ YouTube</div>
           <div class="pc-bookmark-chip" data-url="https://www.google.com?igu=1">🔍 Google</div>
           <div class="pc-bookmark-chip" data-url="intranet://portal">🏢 Intranet Portal</div>
           <div class="pc-bookmark-chip" data-url="https://en.wikipedia.org/wiki/Special:Search">📖 Wikipedia</div>
@@ -1755,6 +1760,71 @@
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
             allow="fullscreen"
           ></iframe>
+
+          <!-- YouTube Video Portal View (Custom Embedded Player - No X-Frame-Options blocking!) -->
+          <div class="pc-youtube-view hidden" id="pc-youtube-view">
+            <div class="yt-portal-header">
+              <div class="yt-portal-brand" id="yt-brand-home" title="YouTube Home">
+                <span class="yt-logo-icon">▶</span>
+                <span class="yt-logo-text">YouTube</span>
+                <span class="yt-region-badge">IN</span>
+              </div>
+              <div class="yt-search-bar">
+                <input type="text" class="yt-search-input" id="yt-search-input" placeholder="Search or paste YouTube URL (e.g. watch?v=...)..." autocomplete="off" />
+                <button class="yt-search-btn" id="yt-search-btn" title="Search YouTube">🔍</button>
+              </div>
+              <div class="yt-actions-right">
+                <button class="yt-action-pill" id="yt-btn-lofi">☕ Lofi Girl</button>
+                <button class="yt-action-pill" id="yt-btn-synth">🌃 Synthwave</button>
+                <button class="yt-action-pill" id="yt-btn-coding">⚡ Tech/Code</button>
+              </div>
+            </div>
+
+            <div class="yt-portal-categories" id="yt-categories-bar">
+              <button class="yt-cat-pill active" data-cat="all">All</button>
+              <button class="yt-cat-pill" data-cat="lofi">Lofi & Chill</button>
+              <button class="yt-cat-pill" data-cat="coding">Coding & Tech</button>
+              <button class="yt-cat-pill" data-cat="retro">Retro Beats</button>
+              <button class="yt-cat-pill" data-cat="ambient">Ambient Office</button>
+            </div>
+
+            <div class="yt-portal-content">
+              <!-- Left/Main Video Player -->
+              <div class="yt-main-player-wrap">
+                <iframe 
+                  class="yt-embed-iframe" 
+                  id="yt-main-iframe" 
+                  src="https://www.youtube-nocookie.com/embed/jfKfPfyJRdk?autoplay=1&enablejsapi=1" 
+                  title="YouTube video player" 
+                  frameborder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  allowfullscreen
+                ></iframe>
+                
+                <div class="yt-player-meta">
+                  <div class="yt-video-info-row">
+                    <div class="yt-video-title" id="yt-active-title">Lofi Hip Hop Radio - Beats to Relax/Study to 24/7</div>
+                    <div class="yt-video-badges">
+                      <span class="yt-live-tag">LIVE</span>
+                    </div>
+                  </div>
+                  <div class="yt-channel-row">
+                    <div class="yt-channel-avatar">🎧</div>
+                    <div class="yt-channel-details">
+                      <div class="yt-channel-name" id="yt-active-channel">Lofi Girl</div>
+                      <div class="yt-subs-count" id="yt-active-subs">14.2M subscribers</div>
+                    </div>
+                    <button class="yt-subscribe-btn" id="yt-sub-btn">Subscribe</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right/Sidebar Video Recommendations -->
+              <div class="yt-sidebar-feed" id="yt-sidebar-feed">
+                <!-- Video cards dynamically rendered -->
+              </div>
+            </div>
+          </div>
 
           <!-- Intranet Portal View (Hidden when browsing real internet) -->
           <div class="pc-intranet-view hidden" id="pc-intranet-view">
@@ -1803,6 +1873,16 @@
 
     const iframe = winEl.querySelector('#pc-browser-iframe');
     const intranetView = winEl.querySelector('#pc-intranet-view');
+    const youtubeView = winEl.querySelector('#pc-youtube-view');
+    const ytMainIframe = winEl.querySelector('#yt-main-iframe');
+    const ytActiveTitle = winEl.querySelector('#yt-active-title');
+    const ytActiveChannel = winEl.querySelector('#yt-active-channel');
+    const ytActiveSubs = winEl.querySelector('#yt-active-subs');
+    const ytSidebarFeed = winEl.querySelector('#yt-sidebar-feed');
+    const ytSearchInput = winEl.querySelector('#yt-search-input');
+    const ytSearchBtn = winEl.querySelector('#yt-search-btn');
+    const ytSubBtn = winEl.querySelector('#yt-sub-btn');
+
     const urlInput = winEl.querySelector('#pc-url-input');
     const btnGo = winEl.querySelector('#pc-btn-go');
     const btnBack = winEl.querySelector('#pc-btn-back');
@@ -1811,9 +1891,213 @@
     const btnHome = winEl.querySelector('#pc-btn-home');
     const btnPopout = winEl.querySelector('#pc-btn-popout');
     const tabWeb = winEl.querySelector('#tab-web');
+    const tabYoutube = winEl.querySelector('#tab-youtube');
     const tabIntranet = winEl.querySelector('#tab-intranet');
     const tabTitle = winEl.querySelector('#pc-tab-title');
     const statusMsg = winEl.querySelector('#pc-browser-status-msg');
+
+    const YT_VIDEOS = [
+      {
+        id: 'jfKfPfyJRdk',
+        title: 'Lofi Hip Hop Radio - Beats to Relax/Study to 24/7',
+        channel: 'Lofi Girl',
+        subs: '14.2M subscribers',
+        duration: 'LIVE',
+        category: 'lofi',
+        thumb: 'https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg'
+      },
+      {
+        id: '4xDzrJKXOOY',
+        title: 'Synthwave Radio - Chill Synth / Retro 80s Cyberpunk Beats',
+        channel: 'Lofi Girl Synth',
+        subs: '14.2M subscribers',
+        duration: 'LIVE',
+        category: 'retro',
+        thumb: 'https://i.ytimg.com/vi/4xDzrJKXOOY/hqdefault.jpg'
+      },
+      {
+        id: 'x7X9w_G0Csw',
+        title: 'Python in 100 Seconds - Fast Language Breakdown',
+        channel: 'Fireship',
+        subs: '3.1M subscribers',
+        duration: '2:15',
+        category: 'coding',
+        thumb: 'https://i.ytimg.com/vi/x7X9w_G0Csw/hqdefault.jpg'
+      },
+      {
+        id: 'DHjqpvDnNGE',
+        title: 'JavaScript in 100 Seconds - Modern JS Explained',
+        channel: 'Fireship',
+        subs: '3.1M subscribers',
+        duration: '2:30',
+        category: 'coding',
+        thumb: 'https://i.ytimg.com/vi/DHjqpvDnNGE/hqdefault.jpg'
+      },
+      {
+        id: '_tV5LEBDs7w',
+        title: 'Chill Coding Lofi Hip Hop Beats [Focus & Flow]',
+        channel: 'The Jazz Hop Café',
+        subs: '1.2M subscribers',
+        duration: '1:45:20',
+        category: 'coding',
+        thumb: 'https://i.ytimg.com/vi/_tV5LEBDs7w/hqdefault.jpg'
+      },
+      {
+        id: 'WPni755-Krg',
+        title: 'Rainy Night Coffee Shop Ambience with Smooth Jazz Music',
+        channel: 'Calmed By Nature',
+        subs: '1.8M subscribers',
+        duration: '3:00:00',
+        category: 'ambient',
+        thumb: 'https://i.ytimg.com/vi/WPni755-Krg/hqdefault.jpg'
+      },
+      {
+        id: '1FueZCtJTuA',
+        title: '8-Bit Retro Gaming Chill Mix - Nostalgic Chiptune Beats',
+        channel: 'GameChops',
+        subs: '980K subscribers',
+        duration: '1:12:00',
+        category: 'retro',
+        thumb: 'https://i.ytimg.com/vi/1FueZCtJTuA/hqdefault.jpg'
+      },
+      {
+        id: '5qap5aO4i9A',
+        title: 'Lofi Hip Hop - Beats to Sleep / Chill to',
+        channel: 'Lofi Girl',
+        subs: '14.2M subscribers',
+        duration: 'LIVE',
+        category: 'lofi',
+        thumb: 'https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg'
+      }
+    ];
+
+    let currentYtVideo = YT_VIDEOS[0];
+    let currentYtCat = 'all';
+
+    function extractYouTubeId(urlOrText) {
+      if (!urlOrText) return null;
+      const trimmed = urlOrText.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+      const m = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([a-zA-Z0-9_-]{11})/i);
+      return m ? m[1] : null;
+    }
+
+    function playYouTubeVideo(videoObjOrId) {
+      let vidObj = null;
+      if (typeof videoObjOrId === 'string') {
+        const id = videoObjOrId;
+        vidObj = YT_VIDEOS.find(v => v.id === id) || {
+          id: id,
+          title: `YouTube Video (${id})`,
+          channel: 'YouTube Video',
+          subs: 'Streaming Live',
+          duration: 'Playing',
+          category: 'all',
+          thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+        };
+      } else {
+        vidObj = videoObjOrId;
+      }
+
+      currentYtVideo = vidObj;
+      if (ytMainIframe) {
+        ytMainIframe.src = `https://www.youtube-nocookie.com/embed/${vidObj.id}?autoplay=1&enablejsapi=1`;
+      }
+      if (ytActiveTitle) ytActiveTitle.textContent = vidObj.title;
+      if (ytActiveChannel) ytActiveChannel.textContent = vidObj.channel;
+      if (ytActiveSubs) ytActiveSubs.textContent = vidObj.subs;
+
+      urlInput.value = `https://www.youtube.com/watch?v=${vidObj.id}`;
+      if (statusMsg) statusMsg.textContent = `▶️ Playing: ${vidObj.title}`;
+    }
+
+    function renderYouTubeSidebar(filterCategory = 'all', searchQuery = '') {
+      if (!ytSidebarFeed) return;
+      ytSidebarFeed.innerHTML = '';
+
+      let list = YT_VIDEOS;
+      if (filterCategory !== 'all') {
+        list = list.filter(v => v.category === filterCategory);
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter(v => v.title.toLowerCase().includes(q) || v.channel.toLowerCase().includes(q));
+      }
+
+      if (list.length === 0) {
+        ytSidebarFeed.innerHTML = `<div style="padding: 16px; font-size: 0.75rem; color: #94a3b8; text-align: center;">No videos matched "${searchQuery}". Try searching for another topic or paste a direct YouTube video link!</div>`;
+        return;
+      }
+
+      list.forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'yt-video-card';
+        card.innerHTML = `
+          <div class="yt-card-thumb-wrap">
+            <img class="yt-card-thumb" src="${v.thumb}" alt="${v.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&fit=crop'" />
+            <span class="yt-card-duration">${v.duration}</span>
+          </div>
+          <div class="yt-card-info">
+            <div class="yt-card-title">${v.title}</div>
+            <div class="yt-card-channel">${v.channel}</div>
+            <div class="yt-card-meta">${v.subs}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          playYouTubeVideo(v);
+        });
+        ytSidebarFeed.appendChild(card);
+      });
+    }
+
+    renderYouTubeSidebar();
+
+    // YouTube Categories Click
+    winEl.querySelectorAll('.yt-cat-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        winEl.querySelectorAll('.yt-cat-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentYtCat = pill.getAttribute('data-cat') || 'all';
+        renderYouTubeSidebar(currentYtCat, ytSearchInput.value.trim());
+      });
+    });
+
+    // YouTube Internal Search Bar
+    function handleYtSearch() {
+      const q = ytSearchInput.value.trim();
+      const extractedId = extractYouTubeId(q);
+      if (extractedId) {
+        playYouTubeVideo(extractedId);
+        return;
+      }
+      renderYouTubeSidebar(currentYtCat, q);
+    }
+
+    if (ytSearchBtn) ytSearchBtn.addEventListener('click', handleYtSearch);
+    if (ytSearchInput) {
+      ytSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleYtSearch();
+      });
+    }
+
+    // Header Quick Action Pills
+    const btnLofi = winEl.querySelector('#yt-btn-lofi');
+    if (btnLofi) btnLofi.addEventListener('click', () => playYouTubeVideo(YT_VIDEOS[0]));
+    const btnSynth = winEl.querySelector('#yt-btn-synth');
+    if (btnSynth) btnSynth.addEventListener('click', () => playYouTubeVideo(YT_VIDEOS[1]));
+    const btnCoding = winEl.querySelector('#yt-btn-coding');
+    if (btnCoding) btnCoding.addEventListener('click', () => playYouTubeVideo(YT_VIDEOS[2]));
+
+    // Subscribe Button Toggle
+    if (ytSubBtn) {
+      ytSubBtn.addEventListener('click', () => {
+        const isSub = ytSubBtn.classList.toggle('subscribed');
+        ytSubBtn.textContent = isSub ? '✓ Subscribed' : 'Subscribe';
+        if (typeof showToast === 'function') {
+          showToast(isSub ? '🔔 Subscribed to channel!' : 'Unsubscribed from channel.');
+        }
+      });
+    }
 
     let historyStack = [defaultUrl];
     let historyIdx = 0;
@@ -1824,19 +2108,50 @@
 
       if (inputVal === 'intranet://portal' || inputVal.toLowerCase() === 'intranet' || inputVal.toLowerCase() === 'portal') {
         iframe.classList.add('hidden');
+        youtubeView.classList.add('hidden');
         intranetView.classList.remove('hidden');
         tabIntranet.classList.add('active');
         tabWeb.classList.remove('active');
+        tabYoutube.classList.remove('active');
         urlInput.value = 'intranet://portal';
         if (statusMsg) statusMsg.textContent = '🏢 OmniCorp Local Intranet (Port 3000)';
         return;
       }
 
+      // Check YouTube Navigation
+      const isYouTube = /(?:youtube\.com|youtu\.be|^yt:|^yt\b)/i.test(inputVal) || inputVal.toLowerCase() === 'youtube';
+      if (isYouTube) {
+        iframe.classList.add('hidden');
+        intranetView.classList.add('hidden');
+        youtubeView.classList.remove('hidden');
+        tabWeb.classList.remove('active');
+        tabIntranet.classList.remove('active');
+        tabYoutube.classList.add('active');
+        if (tabTitle) tabTitle.textContent = 'YouTube';
+        if (statusMsg) statusMsg.textContent = '▶️ YouTube Video Streaming Active';
+
+        const extractedId = extractYouTubeId(inputVal);
+        if (extractedId) {
+          playYouTubeVideo(extractedId);
+        } else {
+          urlInput.value = `https://www.youtube.com/watch?v=${currentYtVideo.id}`;
+        }
+
+        if (addToHistory) {
+          historyStack = historyStack.slice(0, historyIdx + 1);
+          historyStack.push(urlInput.value);
+          historyIdx = historyStack.length - 1;
+        }
+        return;
+      }
+
       // Real Internet Navigation
       iframe.classList.remove('hidden');
+      youtubeView.classList.add('hidden');
       intranetView.classList.add('hidden');
       tabWeb.classList.add('active');
       tabIntranet.classList.remove('active');
+      tabYoutube.classList.remove('active');
 
       let targetUrl = inputVal;
 
@@ -1886,6 +2201,8 @@
     btnReload.addEventListener('click', () => {
       if (!iframe.classList.contains('hidden')) {
         iframe.src = iframe.src;
+      } else if (!youtubeView.classList.contains('hidden')) {
+        playYouTubeVideo(currentYtVideo);
       }
     });
 
@@ -1913,16 +2230,27 @@
     });
 
     tabWeb.addEventListener('click', () => {
-      if (urlInput.value === 'intranet://portal') {
+      if (urlInput.value === 'intranet://portal' || tabYoutube.classList.contains('active')) {
         navigate('https://www.google.com?igu=1');
       } else {
         navigate(urlInput.value || 'https://www.google.com?igu=1');
       }
     });
 
+    tabYoutube.addEventListener('click', () => {
+      navigate('https://www.youtube.com');
+    });
+
     tabIntranet.addEventListener('click', () => {
       navigate('intranet://portal');
     });
+
+    const ytBrandHome = winEl.querySelector('#yt-brand-home');
+    if (ytBrandHome) {
+      ytBrandHome.addEventListener('click', () => {
+        playYouTubeVideo(YT_VIDEOS[0]);
+      });
+    }
 
     // Bookmarks
     winEl.querySelectorAll('.pc-bookmark-chip').forEach(chip => {

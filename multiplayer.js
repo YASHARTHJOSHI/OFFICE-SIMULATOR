@@ -487,6 +487,21 @@ class MultiplayerEngine {
           break;
         }
 
+        case 'CHAT_BUBBLE': {
+          const { senderId, text, senderName } = msg;
+          const peer = this.peers.get(senderId);
+          if (peer && text) {
+            peer.chatBubble = {
+              text: text,
+              expiresAt: Date.now() + 6500
+            };
+          }
+          if (window.soundManager && typeof window.soundManager.playDialogueBlip === 'function') {
+            window.soundManager.playDialogueBlip('boss');
+          }
+          break;
+        }
+
         case 'LEAVE': {
           this.removePeer(msg.senderId, 'left');
           break;
@@ -606,6 +621,19 @@ class MultiplayerEngine {
       animFrame: playerState.animFrame,
       scene: currentScene,
       isSitting: !!playerState.isSitting
+    });
+  }
+
+  /**
+   * Broadcast a floating speech bubble to all peers in the room
+   */
+  broadcastChatBubble(text) {
+    if (!this.active || !text) return;
+    this.broadcast({
+      type: 'CHAT_BUBBLE',
+      senderId: this.localPlayer.id,
+      senderName: this.localPlayer.name,
+      text: text.trim()
     });
   }
 
