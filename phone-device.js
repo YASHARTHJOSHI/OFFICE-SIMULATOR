@@ -2626,11 +2626,11 @@ Each object must have these exact keys:
       if (chan !== 'multiplayer' && !isOnline) {
         setTimeout(() => {
           const replies = [
-            { sender: 'Amit (HR)', text: 'Acknowledged! Keep up the momentum on your sprint tasks. 🚀', avatar: '👔' },
-            { sender: 'Vikram', text: 'Checked the logs, latency is down to 0.4ms. Looking solid!', avatar: '💻' },
-            { sender: 'Neha', text: 'Great point. Adding this to our retro discussion.', avatar: '📋' },
-            { sender: 'Kabir', text: 'Confirmed. Sensor coherence is 99.98% stable.', avatar: '🔬' },
-            { sender: 'Rohan', text: 'Pods scaled up cleanly. Zero drift across regions.', avatar: '🛡️' }
+            { sender: 'Amit (HR)', text: 'Per my last 3 emails, this sprint has an uncompromising deadline. Let\'s make sure our commits reflect actual progress. 📋', avatar: '👔' },
+            { sender: 'Vikram', text: 'Checked your PR. It is... certainly code. Let\'s ensure it doesn\'t drop 5% of webhooks under burst load like last sprint. 💻', avatar: '💻' },
+            { sender: 'Neha', text: 'Adding this to our \'things we will debate for 45 minutes and never resolve\' retro list. Who is actually taking ownership? 📋', avatar: '📋' },
+            { sender: 'Kabir', text: 'The quantum sensor array is stable, which is more than I can say for our frontend build pipeline today. 🔬', avatar: '🔬' },
+            { sender: 'Rohan', text: 'Pods are balanced, but if anyone triggers another unthrottled burst query, I am personally revoking their cloud access. 🛡️', avatar: '🛡️' }
           ];
           const rep = replies[Math.floor(Math.random() * replies.length)];
           this.chatMessages[chan].push({

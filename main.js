@@ -1686,31 +1686,55 @@ const ExecutiveAIBrain = {
   },
 
   prompts: {
-    ceo: `You are Anakin Skywalker, the intense, highly ambitious, and charismatic CEO of Acme Innovations.
-You wear a sharp dark blue corporate suit with a crimson red tie and brown hair.
-You run this tech company with galactic authority, blending tech corporate leadership with subtle Star Wars references ("I don't like sand... or late quarterly reports", "You were the chosen one for this sprint deployment!", "We do not grant you the rank of Senior VP yet!").
-You demand 500% ROI, zero server downtime, and bold engineering leadership. You hate excuses or budget deficits, but you reward true high performers.
-Respond in character as Anakin Skywalker the CEO. Keep your replies punchy, charismatic, in-character, and concise (2-3 sentences max).`,
+    ceo: `You are Anakin Skywalker, the intimidating, ruthless, and sarcastically demanding CEO of Acme Innovations.
+You wear a bespoke dark navy corporate suit with a crimson red tie, ruling this tech empire from your mahogany executive suite.
+
+ABSOLUTE MANDATORY RULES:
+1. STRICT NON-WORK / OFF-TOPIC REFUSAL:
+   - You are the CEO, NOT a casual chatbot, trivia engine, friend, or breakroom therapist.
+   - If the employee asks or talks about ANYTHING outside of Acme Innovations' projects, software architecture, sprint deadlines, revenue, code, performance metrics, or job deliverables (such as personal life, jokes, weather, hobbies, philosophy, movies, casual greetings, or general knowledge):
+   - YOU MUST FLATLY REFUSE TO ANSWER THEIR QUESTION.
+   - Mock them with biting corporate sarcasm and aggressive bossy impatience! Demand they stop burning company money and get back to work.
+   - Example refusals:
+     * "Do I look like your personal Wikipedia or a breakroom therapist? I pay you to ship code, not waste my $1,500/hour executive time on idle gossip. Where is the sprint deployment report?!"
+     * "I don't care about your weekend plans, the weather, or your existential theories. Unless this fixes the Redis connection leak or increases revenue by 42%, get back to your terminal before I revoke your building access!"
+     * "Is this what you're doing while production is burning? Frivolous questions don't compile into revenue. Back to your desk!"
+2. WORK & PROJECT TOPICS ONLY:
+   - When the user asks about the project, architecture, sprint goals, code reviews, deadlines, or company strategy:
+   - Answer with heavy bossy authority, high expectations (500% ROI, zero server downtime), and sharp corporate sarcasm.
+   - Call out sloppy thinking or excuses. Treat them like an ambitious subordinate who has to prove they deserve their salary.
+   - Include occasional dark executive corporate wit ("I find your lack of unit tests disturbing", "You were supposed to be the chosen one for this release branch!").
+3. TONE & LENGTH:
+   - Extremely bossy, impatient, sarcastic, confident, sharp corporate warlord.
+   - Keep answers punchy and concise (2-4 sentences max). Never break character.`,
 
     hr: `You are Elena Vance ("HR Ma'am"), Senior Director of People, Culture & Talent Strategy at Acme Innovations.
-You wear a dark developer jacket, glasses, and a developer badge lanyard. You sit in the Executive Corner Office with warm mahogany bookshelves and freshly brewed jasmine green tea.
-Your personality is empathetic, diplomatic, witty, and highly experienced. You understand software engineering pressure, sprint burnout, workplace politics, and career compensation.
-You provide calm, actionable HR guidance, help employees navigate CEO Anakin's intense demands, and offer realistic solutions with warmth and tact.
-Respond in character as Elena Vance ("HR Ma'am"). Keep your replies supportive, professional, witty, and concise (2-3 sentences max).`
+You sit in the Executive Corner Office with mahogany bookshelves and jasmine green tea, managing damage control between burnt-out engineers and CEO Anakin Skywalker.
+
+ABSOLUTE MANDATORY RULES:
+1. PERSONALITY & SARCASM:
+   - Master of polished corporate passive-aggression, dry HR sarcasm, and razor-sharp institutional diplomacy.
+   - Use iconic corporate phrasing dripping with polite sarcasm ("Per my previous email... which evidently went straight to your spam folder", "I'm going to circle back and pretend you didn't just ask that", "Let's put a pin in your existential complaints before the CEO turns our floor into an imperial gladiatorial arena").
+2. WORKPLACE BOUNDARIES:
+   - You are NOT a recreational AI. If an employee tries to waste time with random off-topic trivia or non-work distractions, sarcastically redirect them to their sprint tickets and company policy.
+   - For real workplace topics (stress, burnout, compensation, bad managers, sprint survival, technical bottlenecks): give sharp, actionable corporate survival advice laced with dry wit.
+3. TONE & LENGTH:
+   - Polished, sarcastic, authoritative, protective yet brutally realistic about corporate politics.
+   - Keep answers concise and punchy (2-4 sentences max). Never break character.`
   },
 
   fallbacks: {
     ceo: [
-      "HENDERSON! Profits across all galactic sectors must hit 42% by midnight! Bring me results, not excuses, or I'll double your code review backlog!",
-      "You were the chosen one for this sprint! Do not underestimate my power to deny vacation requests until the production pipeline is green!",
-      "Most impressive. You've earned a seat on the engineering council, but we do not grant you the rank of Senior VP yet! Back to work!",
-      "I don't like sand... or failing unit tests! Deliver the release branch immediately!"
+      "Do I look like your personal Google or a breakroom gossip buddy?! I pay you to ship code and hit 42% margins, not waste my executive time on nonsense! Where is the sprint deployment report?!",
+      "I don't like sand... and I especially don't like employees asking pointless non-work questions during sprint crunch! Give me production metrics or get back to your desk before I revoke your git access!",
+      "You were supposed to be the chosen one for this architecture milestone! Bring me zero-downtime benchmarks, not excuses, or you'll find your badge deactivated by midnight!",
+      "Unless your next sentence contains 'Redis latency dropped to 0.2ms' or 'revenue is up 500%', I don't want to hear another word! Back to your terminal!"
     ],
     hr: [
-      "Take a deep breath and sip some jasmine green tea. Lord Skywalker has been demanding impossible reports all morning, but your well-being comes first.",
-      "Corporate politics can be a high-stakes game. Keep your sprint documentation airtight, and I'll advocate for your compensation review in next week's sync.",
-      "If you're feeling burned out, stepping away for a 15-minute reset is 100% supported by our policy. Clear heads build resilient code.",
-      "I've updated your confidential employee file. Keep delivering steady progress, and don't let executive pressure derail your focus."
+      "Per my previous email—which I assume was tragically lost in your spam folder—we focus on sprint deliverables and measurable impact here. Take a sip of tea and let's get back on track.",
+      "I'm going to circle back and pretend you didn't just ask that. If Lord Skywalker hears you wasting time on idle banter, not even my diplomatic immunity can save your compensation review.",
+      "Let's put a pin in your existential complaints. The sprint burndown chart doesn't run on feelings, and neither does your bonus. Focus on your tickets.",
+      "I've added a note to your confidential file: 'Creative communicator with an urgent need to focus on core deliverables.' Let's stick to project reality, shall we?"
     ]
   },
 
@@ -1834,7 +1858,7 @@ function renderAiDialogueTurn(role, text, choices) {
   if (hintEl) hintEl.textContent = 'Type anything or select a topic • [Esc] to exit';
   if (aiInput) {
     aiInput.value = '';
-    aiInput.placeholder = isCeo ? 'Ask CEO Anakin anything... [Enter]' : 'Ask HR Ma\'am anything... [Enter]';
+    aiInput.placeholder = isCeo ? 'Ask about sprint, deliverables, or metrics... [Enter]' : 'Ask HR Ma\'am about policies or reviews... [Enter]';
   }
 
   textEl.innerHTML = '';
@@ -1884,13 +1908,13 @@ function renderAiDialogueTurn(role, text, choices) {
 
     // Generate dynamic follow-up options
     const nextChoices = isCeo ? [
-      { label: "Understood, Lord Skywalker! How can I exceed your expectations next?", query: "How can I exceed your expectations on the next milestone?" },
-      { label: "What is your galactic vision for Acme Innovations?", query: "What is your galactic vision for Acme Innovations?" },
-      { label: "May the Force be with you, sir. Returning to my desk. [Exit]", isExit: true }
+      { label: "Understood, sir! What are the priority targets for the release branch?", query: "Understood, sir! What are the priority targets for the release branch?" },
+      { label: "How can our engineering team exceed your 500% ROI expectations?", query: "How can our engineering team exceed your 500% ROI expectations?" },
+      { label: "Heading straight back to my terminal, sir! [Exit]", isExit: true }
     ] : [
-      { label: "That's very reassuring advice, thank you Elena.", query: "That's very reassuring advice, thank you Elena." },
-      { label: "Could we schedule a 1-on-1 career path sync next week?", query: "Could we schedule a 1-on-1 career path sync next week?" },
-      { label: "Thank you for the tea and guidance! Heading back to the hall. [Exit]", isExit: true }
+      { label: "That's very pragmatic advice, thank you Elena.", query: "That's very pragmatic advice, thank you Elena." },
+      { label: "How can I document my impact so the CEO takes my promotion seriously?", query: "How can I document my impact so the CEO takes my promotion seriously?" },
+      { label: "Heading back to the main hall, thanks Elena! [Exit]", isExit: true }
     ];
 
     renderAiDialogueTurn(role, aiReply, nextChoices);
@@ -1998,17 +2022,17 @@ function startBossDialogue() {
   state.ceoChatHistory = state.ceoChatHistory || [];
 
   const initialGreeting = state.ceoChatHistory.length === 0
-    ? "HENDERSON! Who authorized you to step into my executive suite?! Did you finalize the Q3 profitability spreadsheet, or did you come with excuses?!"
-    : "You're still in my executive suite! What else do you need to report to your CEO?!";
+    ? "HENDERSON! Who authorized you to step into my executive suite?! Did you finalize the Q4 sprint deliverables, or are you here to waste my expensive executive bandwidth with excuses?!"
+    : "You're still standing in my office! This better be about our deployment pipeline or profit margins, because I don't pay you to make small talk!";
 
   const choices = [
     {
-      label: "Yes Lord Skywalker, profits are up 42% across all galactic sectors!",
-      query: "Yes Lord Skywalker, profits are up 42% across all galactic sectors!"
+      label: "Yes sir, the Redis cluster is optimized and profits are up 42%!",
+      query: "Yes sir, the Redis cluster is optimized and profits are up 42%!"
     },
     {
-      label: "Actually sir, I came to ask about that promised salary raise and promotion...",
-      query: "Actually sir, I came to ask about that promised salary raise and promotion..."
+      label: "Sir, what is your top priority for our Q4 engineering deliverables?",
+      query: "Sir, what is your top priority for our Q4 engineering deliverables?"
     },
     {
       label: "The production database is down and checkout webhooks are dropping!",
@@ -4083,20 +4107,39 @@ function sendColleagueMessage() {
   // 3. If chatting with AI NPC
   else if (currentChatTarget && currentChatTarget.type === 'npc' && currentChatTarget.target) {
     const npc = currentChatTarget.target;
-    setTimeout(() => {
-      const npcReplies = [
-        `Hey! Good seeing you in the ${state.currentScene.replace('_', ' ').toLowerCase()}.`,
-        `Working hard or hardly working? Haha! Let's crush our sprint goals!`,
-        `Did you see the new PR comments? Everything looks solid.`,
-        `Need a coffee refill? The machine in the cafeteria makes great brew!`
-      ];
-      const reply = npcReplies[Math.floor(Math.random() * npcReplies.length)];
-      npc.chatBubble = {
-        text: reply,
-        expiresAt: Date.now() + 6500
-      };
-      if (window.soundManager) window.soundManager.playDialogueBlip();
-    }, 1200);
+    if (window.aiAgentEngine && typeof window.aiAgentEngine.chatWithNPC === 'function') {
+      window.aiAgentEngine.chatWithNPC(npc.id, text).then(reply => {
+        npc.chatBubble = {
+          text: reply,
+          expiresAt: Date.now() + Math.max(6500, Math.min(11000, 4500 + reply.length * 80))
+        };
+        if (window.soundManager) window.soundManager.playDialogueBlip();
+        if (window.multiplayerEngine && window.multiplayerEngine.active) {
+          window.multiplayerEngine.broadcast({
+            type: 'CHAT_BUBBLE',
+            senderId: npc.id,
+            senderName: npc.name,
+            text: reply
+          });
+        }
+      }).catch(err => {
+        console.warn('NPC proximity AI chat error:', err);
+      });
+    } else {
+      setTimeout(() => {
+        const fallbackReplies = [
+          `Unless this is about your sprint ticket or the production cluster, write a unit test!`,
+          `Did you run the test suite or are you just testing my patience? Back to work!`,
+          `Fascinating discussion, but our Q4 sprint burn-down chart doesn't run on small-talk.`
+        ];
+        const reply = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
+        npc.chatBubble = {
+          text: reply,
+          expiresAt: Date.now() + 6500
+        };
+        if (window.soundManager) window.soundManager.playDialogueBlip();
+      }, 800);
+    }
   }
 
   closeColleagueChat();
