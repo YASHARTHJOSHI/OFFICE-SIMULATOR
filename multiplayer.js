@@ -615,15 +615,24 @@ class MultiplayerEngine {
 
         case 'CHAT_BUBBLE': {
           const { senderId, text, senderName } = msg;
-          const peer = this.peers.get(senderId);
+          let peer = this.peers.get(senderId);
+          if (!peer) {
+            for (const [key, val] of this.peers.entries()) {
+              if (senderId && (senderId.includes(key) || key.includes(senderId) || (val.connectionPeerId && val.connectionPeerId === senderId))) {
+                peer = val;
+                break;
+              }
+            }
+          }
           if (peer && text) {
+            const duration = Math.max(6500, Math.min(11000, 4500 + text.length * 80));
             peer.chatBubble = {
               text: text,
-              expiresAt: Date.now() + 6500
+              expiresAt: Date.now() + duration
             };
           }
           if (window.soundManager && typeof window.soundManager.playDialogueBlip === 'function') {
-            window.soundManager.playDialogueBlip('boss');
+            window.soundManager.playDialogueBlip('player');
           }
           break;
         }

@@ -1428,13 +1428,24 @@ function setupEventListeners() {
       }
     }
 
-    // Check if clicked directly on a colleague in the current room
+    // Check if clicked directly on a colleague or character in the current room
     const clickedColleague = getColleagueAtPosition(targetX, targetY);
     if (clickedColleague) {
       const dist = Math.hypot(state.player.x - targetX, state.player.y - targetY);
-      if (dist < 110) {
-        openColleagueChat(clickedColleague);
-        return;
+      if (dist < 120) {
+        if (clickedColleague.type === 'ceo') {
+          startBossDialogue();
+          return;
+        } else if (clickedColleague.type === 'hr') {
+          startPartnerDialogue();
+          return;
+        } else if (clickedColleague.type === 'npc' && clickedColleague.target) {
+          openQuestModal(clickedColleague.target.questId, clickedColleague.target.id);
+          return;
+        } else if (clickedColleague.type === 'peer') {
+          openColleagueChat(clickedColleague);
+          return;
+        }
       }
     }
 
@@ -1589,10 +1600,11 @@ function toggleSitInChair(chairX, chairY, sitDir = 'up', standX, standY) {
 function handleInteract() {
   if (state.isTransitioning) return;
 
-  // If colleague chat bar is open, pressing Enter / E sends the message
+  // If colleague chat bar is already open, keep input focused - DO NOT send empty message or close on E!
   const bar = document.getElementById('colleague-chat-bar');
   if (bar && !bar.classList.contains('hidden')) {
-    sendColleagueMessage();
+    const inputEl = document.getElementById('colleague-chat-input');
+    if (inputEl) inputEl.focus();
     return;
   }
 
@@ -1607,14 +1619,14 @@ function handleInteract() {
     return;
   }
 
-  // If near a colleague / remote peer, prioritize opening speech chat!
+  // If near a human multiplayer colleague, prioritize opening speech chat!
   const nearbyColleague = getNearbyColleague();
   if (nearbyColleague) {
     openColleagueChat(nearbyColleague);
     return;
   }
 
-  // If an active trigger zone is in range
+  // If an active trigger zone is in range (Boss, HR, Quest NPCs, water cooler, doors)
   if (state.activePrompt && state.activePrompt.action) {
     state.activePrompt.action();
   }
@@ -3663,16 +3675,16 @@ function renderSingleRemotePlayer(peer) {
     ctx.textBaseline = 'middle';
     ctx.fillText(tagText, badgeX + 16, badgeY + badgeH / 2 + 1);
 
-    // 4. Cozy [E] Talk Prompt (if player is nearby < 85px)
+    // 4. Cozy [E] Talk Prompt (if player is nearby < 85px and not currently speaking)
     const distToPlayer = Math.hypot(posX - state.player.x, posY - state.player.y);
-    let topAnchorY = badgeY;
-    if (distToPlayer < 85) {
+    const hasActiveChat = peer.chatBubble && peer.chatBubble.expiresAt > Date.now();
+
+    if (distToPlayer < 85 && !hasActiveChat) {
       const promptW = 56;
       const promptH = 16;
       const promptX = posX - promptW / 2;
       const bounce = Math.sin(performance.now() * 0.007) * 1.5;
       const promptY = badgeY - 19 + bounce;
-      topAnchorY = promptY;
 
       ctx.save();
       ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
@@ -3706,8 +3718,8 @@ function renderSingleRemotePlayer(peer) {
     }
 
     // 5. Speech Bubble above head (if remote peer has active chat bubble)
-    if (peer.chatBubble && peer.chatBubble.expiresAt > Date.now()) {
-      drawSpeechBubble(ctx, posX, topAnchorY - 6, peer.chatBubble.text, peer.chatBubble.expiresAt);
+    if (hasActiveChat) {
+      drawSpeechBubble(ctx, posX, badgeY - 6, peer.chatBubble.text, peer.chatBubble.expiresAt);
     }
   } catch (err) {
     console.warn('Error rendering remote peer:', err);
@@ -3738,12 +3750,12 @@ function drawSpeechBubble(ctx, anchorX, anchorY, rawText, expiresAt) {
   ctx.save();
   ctx.globalAlpha = alpha;
 
-  ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Outfit", sans-serif';
+  ctx.font = '600 11.5px Outfit, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // Multi-line word wrapping
-  const maxW = 160;
+  const maxW = 165;
   const words = String(rawText).split(' ');
   const lines = [];
   let curLine = '';
@@ -3765,63 +3777,85 @@ function drawSpeechBubble(ctx, anchorX, anchorY, rawText, expiresAt) {
     if (w > measuredMaxW) measuredMaxW = w;
   });
 
-  const lineHeight = 15;
-  const padX = 12;
+  const lineHeight = 16;
+  const padX = 14;
   const padY = 8;
-  const bubbleW = Math.max(48, Math.min(maxW + padX * 2, measuredMaxW + padX * 2));
+  const bubbleW = Math.max(52, Math.min(maxW + padX * 2, measuredMaxW + padX * 2));
   const bubbleH = lines.length * lineHeight + padY * 2;
   const tailH = 6;
-  const tailW = 8;
+  const tailW = 10;
 
+  // Gentle floating bob animation
+  const bob = Math.sin(now * 0.005) * 1.5;
   const bubbleX = Math.round(anchorX - bubbleW / 2);
-  const bubbleY = Math.round(anchorY - bubbleH - tailH);
+  const bubbleY = Math.round(anchorY - bubbleH - tailH + bob);
 
   // Soft drop shadow
   ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
-  ctx.shadowBlur = 8;
+  ctx.shadowBlur = 10;
   ctx.shadowOffsetY = 3;
 
-  // Speech bubble body (clean rounded card with slight premium ivory/white tint)
+  // Round shape speech bubble:
+  // If single line, fully rounded capsule/pill (bubbleH / 2)
+  // If multi-line, large organic curve (20px)
+  const cornerRadius = lines.length <= 1 ? Math.round(bubbleH / 2) : Math.min(20, Math.round(bubbleH / 2));
+
   ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = 'rgba(15, 23, 42, 0.15)';
-  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+  ctx.lineWidth = 1.4;
 
   ctx.beginPath();
   if (ctx.roundRect) {
-    ctx.roundRect(bubbleX, bubbleY, bubbleW, bubbleH, 10);
+    ctx.roundRect(bubbleX, bubbleY, bubbleW, bubbleH, cornerRadius);
   } else {
-    ctx.rect(bubbleX, bubbleY, bubbleW, bubbleH);
+    const r = cornerRadius;
+    ctx.moveTo(bubbleX + r, bubbleY);
+    ctx.arcTo(bubbleX + bubbleW, bubbleY, bubbleX + bubbleW, bubbleY + bubbleH, r);
+    ctx.arcTo(bubbleX + bubbleW, bubbleY + bubbleH, bubbleX, bubbleY + bubbleH, r);
+    ctx.arcTo(bubbleX, bubbleY + bubbleH, bubbleX, bubbleY, r);
+    ctx.arcTo(bubbleX, bubbleY, bubbleX + bubbleW, bubbleY, r);
+    ctx.closePath();
   }
   ctx.fill();
   ctx.stroke();
 
-  // Reset shadow for tail and text
+  // Reset shadow for pointer tail and text
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Downward pointer tail pointing directly to character head
+  // Downward round pointer tail pointing towards the character head
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
-  ctx.moveTo(anchorX - tailW / 2, bubbleY + bubbleH);
-  ctx.lineTo(anchorX + tailW / 2, bubbleY + bubbleH);
-  ctx.lineTo(anchorX, bubbleY + bubbleH + tailH);
+  ctx.moveTo(anchorX - tailW / 2, bubbleY + bubbleH - 1);
+  ctx.quadraticCurveTo(anchorX - 1, bubbleY + bubbleH + tailH - 2, anchorX, bubbleY + bubbleH + tailH);
+  ctx.quadraticCurveTo(anchorX + 1, bubbleY + bubbleH + tailH - 2, anchorX + tailW / 2, bubbleY + bubbleH - 1);
   ctx.closePath();
   ctx.fill();
 
-  // Tail stroke bottom lines
-  ctx.strokeStyle = 'rgba(15, 23, 42, 0.15)';
+  // Tail stroke
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+  ctx.lineWidth = 1.4;
   ctx.beginPath();
-  ctx.moveTo(anchorX - tailW / 2, bubbleY + bubbleH);
-  ctx.lineTo(anchorX, bubbleY + bubbleH + tailH);
-  ctx.lineTo(anchorX + tailW / 2, bubbleY + bubbleH);
+  ctx.moveTo(anchorX - tailW / 2, bubbleY + bubbleH - 1);
+  ctx.quadraticCurveTo(anchorX - 1, bubbleY + bubbleH + tailH - 2, anchorX, bubbleY + bubbleH + tailH);
+  ctx.quadraticCurveTo(anchorX + 1, bubbleY + bubbleH + tailH - 2, anchorX + tailW / 2, bubbleY + bubbleH - 1);
   ctx.stroke();
 
-  // Re-fill tiny overlap to seamless white
+  // Clean seamless overlap cover between bubble and tail
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(anchorX - tailW / 2 + 1, bubbleY + bubbleH - 1, tailW - 2, 2);
+  ctx.fillRect(anchorX - tailW / 2 + 1, bubbleY + bubbleH - 2, tailW - 2, 3);
 
-  // Text inside bubble
+  // Tiny comic round dot accent below the tail pointing directly to the character
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(anchorX, bubbleY + bubbleH + tailH + 3, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Text inside round bubble
   ctx.fillStyle = '#0f172a';
   const startY = bubbleY + padY + lineHeight / 2;
   lines.forEach((line, idx) => {
@@ -3835,33 +3869,8 @@ function getNearbyColleague() {
   const p = state.player;
   if (!p) return null;
 
-  // 1. Check if near CEO Anakin in BOSS_CABINET
-  if (state.currentScene === 'BOSS_CABINET') {
-    const dist = Math.hypot(p.x - 450, p.y - 490);
-    if (dist < 125) {
-      return {
-        id: 'ceo_boss',
-        name: 'Anakin Skywalker (CEO)',
-        type: 'ceo',
-        target: state.boss
-      };
-    }
-  }
-
-  // 2. Check if near HR Ma'am Elena in CORNER_OFFICE
-  if (state.currentScene === 'CORNER_OFFICE') {
-    const dist = Math.hypot(p.x - 450, p.y - 490);
-    if (dist < 125) {
-      return {
-        id: 'hr_partner',
-        name: 'HR Ma\'am (Elena)',
-        type: 'hr',
-        target: state.partner
-      };
-    }
-  }
-
-  // 3. Check remote multiplayer peers in same scene
+  // ONLY return human multiplayer peers!
+  // NPCs (CEO Anakin, HR Elena, and Workplace mentors) use their AI brain dialogues and quest triggers!
   if (window.multiplayerEngine && window.multiplayerEngine.active) {
     for (const [peerId, peer] of window.multiplayerEngine.peers.entries()) {
       if (peer.scene === state.currentScene) {
@@ -3877,23 +3886,6 @@ function getNearbyColleague() {
               target: peer
             };
           }
-        }
-      }
-    }
-  }
-
-  // 4. Check autonomous AI NPCs in same scene
-  if (window.aiAgent && window.aiAgent.npcs) {
-    for (const npc of window.aiAgent.npcs) {
-      if (npc.scene === state.currentScene) {
-        const dist = Math.hypot(p.x - npc.x, p.y - npc.y);
-        if (dist < 85) {
-          return {
-            id: npc.id,
-            name: npc.name || 'Colleague',
-            type: 'npc',
-            target: npc
-          };
         }
       }
     }
@@ -3917,7 +3909,7 @@ function getColleagueAtPosition(targetX, targetY) {
         const posX = Number.isFinite(peer.x) ? peer.x : peer.targetX;
         const posY = Number.isFinite(peer.y) ? peer.y : peer.targetY;
         if (Number.isFinite(posX) && Number.isFinite(posY)) {
-          if (Math.hypot(targetX - posX, targetY - posY) < 40) {
+          if (Math.hypot(targetX - posX, targetY - posY) < 45) {
             return { id: peerId, name: peer.name || 'Colleague', type: 'peer', target: peer };
           }
         }
@@ -3929,7 +3921,7 @@ function getColleagueAtPosition(targetX, targetY) {
   if (window.aiAgent && window.aiAgent.npcs) {
     for (const npc of window.aiAgent.npcs) {
       if (npc.scene === state.currentScene) {
-        if (Math.hypot(targetX - npc.x, targetY - npc.y) < 40) {
+        if (Math.hypot(targetX - npc.x, targetY - npc.y) < 45) {
           return { id: npc.id, name: npc.name || 'Colleague', type: 'npc', target: npc };
         }
       }
@@ -3951,7 +3943,16 @@ function openColleagueChat(colleague) {
   }
   bar.classList.remove('hidden');
   inputEl.value = '';
-  setTimeout(() => inputEl.focus(), 50);
+
+  // Focus immediately so typing starts without delay
+  inputEl.focus();
+  inputEl.select();
+  requestAnimationFrame(() => {
+    inputEl.focus();
+  });
+  setTimeout(() => {
+    inputEl.focus();
+  }, 20);
 
   if (window.soundManager) {
     window.soundManager.unlock();
@@ -3976,10 +3977,13 @@ function sendColleagueMessage() {
     return;
   }
 
-  // Set local chat bubble for 6.5 seconds
+  // Proportional duration for reading comfort (6.5s to 11s)
+  const duration = Math.max(6500, Math.min(11000, 4500 + text.length * 80));
+
+  // Set local round chat bubble above player's head
   state.playerChatBubble = {
     text: text,
-    expiresAt: Date.now() + 6500
+    expiresAt: Date.now() + duration
   };
 
   // Broadcast to peers via MultiplayerEngine
@@ -4063,8 +4067,16 @@ function setupColleagueChatListeners() {
   const sendBtn = document.getElementById('colleague-chat-send');
   if (!bar || !inputEl) return;
 
+  bar.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  bar.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+  });
+
   if (sendBtn) {
     sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       sendColleagueMessage();
     });
