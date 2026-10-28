@@ -1055,40 +1055,42 @@ const SCENES = {
     playerScale: 0.58,
     playerWidth: 42,
     playerHeight: 90,
-    spawn: { x: 100, y: 340, dir: 'right' },
+    spawn: { x: 100, y: 350, dir: 'right' },
     obstacles: [
-      // Top panoramic window wall and upper boundary
-      { x: 0, y: 0, w: CANVAS_WIDTH, h: 220, label: 'Panoramic Windows & Back Wall' },
-      // Bottom room boundary
-      { x: 0, y: 550, w: CANVAS_WIDTH, h: 30, label: 'Bottom Boundary' },
-      // Left glass wall (exit doorway open at y: 280-410)
-      { x: 0, y: 0, w: 30, h: 280, label: 'Left Glass Partition Upper' },
-      { x: 0, y: 410, w: 30, h: 166, label: 'Left Glass Partition Lower' },
-      // Right room boundary wall
-      { x: 990, y: 0, w: 34, h: CANVAS_HEIGHT, label: 'Right Boundary Wall' },
+      // Top panoramic window wall, sill, plants, credenza and upper furniture (strictly blocks walking on window sill & walls)
+      { x: 0, y: 0, w: CANVAS_WIDTH, h: 310, label: 'Panoramic Windows & Back Wall' },
+      // Bottom room boundary (carpet bottom edge)
+      { x: 0, y: 545, w: CANVAS_WIDTH, h: 35, label: 'Bottom Boundary' },
+      // Left glass wall (exit doorway open at y: 310-440)
+      { x: 0, y: 0, w: 30, h: 310, label: 'Left Glass Partition Upper' },
+      { x: 0, y: 440, w: 30, h: 140, label: 'Left Glass Partition Lower' },
+      // Right room boundary wall & server rack
+      { x: 860, y: 0, w: 164, h: 440, label: 'Right Wall & Smart Board' },
+      // Water cooler in bottom-right corner
+      { x: 840, y: 440, w: 184, h: 140, label: 'Water Cooler Corner' },
 
-      // Central Mahogany Conference Table and executive chairs
-      { x: 210, y: 240, w: 580, h: 215, label: 'Mahogany Conference Table & Chairs' }
+      // Central Mahogany Conference Table and all executive chairs (seated executives & chairs)
+      { x: 250, y: 310, w: 475, h: 175, label: 'Mahogany Conference Table & Chairs' }
     ],
     triggers: [
       // Exit Doorway back to Big Workplace (returns behind projector screen)
       {
         id: 'door_back_to_big_workplace',
-        x: 0, y: 280, w: 90, h: 130,
+        x: 0, y: 310, w: 90, h: 140,
         prompt: 'Return to R&D Mega-Hub 🏢 [E / Space]',
-        promptPos: { x: 60, y: 340 },
+        promptPos: { x: 60, y: 360 },
         action: () => exitConferenceRoomToBigWorkplace()
       },
       // 1. High-Tech Analytics Smart Board
       {
         id: 'conf_smart_board',
-        x: 780, y: 340, w: 180, h: 150,
+        x: 760, y: 350, w: 90, h: 90,
         prompt: '📊 Review Live Telemetry Smart Board [E]',
-        promptPos: { x: 860, y: 350 },
+        promptPos: { x: 810, y: 380 },
         action: () => {
           window.soundManager.playInteract();
           if (window.pixelEngine && window.pixelEngine.particles) {
-            window.pixelEngine.particles.spawnEmbers(860, 350);
+            window.pixelEngine.particles.spawnEmbers(810, 380);
           }
           showToast('📊 Smart Board: "Global telemetry load 99.98% optimal. All 4 distributed clusters synced!"');
         }
@@ -1096,9 +1098,9 @@ const SCENES = {
       // 2. Q3 Roadmap Strategy Whiteboard
       {
         id: 'conf_q3_whiteboard',
-        x: 620, y: 210, w: 100, h: 70,
+        x: 710, y: 310, w: 80, h: 60,
         prompt: '📋 Inspect Q3 Expansion Whiteboard [E]',
-        promptPos: { x: 670, y: 230 },
+        promptPos: { x: 750, y: 330 },
         action: () => {
           window.soundManager.playInteract();
           showToast('📋 Q3 Plan: "Next phase: Multi-region latency replication and autonomous AI office assistant."');
@@ -1107,16 +1109,16 @@ const SCENES = {
       // 3. Conference Espresso Credenza
       {
         id: 'conf_espresso_credenza',
-        x: 70, y: 210, w: 130, h: 80,
+        x: 170, y: 310, w: 80, h: 60,
         prompt: '☕ Brew Executive Blend Coffee [E]',
-        promptPos: { x: 135, y: 230 },
+        promptPos: { x: 210, y: 330 },
         action: () => {
           if (window.coffeeMachine) {
             window.coffeeMachine.open();
           } else {
             window.soundManager.playInteract();
             if (window.pixelEngine && window.pixelEngine.particles) {
-              window.pixelEngine.particles.spawnCoffeeSteam(135, 215);
+              window.pixelEngine.particles.spawnCoffeeSteam(210, 320);
             }
             showToast('☕ Executive Dark Roast brewed! Focus +100% for the upcoming board meeting.');
           }
@@ -1125,27 +1127,27 @@ const SCENES = {
       // 4. Conference Board Meeting Table Sitting
       {
         id: 'conf_board_meeting',
-        x: 220, y: 445, w: 560, h: 70,
+        x: 240, y: 480, w: 500, h: 55,
         prompt: '🪑 Take Seat at Executive Table [E / C]',
-        promptPos: { x: 500, y: 460 },
+        promptPos: { x: 500, y: 495 },
         action: () => {
           const sitX = state.player.x < 360 ? 300 : (state.player.x > 620 ? 690 : 500);
-          toggleSitInChair(sitX, 475, 'up', sitX, 510);
+          toggleSitInChair(sitX, 475, 'up', sitX, 515);
         }
       },
       // 5. Water Cooler Station (supports water cooler mini-game)
       {
         id: 'conf_water_cooler',
-        x: 880, y: 460, w: 90, h: 80,
+        x: 790, y: 460, w: 60, h: 70,
         prompt: '💧 Hydrate at Water Cooler [E]',
-        promptPos: { x: 925, y: 470 },
+        promptPos: { x: 820, y: 490 },
         action: () => {
           if (window.waterCoolerGame) {
             window.waterCoolerGame.open();
           } else {
             window.soundManager.playInteract();
             if (window.pixelEngine && window.pixelEngine.particles) {
-              window.pixelEngine.particles.spawnWaterSparkles(925, 480);
+              window.pixelEngine.particles.spawnWaterSparkles(820, 490);
             }
             showToast('💧 Pure mountain spring water! "Hydration is the secret to marathon strategy sessions."');
           }
@@ -2035,7 +2037,7 @@ function enterConferenceRoomFromBigWorkplace() {
   overlay.classList.add('active');
 
   setTimeout(() => {
-    switchScene('CONFERENCE_ROOM', 100, 340, 'right');
+    switchScene('CONFERENCE_ROOM', 100, 350, 'right');
     window.soundManager.playDoorClose();
 
     setTimeout(() => {
