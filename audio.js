@@ -598,6 +598,63 @@ class SoundManager {
       });
     } catch (e) {}
   }
+
+  // --- HOLOGRAPHIC BLUEPRINT MAP OPEN SOUND ---
+  playMapOpen() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      // High-tech rising holographic chime (3-tone electronic sonar ping)
+      const tones = [523.25, 783.99, 1046.5]; // C5, G5, C6
+      tones.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + idx * 0.05);
+        gain.gain.setValueAtTime(0.001, t + idx * 0.05);
+        gain.gain.linearRampToValueAtTime(0.18, t + idx * 0.05 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + idx * 0.05 + 0.22);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t + idx * 0.05);
+        osc.stop(t + idx * 0.05 + 0.25);
+      });
+
+      // Electronic scanner sweep
+      const sweep = this.ctx.createOscillator();
+      const sweepGain = this.ctx.createGain();
+      sweep.type = 'triangle';
+      sweep.frequency.setValueAtTime(320, t);
+      sweep.frequency.exponentialRampToValueAtTime(1400, t + 0.18);
+      sweepGain.gain.setValueAtTime(0.06, t);
+      sweepGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      sweep.connect(sweepGain);
+      sweepGain.connect(this.masterGain);
+      sweep.start(t);
+      sweep.stop(t + 0.22);
+    } catch (e) {}
+  }
+
+  // --- HOLOGRAPHIC BLUEPRINT MAP CLOSE SOUND ---
+  playMapClose() {
+    if (this.muted || !this.ctx) return;
+    this.unlock();
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.exponentialRampToValueAtTime(330, t + 0.14);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.16);
+    } catch (e) {}
+  }
 }
 
 window.soundManager = new SoundManager();

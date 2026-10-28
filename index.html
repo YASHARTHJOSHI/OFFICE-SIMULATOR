@@ -25,6 +25,10 @@
         </div>
       </div>
       <div class="header-right">
+        <button id="btn-map-toggle" class="btn-map-toggle" title="Open Office Map & Floor Plan (M)" aria-label="Open Map">
+          <span class="map-btn-icon">🗺️</span>
+          <span class="map-btn-label">Map [M]</span>
+        </button>
         <button id="btn-phone-toggle" class="btn-pager-toggle" title="Open Smartphone & Groq AI Tasks (P)" aria-label="Open Phone">
           <span class="pager-icon">📱</span>
           <span class="pager-label">Phone</span>
@@ -1118,6 +1122,96 @@
         </div>
       </div>
     </div>
+
+    <!-- Interactive Holographic Office Map Modal (Accessed via 'M' Key or HUD) -->
+    <div id="office-map-modal" class="modal office-map-modal hidden">
+      <div class="modal-card office-map-card">
+        <!-- Map Header -->
+        <div class="modal-header office-map-header">
+          <div class="map-header-left">
+            <span class="map-header-icon">🗺️</span>
+            <div>
+              <div class="map-title-row">
+                <h3 class="map-title">OFFICE FLOOR PLAN & SCHEMATIC</h3>
+                <span class="map-sec-pill">LEVEL 12 • HEADQUARTERS</span>
+              </div>
+              <p class="map-subtitle">Architectural Blueprint & Real-Time Coworker Location Radar</p>
+            </div>
+          </div>
+          <div class="map-header-right">
+            <div class="map-live-tag">
+              <span class="map-live-dot"></span>
+              <span>LIVE RADAR</span>
+            </div>
+            <button id="btn-close-office-map" class="modal-close" title="Close Map (Esc / M)">&times;</button>
+          </div>
+        </div>
+
+        <!-- Map Main Body: Canvas Blueprint + Intel Sidebar -->
+        <div class="office-map-body">
+          <div class="map-canvas-container">
+            <canvas id="office-map-canvas" width="940" height="570"></canvas>
+            <div class="map-legend-bar">
+              <div class="legend-item"><span class="legend-dot current"></span> <span>You Are Here</span></div>
+              <div class="legend-item"><span class="legend-icon">🚪</span> <span>Connecting Doorway</span></div>
+              <div class="legend-item"><span class="legend-icon">💻</span> <span>Workstation PC</span></div>
+              <div class="legend-item"><span class="legend-icon">☕</span> <span>Espresso Machine</span></div>
+              <div class="legend-item"><span class="legend-icon">💧</span> <span>Water Cooler</span></div>
+              <div class="legend-item"><span class="legend-icon">📊</span> <span>Telemetry Board</span></div>
+            </div>
+          </div>
+
+          <!-- Room Intel & Fast Travel Sidebar -->
+          <div class="map-intel-sidebar">
+            <div class="intel-header">
+              <span id="map-intel-code" class="intel-code">SEC-02 // CENTRAL</span>
+              <h4 id="map-intel-title" class="intel-title">🏢 Main Office Floor</h4>
+              <p id="map-intel-subtitle" class="intel-subtitle">Central Hub & Open Workstations</p>
+            </div>
+
+            <!-- Current Location Badge -->
+            <div id="map-intel-current-badge" class="intel-current-badge">
+              <span class="badge-dot"></span>
+              <span>YOU ARE CURRENTLY IN THIS ROOM</span>
+            </div>
+
+            <!-- Room Description -->
+            <div class="intel-section">
+              <span class="intel-label">ROOM OVERVIEW</span>
+              <p id="map-intel-desc" class="intel-desc">The vibrant heart of the company...</p>
+            </div>
+
+            <!-- Key Stations & Features -->
+            <div class="intel-section">
+              <span class="intel-label">INTERACTIVE STATIONS</span>
+              <div id="map-intel-features" class="intel-features-grid">
+                <!-- Dynamically populated chips -->
+              </div>
+            </div>
+
+            <!-- Live Coordinates & Teleport Action -->
+            <div class="intel-actions-wrap">
+              <div id="map-live-coords" class="intel-coords-pill">PLAYER POSITION: X: 512, Y: 245</div>
+              <button id="btn-map-fast-travel" class="btn-fast-travel" title="Instantly travel to selected room">
+                <span>🚀 FAST TRAVEL TO THIS ROOM</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map Footer Hints -->
+        <div class="office-map-footer">
+          <div class="map-hotkey-hints">
+            <span class="hotkey-chip"><kbd>M</kbd> Toggle Map</span>
+            <span class="hotkey-chip"><kbd>ESC</kbd> Close</span>
+            <span class="hotkey-chip"><kbd>CLICK ROOM</kbd> Fast Travel & Intel</span>
+          </div>
+          <button id="btn-map-footer-close" class="btn-pixel-secondary">
+            <span>Close Map [ESC]</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Firebase Core, Auth & Firestore SDKs (v10 Compat) -->
@@ -1137,6 +1231,7 @@
   <script src="phone-device.js"></script>
   <script src="water-cooler.js"></script>
   <script src="coffee-machine.js"></script>
+  <script src="office-map.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

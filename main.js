@@ -1220,6 +1220,13 @@ function setupEventListeners() {
     const tag = (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '');
     if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) return;
 
+    if (window.officeMap && window.officeMap.isOpen) {
+      if (isDown && (e.key === 'Escape' || e.code === 'Escape' || e.key === 'm' || e.key === 'M' || e.code === 'KeyM')) {
+        window.officeMap.close();
+      }
+      return;
+    }
+
     if (window.waterCoolerGame && window.waterCoolerGame.isOpen) {
       if (isDown && (e.key === 'Escape' || e.code === 'Escape')) {
         window.waterCoolerGame.close();
@@ -1277,13 +1284,19 @@ function setupEventListeners() {
         if (window.phoneDevice) window.phoneDevice.toggle();
         matched = true;
       }
+      if (k === 'm' || c === 'KeyM') {
+        if (window.officeMap) window.officeMap.toggle();
+        matched = true;
+      }
       if (k === 'escape' || c === 'Escape') {
-        if (window.phoneDevice && window.phoneDevice.isOpen) {
+        if (window.officeMap && window.officeMap.isOpen) {
+          window.officeMap.close();
+          matched = true;
+        } else if (window.phoneDevice && window.phoneDevice.isOpen) {
           window.phoneDevice.close();
           matched = true;
         }
       }
-      if (k === 'm' || c === 'KeyM') toggleSound();
       if (k === 'h' || c === 'KeyH') toggleHelpModal();
       if (k === 'f' || c === 'KeyF') toggleFullscreen();
     }
@@ -2122,7 +2135,7 @@ function checkCollision(x, y, scene) {
 let lastTime = performance.now();
 
 function update(dt) {
-  if (state.isDialogueOpen || state.isTransitioning || (window.waterCoolerGame && window.waterCoolerGame.isOpen)) {
+  if (state.isDialogueOpen || state.isTransitioning || (window.officeMap && window.officeMap.isOpen) || (window.waterCoolerGame && window.waterCoolerGame.isOpen)) {
     state.player.isMoving = false;
     return;
   }
