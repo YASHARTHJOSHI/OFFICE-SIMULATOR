@@ -2369,6 +2369,8 @@ function exitConferenceRoomToBigWorkplace() {
 }
 
 // Expose navigation to window
+window.switchScene = switchScene;
+window.state = state;
 window.enterCafeteria = enterCafeteria;
 window.exitCafeteriaToMainHall = exitCafeteriaToMainHall;
 window.enterBigWorkplace = enterBigWorkplace;

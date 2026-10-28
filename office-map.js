@@ -148,6 +148,13 @@
       this.modal = null;
       this.eventsBound = false;
       this.avatarImg = new Image();
+      this.blueprintImg = new Image();
+      this.blueprintImg.src = 'assets/office_blueprint_map.jpg';
+
+      this.minimapCanvas = null;
+      this.minimapCtx = null;
+      this.minimapWidget = null;
+      this.minimapAnimId = null;
 
       // Ensure DOM is ready
       if (document.readyState === 'loading') {
@@ -164,12 +171,27 @@
         this.ctx = this.canvas.getContext('2d');
       }
 
+      this.minimapWidget = document.getElementById('hud-minimap-radar');
+      this.minimapCanvas = document.getElementById('minimap-canvas');
+      if (this.minimapCanvas) {
+        this.minimapCtx = this.minimapCanvas.getContext('2d');
+      }
+
       this.bindEvents();
+      this.startMinimapLoop();
     }
 
     bindEvents() {
       if (this.eventsBound) return;
       this.eventsBound = true;
+
+      // Click on Circular Minimap Radar -> Expands into full tactical map!
+      if (this.minimapWidget) {
+        this.minimapWidget.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.open();
+        });
+      }
 
       // Close buttons
       const closeBtn = document.getElementById('btn-close-office-map');
@@ -181,12 +203,6 @@
       const fastTravelBtn = document.getElementById('btn-map-fast-travel');
       if (fastTravelBtn) {
         fastTravelBtn.addEventListener('click', () => this.handleFastTravel());
-      }
-
-      // HUD Button toggle in header
-      const headerBtn = document.getElementById('btn-map-toggle');
-      if (headerBtn) {
-        headerBtn.addEventListener('click', () => this.toggle());
       }
 
       // Canvas click and hover
@@ -289,6 +305,258 @@
       this.radarPulse = (this.radarPulse + 0.028) % 1;
       this.render();
       this.animId = requestAnimationFrame(() => this.loop());
+    }
+
+    startMinimapLoop() {
+      if (this.minimapAnimId) cancelAnimationFrame(this.minimapAnimId);
+      const tick = () => {
+        this.renderMinimap();
+        this.minimapAnimId = requestAnimationFrame(tick);
+      };
+      this.minimapAnimId = requestAnimationFrame(tick);
+    }
+
+    renderMinimap() {
+      if (!this.minimapCanvas || !this.minimapCtx) {
+        this.minimapCanvas = document.getElementById('minimap-canvas');
+        if (this.minimapCanvas) this.minimapCtx = this.minimapCanvas.getContext('2d');
+        else return;
+      }
+
+      const ctx = this.minimapCtx;
+      const W = this.minimapCanvas.width;
+      const H = this.minimapCanvas.height;
+      const cx = W / 2;
+      const cy = H / 2;
+      const R = 52;
+
+      const currentRoomId = (window.state && window.state.currentScene) ? window.state.currentScene : 'OFFICE_HALL';
+      const currentRoom = ROOMS_CONFIG[currentRoomId] || ROOMS_CONFIG['OFFICE_HALL'];
+
+      // Update room label in minimap footer badge
+      const badgeLabel = document.getElementById('minimap-room-label');
+      if (badgeLabel && this.lastRoomBadge !== currentRoomId) {
+        const shortNames = {
+          BOSS_CABINET: 'SUITE [M]',
+          OFFICE_HALL: 'HUB [M]',
+          CORNER_OFFICE: 'HR [M]',
+          CAFETERIA: 'CAFE [M]',
+          BIG_WORKPLACE: 'DEV [M]',
+          CONFERENCE_ROOM: 'BOARD [M]'
+        };
+        badgeLabel.textContent = shortNames[currentRoomId] || 'MAP [M]';
+        this.lastRoomBadge = currentRoomId;
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+
+      // Circular clip path
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.clip();
+
+      // Deep cyber radial gradient
+      const bgGrad = ctx.createRadialGradient(cx, cy, 4, cx, cy, R);
+      bgGrad.addColorStop(0, '#0c1a2e');
+      bgGrad.addColorStop(0.65, '#070f1e');
+      bgGrad.addColorStop(1, '#020617');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Blueprint image background overlay
+      if (this.blueprintImg && this.blueprintImg.complete && this.blueprintImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.28;
+        const rx = currentRoom.rect;
+        const sx = (rx.x / 1024) * this.blueprintImg.naturalWidth;
+        const sy = (rx.y / 576) * this.blueprintImg.naturalHeight;
+        const sw = (rx.w / 1024) * this.blueprintImg.naturalWidth;
+        const sh = (rx.h / 576) * this.blueprintImg.naturalHeight;
+        ctx.drawImage(this.blueprintImg, sx, sy, sw, sh, 4, 4, W - 8, H - 8);
+        ctx.restore();
+      }
+
+      // Concentric Radar Distance Rings
+      ctx.lineWidth = 1;
+      [15, 30, 45].forEach((r, idx) => {
+        ctx.strokeStyle = idx === 2 ? 'rgba(56, 189, 248, 0.45)' : 'rgba(56, 189, 248, 0.18)';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // Crosshair Reticle Lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+      ctx.setLineDash([2, 3]);
+      ctx.beginPath();
+      ctx.moveTo(cx, 4);
+      ctx.lineTo(cx, H - 4);
+      ctx.moveTo(4, cy);
+      ctx.lineTo(W - 4, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Rotating Radar Sweep Beam
+      this.minimapSweep = ((this.minimapSweep || 0) + 0.04) % (Math.PI * 2);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(this.minimapSweep);
+      const sweepGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+      sweepGrad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+      sweepGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+      ctx.fillStyle = sweepGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, R, 0, 0.55);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Doorway blips on radar perimeter
+      const doorways = {
+        OFFICE_HALL: [
+          { dir: 'N', angle: -Math.PI / 2 },
+          { dir: 'SW', angle: Math.PI * 0.75 },
+          { dir: 'E', angle: 0 }
+        ],
+        BOSS_CABINET: [{ dir: 'SE', angle: Math.PI * 0.25 }],
+        CORNER_OFFICE: [{ dir: 'NE', angle: -Math.PI * 0.25 }],
+        CAFETERIA: [
+          { dir: 'W', angle: Math.PI },
+          { dir: 'E', angle: 0 }
+        ],
+        BIG_WORKPLACE: [
+          { dir: 'W', angle: Math.PI },
+          { dir: 'NE', angle: -Math.PI * 0.3 }
+        ],
+        CONFERENCE_ROOM: [{ dir: 'SW', angle: Math.PI * 0.75 }]
+      };
+      const roomDoors = doorways[currentRoomId] || [];
+      roomDoors.forEach(d => {
+        const dx = cx + Math.cos(d.angle) * 44;
+        const dy = cy + Math.sin(d.angle) * 44;
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(dx, dy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Track NPCs in current scene (Offline & Online)
+      this.renderMinimapNPCs(ctx, currentRoomId, cx, cy);
+
+      // Track Remote Multiplayer Peers in current scene
+      if (window.multiplayerEngine && window.multiplayerEngine.peers) {
+        window.multiplayerEngine.peers.forEach(peer => {
+          if (peer.scene === currentRoomId) {
+            const px = Number.isFinite(peer.x) ? peer.x : 512;
+            const py = Number.isFinite(peer.y) ? peer.y : 288;
+            const radX = cx + ((px / 1024) - 0.5) * 78;
+            const radY = cy + ((py / 576) - 0.5) * 78;
+
+            // Glowing Emerald Blip
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.35)';
+            ctx.beginPath();
+            ctx.arc(radX, radY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(radX, radY, 3.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Initial letter
+            ctx.font = 'bold 7px "Outfit", sans-serif';
+            ctx.fillStyle = '#f1f5f9';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            const initial = (peer.name || 'C')[0].toUpperCase();
+            ctx.fillText(initial, radX, radY - 4);
+          }
+        });
+      }
+
+      // Track Local Player in current scene
+      const p = (window.state && window.state.player) ? window.state.player : { x: 512, y: 288, direction: 'down' };
+      const plRadX = cx + ((p.x / 1024) - 0.5) * 78;
+      const plRadY = cy + ((p.y / 576) - 0.5) * 78;
+
+      // Facing Direction Vision Cone
+      const dirAngles = { up: -Math.PI / 2, down: Math.PI / 2, left: Math.PI, right: 0 };
+      const facingAngle = dirAngles[p.direction] !== undefined ? dirAngles[p.direction] : Math.PI / 2;
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
+      ctx.beginPath();
+      ctx.moveTo(plRadX, plRadY);
+      ctx.arc(plRadX, plRadY, 18, facingAngle - 0.42, facingAngle + 0.42);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Pulsing Sonar Ping for Local Player
+      const pingPhase = (performance.now() / 850) % 1;
+      ctx.strokeStyle = `rgba(245, 158, 11, ${1 - pingPhase})`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(plRadX, plRadY, 4 + pingPhase * 9, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Golden Core
+      ctx.fillStyle = '#f59e0b';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(plRadX, plRadY, 3.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Bright white center dot
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(plRadX, plRadY, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    renderMinimapNPCs(ctx, roomId, cx, cy) {
+      const npcsByRoom = {
+        BOSS_CABINET: [
+          { name: 'Boss Anakin', x: 295, y: 350, icon: '👔', color: '#f43f5e' }
+        ],
+        CORNER_OFFICE: [
+          { name: 'HR Elena', x: 420, y: 470, icon: '👩‍💼', color: '#a855f7' }
+        ],
+        BIG_WORKPLACE: [
+          { name: 'Rahul', x: 270, y: 320, icon: '👨‍💻', color: '#10b981' },
+          { name: 'Priya', x: 520, y: 320, icon: '👩‍💻', color: '#10b981' },
+          { name: 'Amit', x: 270, y: 460, icon: '👨‍💻', color: '#10b981' },
+          { name: 'Neha', x: 520, y: 460, icon: '👩‍💻', color: '#10b981' }
+        ],
+        CAFETERIA: [
+          { name: 'Espresso Bar', x: 490, y: 270, icon: '☕', color: '#f59e0b' }
+        ],
+        CONFERENCE_ROOM: [
+          { name: 'Telemetry Lead', x: 810, y: 380, icon: '📊', color: '#818cf8' }
+        ]
+      };
+
+      const list = npcsByRoom[roomId] || [];
+      list.forEach(npc => {
+        const nx = cx + ((npc.x / 1024) - 0.5) * 78;
+        const ny = cy + ((npc.y / 576) - 0.5) * 78;
+
+        ctx.fillStyle = npc.color || '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(nx, ny, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(npc.icon, nx, ny - 6);
+      });
     }
 
     getCanvasPos(e) {
@@ -410,9 +678,16 @@
       const H = this.canvas.height;
       const currentRoomId = (window.state && window.state.currentScene) ? window.state.currentScene : 'OFFICE_HALL';
 
-      // 1. Blueprint Background (Navy Blue + Holographic Grid)
+      // 1. Blueprint Background (Navy Blue + Holographic Grid + Generated Schematic Artwork)
       ctx.fillStyle = '#070b14';
       ctx.fillRect(0, 0, W, H);
+
+      if (this.blueprintImg && this.blueprintImg.complete && this.blueprintImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.28;
+        ctx.drawImage(this.blueprintImg, 0, 0, W, H);
+        ctx.restore();
+      }
 
       // Cyber Holographic Grid
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
@@ -449,33 +724,8 @@
         this.renderRoom(ctx, room, isCurrent, isSelected, isHovered);
       }
 
-      // 4. Render Live Remote Peers in Multiplayer
-      if (window.multiplayerEngine && window.multiplayerEngine.active && window.multiplayerEngine.peers) {
-        window.multiplayerEngine.peers.forEach(peer => {
-          const peerRoom = ROOMS_CONFIG[peer.scene];
-          if (peerRoom) {
-            const rx = peerRoom.rect;
-            const px = Number.isFinite(peer.x) ? peer.x : 512;
-            const py = Number.isFinite(peer.y) ? peer.y : 288;
-            const mappedX = rx.x + 14 + (px / 1024) * (rx.w - 28);
-            const mappedY = rx.y + 14 + (py / 576) * (rx.h - 28);
-
-            // Peer dot
-            ctx.fillStyle = '#38bdf8';
-            ctx.beginPath();
-            ctx.arc(mappedX, mappedY, 4.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Name label
-            ctx.font = 'bold 8px "Outfit", sans-serif';
-            ctx.fillStyle = '#e0f2fe';
-            ctx.fillText(peer.username || 'Coworker', mappedX + 7, mappedY + 3);
-          }
-        });
-      }
-
-      // 5. Render Main Player's Live "YOU ARE HERE" Beacon Pin
-      this.renderPlayerPin(ctx);
+      // 4. Render Characters across all office wings (Local player, remote peers, NPCs)
+      this.renderAllCharacterPins(ctx);
     }
 
     renderCorridors(ctx) {
@@ -638,6 +888,118 @@
       });
 
       ctx.restore();
+    }
+
+    renderAllCharacterPins(ctx) {
+      // 1. Render NPCs across all office wings (Lord Skywalker, HR Elena, Mentors, etc.)
+      const globalNPCs = [
+        { scene: 'BOSS_CABINET', name: '👔 Lord Skywalker (CEO)', icon: '👔', color: '#f43f5e', relX: 0.35, relY: 0.50 },
+        { scene: 'CORNER_OFFICE', name: '👩‍💼 HR Elena (VP People)', icon: '👩‍💼', color: '#a855f7', relX: 0.45, relY: 0.58 },
+        { scene: 'BIG_WORKPLACE', name: '👨‍💻 Rahul (PR)', icon: '👨‍💻', color: '#10b981', relX: 0.25, relY: 0.45 },
+        { scene: 'BIG_WORKPLACE', name: '👩‍💻 Priya (UX)', icon: '👩‍💻', color: '#10b981', relX: 0.50, relY: 0.45 },
+        { scene: 'BIG_WORKPLACE', name: '👨‍💻 Amit (DB)', icon: '👨‍💻', color: '#10b981', relX: 0.25, relY: 0.75 },
+        { scene: 'BIG_WORKPLACE', name: '👩‍💻 Neha (SRE)', icon: '👩‍💻', color: '#10b981', relX: 0.50, relY: 0.75 },
+        { scene: 'CONFERENCE_ROOM', name: '📊 Telemetry Lead', icon: '📊', color: '#818cf8', relX: 0.90, relY: 0.50 }
+      ];
+
+      globalNPCs.forEach(npc => {
+        const room = ROOMS_CONFIG[npc.scene];
+        if (!room) return;
+        const rx = room.rect;
+        const x = Math.round(rx.x + npc.relX * rx.w);
+        const y = Math.round(rx.y + npc.relY * rx.h);
+
+        ctx.save();
+        // Subtle ambient aura
+        ctx.fillStyle = npc.color + '33';
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pin core
+        ctx.fillStyle = npc.color;
+        ctx.beginPath();
+        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Icon
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(npc.icon, x, y - 8);
+
+        // Name tag
+        ctx.font = 'bold 7px "Outfit", sans-serif';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText(npc.name, x, y + 10);
+        ctx.restore();
+      });
+
+      // 2. Render Live Remote Peers in Multiplayer across all rooms
+      if (window.multiplayerEngine && window.multiplayerEngine.peers) {
+        window.multiplayerEngine.peers.forEach(peer => {
+          const peerScene = peer.scene || 'OFFICE_HALL';
+          const peerRoom = ROOMS_CONFIG[peerScene];
+          if (peerRoom) {
+            const rx = peerRoom.rect;
+            const px = Number.isFinite(peer.x) ? peer.x : 512;
+            const py = Number.isFinite(peer.y) ? peer.y : 288;
+            const mappedX = Math.round(rx.x + 16 + (px / 1024) * (rx.w - 32));
+            const mappedY = Math.round(rx.y + 36 + (py / 576) * (rx.h - 48));
+
+            ctx.save();
+            // Pulsing Emerald Ping
+            const peerPulse = (performance.now() / 900) % 1;
+            ctx.strokeStyle = `rgba(16, 185, 129, ${1 - peerPulse})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(mappedX, mappedY, 4 + peerPulse * 12, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Emerald Aura
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
+            ctx.beginPath();
+            ctx.arc(mappedX, mappedY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Peer dot
+            ctx.fillStyle = '#10b981';
+            ctx.shadowColor = '#10b981';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(mappedX, mappedY, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Name callout pill
+            const peerName = `🟢 ${peer.name || peer.username || 'Coworker'}`;
+            ctx.font = 'bold 7.5px "Outfit", sans-serif';
+            const tw = ctx.measureText(peerName).width;
+            const pillW = tw + 8;
+            const pillH = 13;
+            const pillX = Math.round(mappedX - pillW / 2);
+            const pillY = Math.round(mappedY - 20);
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(pillX, pillY, pillW, pillH, 3);
+            else ctx.rect(pillX, pillY, pillW, pillH);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#a7f3d0';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(peerName, mappedX, pillY + 7);
+            ctx.restore();
+          }
+        });
+      }
+
+      // 3. Render Main Player's Live "YOU ARE HERE" Beacon Pin
+      this.renderPlayerPin(ctx);
     }
 
     renderPlayerPin(ctx) {

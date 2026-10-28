@@ -25,10 +25,6 @@
         </div>
       </div>
       <div class="header-right">
-        <button id="btn-map-toggle" class="btn-map-toggle" title="Open Office Map & Floor Plan (M)" aria-label="Open Map">
-          <span class="map-btn-icon">🗺️</span>
-          <span class="map-btn-label">Map [M]</span>
-        </button>
         <button id="btn-phone-toggle" class="btn-pager-toggle" title="Open Smartphone & Groq AI Tasks (P)" aria-label="Open Phone">
           <span class="pager-icon">📱</span>
           <span class="pager-label">Phone</span>
@@ -98,6 +94,18 @@
             <div class="push-body" id="push-notif-body">Reach out to a senior engineer for help without apologizing.</div>
           </div>
           <button id="btn-close-push" class="push-close-btn" type="button">&times;</button>
+        </div>
+
+        <!-- Circular In-Game Live Minimap & Radar -->
+        <div id="hud-minimap-radar" class="hud-minimap-radar" title="Live Office Radar (Click to Expand Map • Press [M])" role="button" tabindex="0">
+          <div class="minimap-compass-n">N</div>
+          <canvas id="minimap-canvas" class="minimap-canvas" width="108" height="108"></canvas>
+          <div class="minimap-scanline"></div>
+          <div class="minimap-bezel"></div>
+          <div class="minimap-footer-badge">
+            <span class="minimap-dot"></span>
+            <span class="minimap-label" id="minimap-room-label">RADAR [M]</span>
+          </div>
         </div>
 
         <canvas id="game-canvas" width="1024" height="576" tabindex="0"></canvas>
